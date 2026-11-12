@@ -16,6 +16,7 @@ local m_pi = math.pi
 
 LoadModule("GameVersions")
 LoadModule("Modules/Common")
+LoadModule("Modules/ZhTWText") -- zhTW: draw Chinese characters (the engine fonts are ASCII only)
 LoadModule("Modules/CalcFormat")
 LoadModule("Modules/Data")
 LoadModule("Modules/ModTools")
