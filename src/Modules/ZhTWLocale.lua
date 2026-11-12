@@ -22,14 +22,65 @@ local t_concat = table.concat
 local ZhTWLocale = { enabled = true }
 
 local ui -- English -> Chinese interface strings
+local formats -- compiled printf-style strings, e.g. "x %.2f (MH chance to hit)"
 local names -- English -> Chinese game names
 local modTranslator -- function(line) -> Chinese or nil
+
+local function escapePattern(s)
+	return (s:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%0"))
+end
+
+-- "Hit chance %.1f%%" -> Lua pattern capturing the values
+local function compileFormat(en, zh)
+	local parts, literal = { "^" }, ""
+	local longest = ""
+	local pos = 1
+	local count = 0
+	while pos <= #en do
+		local s, e, flags, conv = en:find("%%([%-%+ #0]*%d*%.?%d*)([dsfgxi%%])", pos)
+		local lit = en:sub(pos, (s or #en + 1) - 1)
+		if #lit > #longest then
+			longest = lit
+		end
+		t_insert(parts, escapePattern(lit))
+		if not s then
+			break
+		end
+		if conv == "%" then
+			t_insert(parts, "%%")
+		elseif conv == "s" then
+			t_insert(parts, "(.-)")
+			count = count + 1
+		elseif conv == "d" or conv == "i" or conv == "x" then
+			t_insert(parts, "([%+%-]?[%d,]+)")
+			count = count + 1
+		else
+			t_insert(parts, "([%+%-]?[%d,]*%.?%d+)")
+			count = count + 1
+		end
+		pos = e + 1
+	end
+	t_insert(parts, "$")
+	if count == 0 or #longest < 2 then
+		return nil
+	end
+	return { pattern = t_concat(parts), anchor = longest, zh = zh, count = count }
+end
 
 local function load()
 	if ui then
 		return
 	end
-	ui = LoadModule("Data/zhTW/UI") or { }
+	local data = LoadModule("Data/zhTW/UI") or { }
+	ui = data.strings or data
+	formats = { }
+	for en, zh in pairs(data.formats or { }) do
+		local f = compileFormat(en, zh)
+		if f then
+			t_insert(formats, f)
+		end
+	end
+	table.sort(formats, function(a, b) return #a.anchor > #b.anchor end)
 	names = { }
 	-- Reverse the import tables (Chinese -> English) for display (English -> Chinese)
 	local function addReverse(map)
@@ -121,6 +172,27 @@ local function translateCore(core)
 				return l .. sep
 			end
 			return l .. sep .. (translateLine(value) or value)
+		end
+	end
+	-- printf-style interface strings
+	for _, f in ipairs(formats) do
+		if s_find(core, f.anchor, 1, true) then
+			local caps = { s_match(core, f.pattern) }
+			if caps[1] ~= nil then
+				local i = 0
+				local out = f.zh:gsub("%%[%-%+ #0]*%d*%.?%d*([dsfgxi%%])", function(conv)
+					if conv == "%" then
+						return "%"
+					end
+					i = i + 1
+					local v = caps[i] or ""
+					if conv == "s" then
+						return translateLine(v) or v
+					end
+					return v
+				end)
+				return out
+			end
 		end
 	end
 	-- Game modifier text

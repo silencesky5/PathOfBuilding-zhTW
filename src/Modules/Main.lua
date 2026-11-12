@@ -621,6 +621,9 @@ function main:LoadSettings(ignoreBuild)
 				if node.attrib.showTitlebarName then
 					self.showTitlebarName = node.attrib.showTitlebarName == "true"
 				end
+				if node.attrib.zhTWLanguage and ZhTWLocale then -- zhTW
+					ZhTWLocale.enabled = node.attrib.zhTWLanguage ~= "en"
+				end
 				if node.attrib.betaTest then
 					self.betaTest = node.attrib.betaTest == "true"
 				end
@@ -792,6 +795,7 @@ function main:SaveSettings()
 		decimalSeparator = self.decimalSeparator,
 		showTitlebarName = tostring(self.showTitlebarName),
 		betaTest = tostring(self.betaTest),
+		zhTWLanguage = ZhTWLocale and (ZhTWLocale.enabled and "zh" or "en") or nil, -- zhTW
 		edgeSearchHighlight = tostring(self.edgeSearchHighlight),
 		defaultGemQuality = tostring(self.defaultGemQuality or 0),
 		defaultCharLevel = tostring(self.defaultCharLevel or 1),
@@ -879,6 +883,7 @@ function main:OpenOptionsPopup(savedState)
 		decimalSeparator = self.decimalSeparator,
 		showTitlebarName = self.showTitlebarName,
 		betaTest = self.betaTest,
+		zhTWEnabled = ZhTWLocale and ZhTWLocale.enabled, -- zhTW
 		edgeSearchHighlight = self.edgeSearchHighlight,
 		defaultGemQuality = self.defaultGemQuality or 0,
 		defaultCharLevel = self.defaultCharLevel or 1,
@@ -1044,6 +1049,16 @@ function main:OpenOptionsPopup(savedState)
 	controls.betaTest = new("CheckBoxControl"):CheckBoxControl({ "TOPLEFT", controls.sectionAnchor, "TOPLEFT" }, { currentX + defaultLabelPlacementX, currentY, 20 }, "^7Opt-in to weekly beta test builds:", function(state)
 		self.betaTest = state
 	end)
+
+	if ZhTWLocale then -- zhTW: interface language
+		nextRow()
+		controls.zhTWLanguage = new("CheckBoxControl"):CheckBoxControl({ "TOPLEFT", controls.sectionAnchor, "TOPLEFT" }, { currentX + defaultLabelPlacementX, currentY, 20 }, "^7Chinese interface (繁體中文介面):", function(state)
+			ZhTWLocale.enabled = state
+			ZhTWLocale.clearCache()
+		end)
+		controls.zhTWLanguage.state = ZhTWLocale.enabled
+		controls.zhTWLanguage.tooltipText = "Show the interface, items and passive skills in Traditional Chinese (Taiwan client terms).\nCalculations are not affected."
+	end
 
 	nextRow()
 	controls.edgeSearchHighlight = new("CheckBoxControl"):CheckBoxControl({ "TOPLEFT", controls.sectionAnchor, "TOPLEFT" }, { currentX + defaultLabelPlacementX, currentY, 20}, "^7Show search circles at viewport edge", function(state)
@@ -1240,6 +1255,10 @@ function main:OpenOptionsPopup(savedState)
 		self.decimalSeparator = savedState.decimalSeparator
 		self.showTitlebarName = savedState.showTitlebarName
 		self.betaTest = savedState.betaTest
+		if ZhTWLocale and savedState.zhTWEnabled ~= nil then -- zhTW
+			ZhTWLocale.enabled = savedState.zhTWEnabled
+			ZhTWLocale.clearCache()
+		end
 		self.edgeSearchHighlight = savedState.edgeSearchHighlight
 		self.defaultGemQuality = savedState.defaultGemQuality
 		self.defaultCharLevel = savedState.defaultCharLevel
