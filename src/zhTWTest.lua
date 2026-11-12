@@ -184,6 +184,16 @@ local ok, err = pcall(function()
 		log(string.format("== Unique items checked against PoB unique data: %d items, %d lines, %d lines not in PoB data", uChecked, uLines, #uMissing))
 		for _, m in ipairs(uMissing) do log("   not in PoB data: " .. m) end
 
+		local function allocNames()
+			local set = { }
+			for id, node in pairs(build.spec.allocNodes) do
+				set[(node.dn or "?") .. " #" .. tostring(id)] = true
+			end
+			return set
+		end
+		local twNodes = allocNames()
+		local twTreeInfo = string.format("class=%s ascend=%s secondary=%s points=%s", tostring(build.spec.curClassName), tostring(build.spec.curAscendClassName), tostring(build.spec.curSecondaryAscendClassName), tostring(build.spec:CountAllocNodes()))
+
 		local twItems = { }
 		for _, item in pairs(build.itemsTab.items) do
 			if item.uniqueID then
@@ -236,6 +246,16 @@ local ok, err = pcall(function()
 					end
 				end
 				log(string.format("Items in both builds: %d, identical: %d", matched, identical))
+				log("== Passive tree")
+				log("TW : " .. twTreeInfo)
+				log(string.format("PoB: class=%s ascend=%s secondary=%s points=%s", tostring(build.spec.curClassName), tostring(build.spec.curAscendClassName), tostring(build.spec.curSecondaryAscendClassName), tostring(build.spec:CountAllocNodes())))
+				local refNodes = allocNames()
+				local onlyTw, onlyRef = { }, { }
+				for k in pairs(twNodes) do if not refNodes[k] then t_insert(onlyTw, k) end end
+				for k in pairs(refNodes) do if not twNodes[k] then t_insert(onlyRef, k) end end
+				table.sort(onlyTw) table.sort(onlyRef)
+				log("Nodes only in TW import: " .. #onlyTw .. "  " .. table.concat(onlyTw, ", "))
+				log("Nodes only in PoB code: " .. #onlyRef .. "  " .. table.concat(onlyRef, ", "))
 			else
 				log("Could not decode pob" .. idx .. ".txt")
 			end

@@ -599,6 +599,125 @@ local function usageScore(desc, field)
 	return score
 end
 
+-- Item being converted: its base tags decide between stats that share one Chinese text
+local itemContext
+
+local function normaliseModLine(line)
+	return (line:lower():gsub("%(%-?[%d%.]+%-%-?[%d%.]+%)", "#"):gsub("[%+%-]?%d+%.?%d*", "#"):gsub("[%+%-]#", "#"):gsub("%s+", " "))
+end
+
+local modIndex -- normalised English mod line -> list of mod definitions
+local function getModIndex()
+	if modIndex then
+		return modIndex
+	end
+	modIndex = { }
+	local sets = { }
+	for _, key in ipairs({ "Explicit", "ItemExclusive", "Corrupted", "Delve", "Synthesis", "Scourge", "Eldritch",
+			"Flask", "Tincture", "Jewel", "JewelAbyss", "JewelCluster", "Foulborn" }) do
+		t_insert(sets, data.itemMods[key])
+	end
+	t_insert(sets, data.masterMods)
+	for _, set in ipairs(sets) do
+		for _, mod in pairs(set or { }) do
+			for i = 1, #mod do
+				if type(mod[i]) == "string" then
+					local key = normaliseModLine(mod[i])
+					modIndex[key] = modIndex[key] or { }
+					t_insert(modIndex[key], mod)
+				end
+			end
+		end
+	end
+	return modIndex
+end
+
+local enchantIndex -- normalised English enchantment lines (cluster jewels, labyrinth, flasks...)
+local function getEnchantIndex()
+	if enchantIndex then
+		return enchantIndex
+	end
+	enchantIndex = { }
+	local function add(line)
+		if type(line) == "string" then
+			enchantIndex[normaliseModLine(line)] = true
+		end
+	end
+	for _, jewel in pairs(data.clusterJewels and data.clusterJewels.jewels or { }) do
+		for _, skill in pairs(jewel.skills or { }) do
+			for _, line in ipairs(skill.enchant or { }) do
+				add(line)
+			end
+		end
+	end
+	local function walk(t, depth)
+		if depth > 4 then return end
+		for _, v in pairs(t) do
+			if type(v) == "string" then add(v) elseif type(v) == "table" then walk(v, depth + 1) end
+		end
+	end
+	walk(data.enchantments or { }, 1)
+	return enchantIndex
+end
+
+-- Score of an English candidate for the field it came from:
+-- explicit-type fields: 2 = a mod with this text can roll on the current item, 1 = known mod, 0 = unknown
+-- enchantMods: 2 = a known enchantment line
+-- other fields: 0 (the mod usage ranking from the export decides)
+local explicitFields = { explicitMods = true, craftedMods = true, fracturedMods = true }
+local function knownModScore(en, field)
+	if field == "enchantMods" then
+		local index = getEnchantIndex()
+		for line in (en .. "\n"):gmatch("([^\n]*)\n") do
+			if index[normaliseModLine(line)] then
+				return 2
+			end
+		end
+		return 0
+	end
+	if not explicitFields[field] then
+		return 0
+	end
+	local index = getModIndex()
+	local score = 0
+	for line in (en .. "\n"):gmatch("([^\n]*)\n") do
+		for _, mod in ipairs(index[normaliseModLine(line)] or { }) do
+			local s = 1
+			if itemContext and mod.weightKey then
+				for k, key in ipairs(mod.weightKey) do
+					if itemContext.tags[key] and (mod.weightVal[k] or 0) > 0 then
+						s = 2
+						break
+					end
+				end
+			end
+			if s > score then
+				score = s
+			end
+		end
+	end
+	return score
+end
+
+local function makeItemContext(baseEn, itemData)
+	local base = baseEn and data.itemBases[baseEn]
+	if not base then
+		return nil
+	end
+	local ctx = { name = baseEn, tags = copyTable(base.tags or { }) }
+	local sig = { baseEn }
+	if type(itemData.influences) == "table" and base.influenceTags then
+		for _, info in ipairs(itemLib.influenceInfo.all) do
+			if itemData.influences[info.display:lower()] and base.influenceTags[info.key] then
+				ctx.tags[base.influenceTags[info.key]] = true
+				t_insert(sig, info.key)
+			end
+		end
+	end
+	ctx.sig = t_concat(sig, ",")
+	return ctx
+end
+
 -- Matches text against templates with the given number of lines.
 -- field is the API field the line came from (implicitMods, explicitMods, ...), used to
 -- choose between different stats that share the same Chinese text.
@@ -630,11 +749,37 @@ local function matchText(text, lineCount, field)
 		end
 		return a.c.desc.f < b.c.desc.f
 	end)
+	local best, bestCand
 	for _, cand in ipairs(candidates) do
 		local en = tryCandidate(cand.c, cand.caps)
 		if en then
-			return en
+			best, bestCand = en, cand
+			break
 		end
+	end
+	if best then
+		-- Different stats can share one Chinese text. If an equally specific candidate gives
+		-- different English, prefer the one PoB's mod data allows on this kind of item.
+		local alternatives = { best }
+		for _, cand in ipairs(candidates) do
+			if cand ~= bestCand and cand.c.fixed == bestCand.c.fixed and cand.c.desc ~= bestCand.c.desc then
+				local en = tryCandidate(cand.c, cand.caps)
+				if en and not isValueInArray(alternatives, en) then
+					t_insert(alternatives, en)
+				end
+			end
+		end
+		if #alternatives > 1 and itemContext then
+			local bestScore = knownModScore(best, field)
+			for i = 2, #alternatives do
+				local score = knownModScore(alternatives[i], field)
+				if score > bestScore then
+					best, bestScore = alternatives[i], score
+				end
+			end
+			addNote(s_format("Ambiguous '%s' on %s: chose '%s' from { %s }", text, itemContext.name, best, t_concat(alternatives, " | ")))
+		end
+		return best
 	end
 	-- The website sometimes shows values outside the range the client text allows
 	-- (e.g. "+102%" on a line whose template is for 1-99). Use the best match anyway;
@@ -657,7 +802,7 @@ local cache = { }
 
 -- Converts a (possibly multi-line) modifier. Returns English or nil.
 local function convertModText(text, field)
-	local cacheKey = text .. "|" .. tostring(field)
+	local cacheKey = text .. "|" .. tostring(field) .. "|" .. (itemContext and itemContext.sig or "")
 	if cache[cacheKey] ~= nil then
 		return cache[cacheKey] or nil
 	end
@@ -880,6 +1025,8 @@ convertItem = function(itemData)
 		baseZh = best
 	end
 	local baseEn = baseZh and resolveBase(baseZh, itemData)
+	local outerContext = itemContext
+	itemContext = makeItemContext(baseEn, itemData)
 	if baseEn then
 		itemData.baseType = baseEn
 		if itemData.name ~= "" then
@@ -930,11 +1077,13 @@ convertItem = function(itemData)
 			end
 		end
 	end
+	itemContext = outerContext
 	return itemData
 end
 
 local function safeConvertItem(itemData)
 	local ok, err = pcall(convertItem, itemData)
+	itemContext = nil
 	if not ok then
 		addFailure(itemData.name or itemData.typeLine, "error", tostring(err))
 	end
