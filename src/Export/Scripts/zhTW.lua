@@ -122,6 +122,11 @@ end
 for _, name in ipairs(statFiles) do
 	t_insert(extractList, "Metadata/StatDescriptions/" .. name .. ".txt")
 end
+-- English only: used to rank stats that share one Chinese text
+local englishOnlyDats = { "Stats", "Mods" }
+for _, name in ipairs(englishOnlyDats) do
+	t_insert(extractList, "Data/" .. name .. ".datc64")
+end
 extract(extractList)
 
 local dats = { en = { }, tc = { } }
@@ -140,6 +145,17 @@ for _, name in ipairs(datNames) do
 	-- Allow Key columns of our English tables to resolve (e.g. BaseItemTypes -> ItemVisualIdentity)
 	if not main.datFileByName[name:lower()] then
 		main.datFileByName[name:lower()] = dats.en[name]
+	end
+end
+for _, name in ipairs(englishOnlyDats) do
+	local enRaw = readFile("Data/" .. name .. ".datc64")
+	if enRaw then
+		dats.en[name] = new("Dat64File"):Dat64File(name, enRaw)
+		if not main.datFileByName[name:lower()] then
+			main.datFileByName[name:lower()] = dats.en[name]
+		end
+	else
+		print("zhTW: missing " .. name .. ".datc64; ambiguous stat ranking will be skipped")
 	end
 end
 
@@ -577,7 +593,72 @@ do
 			end
 		end
 	end
-	writeTable("StatDescriptions.lua", out, "Traditional Chinese stat description templates. s = stat ids, v = variants { l = limits, t = template, p = special functions }")
+	-- Mod usage per stat: some different stats share one Chinese text
+	-- (e.g. life_regeneration_rate_+% and life_recovery_rate_+% are both "增加 {0}% 生命恢復率").
+	-- The importer picks the stat that real item mods of that kind use.
+	-- u = { i = implicit-type mods, e = prefix/suffix, q = unique, n = enchantment }
+	local usage = { }
+	local mods = dats.en.Mods
+	if mods then
+		local statCols = { }
+		for k = 1, 6 do
+			if mods.colMap["Stat" .. k] then
+				t_insert(statCols, "Stat" .. k)
+			end
+		end
+		for i = 1, mods.rowCount do
+			local row = mods:GetRowByIndex(i)
+			if row.Domain == 1 then -- item mods
+				local gt = row.GenerationType
+				local kind
+				if row.Id:match("Implicit") then
+					kind = "i"
+				elseif gt == 1 or gt == 2 then
+					kind = "e"
+				elseif gt == 3 then
+					kind = "q"
+				elseif gt == 10 then
+					kind = "n"
+				else
+					kind = "i"
+				end
+				for _, col in ipairs(statCols) do
+					local stat = row[col]
+					if stat and stat.Id then
+						usage[stat.Id] = usage[stat.Id] or { }
+						usage[stat.Id][kind] = (usage[stat.Id][kind] or 0) + 1
+					end
+				end
+			end
+		end
+	end
+	-- Attach usage to descriptors whose Chinese text is shared with another stat
+	local byText = { }
+	for _, desc in ipairs(out) do
+		for _, v in ipairs(desc.v) do
+			byText[v.t] = byText[v.t] or { }
+			byText[v.t][desc] = true
+		end
+	end
+	local ambiguousTexts = 0
+	for text, set in pairs(byText) do
+		local stats = { }
+		for desc in pairs(set) do
+			stats[table.concat(desc.s, " ")] = desc
+		end
+		if countKeys(stats) > 1 then
+			ambiguousTexts = ambiguousTexts + 1
+			local names = { }
+			for key, desc in pairs(stats) do
+				desc.u = usage[desc.s[1]] or { }
+				t_insert(names, key)
+			end
+			table.sort(names)
+			t_insert(conflictLog, s_format("[StatDescriptions] %s => %s", text, table.concat(names, " | ")))
+		end
+	end
+	t_insert(summary, s_format("%-24s %6d Chinese texts shared by different stats (ranked by mod usage)", "StatDescriptions", ambiguousTexts))
+	writeTable("StatDescriptions.lua", out, "Traditional Chinese stat description templates. s = stat ids, v = variants { l = limits, t = template, p = special functions }, u = mod usage counts (only on ambiguous texts)")
 	t_insert(summary, s_format("%-24s %6d descriptors, %d templates", "StatDescriptions", descCount, lineCount))
 end
 

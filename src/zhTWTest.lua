@@ -147,6 +147,50 @@ local ok, err = pcall(function()
 		for _, k in ipairs(statKeys) do log(k, twStats[k]) end
 		log("mainSkill", twStats.mainSkill)
 
+		-- Snapshot every imported item by its unique id, to compare with the PoB code item by item
+		local function itemLines(item)
+			local lines = { }
+			for _, kind in ipairs({ "enchantModLines", "implicitModLines", "explicitModLines" }) do
+				for _, ml in ipairs(item[kind] or { }) do
+					t_insert(lines, ml.line)
+				end
+			end
+			return lines
+		end
+		-- Check every line of imported unique items against PoB's own unique database
+		local function normalise(line)
+			return (line:lower():gsub("%(%-?[%d%.]+%-%-?[%d%.]+%)", "#"):gsub("[%+%-]?%d+%.?%d*", "#"):gsub("[%+%-]#", "#"):gsub("%s+", " "))
+		end
+		local uChecked, uLines, uMissing = 0, 0, { }
+		for _, item in pairs(build.itemsTab.items) do
+			local db = item.rarity == "UNIQUE" and item.title and main.uniqueDB.byTitle[item.title:lower()]
+			if db then
+				uChecked = uChecked + 1
+				local known = { }
+				for line in db.raw:gmatch("[^\n]+") do
+					known[normalise(line:gsub("^{[^}]*}", ""))] = true
+				end
+				-- Only the unique's own explicit lines (enchants, implicits from corruption and crafted mods are not in the unique data)
+				for _, ml in ipairs(item.explicitModLines or { }) do
+					if not ml.crafted and not ml.fractured then
+						uLines = uLines + 1
+						if not known[normalise(ml.line)] then
+							t_insert(uMissing, item.title .. ": " .. ml.line .. "    [PoB: " .. db.raw:gsub("\n", " | "):sub(1, 400) .. "]")
+						end
+					end
+				end
+			end
+		end
+		log(string.format("== Unique items checked against PoB unique data: %d items, %d lines, %d lines not in PoB data", uChecked, uLines, #uMissing))
+		for _, m in ipairs(uMissing) do log("   not in PoB data: " .. m) end
+
+		local twItems = { }
+		for _, item in pairs(build.itemsTab.items) do
+			if item.uniqueID then
+				twItems[item.uniqueID] = { title = item.title, base = item.baseName, lines = itemLines(item) }
+			end
+		end
+
 		local code = readFile("pob" .. idx .. ".txt")
 		if code then
 			code = code:gsub("%s", "")
@@ -163,6 +207,35 @@ local ok, err = pcall(function()
 					log(string.format("%-16s %-20s %-20s %s", k, tostring(a), tostring(b), same and "OK" or "DIFF"))
 				end
 				log(string.format("%-16s %-20s %-20s %s", "mainSkill", twStats.mainSkill, refStats.mainSkill, twStats.mainSkill == refStats.mainSkill and "OK" or "DIFF"))
+				-- Item by item comparison (same in-game item id in both builds)
+				log("== Same items in both builds (by item id)")
+				local matched, identical = 0, 0
+				for _, item in pairs(build.itemsTab.items) do
+					local tw = item.uniqueID and twItems[item.uniqueID]
+					if tw then
+						matched = matched + 1
+						local ref = itemLines(item)
+						local refSet, twSet = { }, { }
+						for _, l in ipairs(ref) do refSet[l] = (refSet[l] or 0) + 1 end
+						for _, l in ipairs(tw.lines) do twSet[l] = (twSet[l] or 0) + 1 end
+						local diffs = { }
+						for l, n in pairs(twSet) do
+							if (refSet[l] or 0) ~= n then t_insert(diffs, "   TW only : " .. l) end
+						end
+						for l, n in pairs(refSet) do
+							if (twSet[l] or 0) ~= n then t_insert(diffs, "   PoB only: " .. l) end
+						end
+						local sameName = (tw.title == item.title) and (tw.base == item.baseName)
+						if #diffs == 0 and sameName then
+							identical = identical + 1
+						else
+							log(string.format("-- %s / %s   vs   %s / %s", tostring(tw.title), tostring(tw.base), tostring(item.title), tostring(item.baseName)))
+							table.sort(diffs)
+							for _, d in ipairs(diffs) do log(d) end
+						end
+					end
+				end
+				log(string.format("Items in both builds: %d, identical: %d", matched, identical))
 			else
 				log("Could not decode pob" .. idx .. ".txt")
 			end

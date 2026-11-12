@@ -3,7 +3,7 @@
 -- Source: C:\Program Files (x86)\Steam\steamapps\common\流亡黯道
 -- Client build revision: 328228
 -- Latest league in client data: Allflame
--- Exported: 2026-11-12 17:49
+-- Exported: 2026-11-12 18:02
 -- uniques: unique item names; words: rare item name prefixes/suffixes
 
 return {

@@ -3,8 +3,8 @@
 -- Source: C:\Program Files (x86)\Steam\steamapps\common\流亡黯道
 -- Client build revision: 328228
 -- Latest league in client data: Allflame
--- Exported: 2026-11-12 17:49
--- Traditional Chinese stat description templates. s = stat ids, v = variants { l = limits, t = template, p = special functions }
+-- Exported: 2026-11-12 18:02
+-- Traditional Chinese stat description templates. s = stat ids, v = variants { l = limits, t = template, p = special functions }, u = mod usage counts (only on ambiguous texts)
 
 return {
 	[1]={
@@ -63,6 +63,9 @@ return {
 		s={
 			[1]="%_of_your_damage_cannot_be_reflected"
 		},
+		u={
+			q=3
+		},
 		v={
 			[1]={
 				l={
@@ -113,6 +116,9 @@ return {
 		f=1,
 		s={
 			[1]="-%_of_your_damage_cannot_be_reflected"
+		},
+		u={
+			i=21
 		},
 		v={
 			[1]={
@@ -1118,6 +1124,8 @@ return {
 		f=1,
 		s={
 			[1]="item_generation_cannot_roll_caster_affixes"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -2662,6 +2670,8 @@ return {
 		s={
 			[1]="memory_line_number_of_breaches"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -2721,6 +2731,8 @@ return {
 		f=1,
 		s={
 			[1]="memory_line_number_of_strongboxes"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -4805,6 +4817,11 @@ return {
 		s={
 			[1]="local_socketed_curse_gem_level_+"
 		},
+		u={
+			e=1,
+			i=2,
+			q=4
+		},
 		v={
 			[1]={
 				l={
@@ -4821,6 +4838,8 @@ return {
 		f=1,
 		s={
 			[1]="local_socketed_hex_gem_level_+"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -5935,6 +5954,10 @@ return {
 		s={
 			[1]="local_display_socketed_gems_supported_by_level_x_chance_to_ignite"
 		},
+		u={
+			i=5,
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -6505,6 +6528,10 @@ return {
 		s={
 			[1]="local_display_socketed_gems_supported_by_level_x_fire_penetration"
 		},
+		u={
+			e=3,
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -6572,6 +6599,9 @@ return {
 		f=1,
 		s={
 			[1]="local_display_socketed_gems_supported_by_level_x_focused_channelling"
+		},
+		u={
+			q=1
 		},
 		v={
 			[1]={
@@ -7168,6 +7198,9 @@ return {
 		s={
 			[1]="local_display_socketed_gems_supported_by_level_x_intensify"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -7592,6 +7625,11 @@ return {
 		f=1,
 		s={
 			[1]="local_display_socketed_gems_supported_by_level_x_multicast"
+		},
+		u={
+			e=2,
+			i=1,
+			q=1
 		},
 		v={
 			[1]={
@@ -8035,6 +8073,9 @@ return {
 		s={
 			[1]="local_display_socketed_gems_supported_by_level_x_returning_projectiles"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -8239,6 +8280,10 @@ return {
 		s={
 			[1]="local_display_socketed_gems_supported_by_level_x_spell_focus"
 		},
+		u={
+			i=5,
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -8323,6 +8368,10 @@ return {
 		f=1,
 		s={
 			[1]="local_display_socketed_gems_supported_by_level_x_summon_ghost_on_kill"
+		},
+		u={
+			i=5,
+			q=1
 		},
 		v={
 			[1]={
@@ -8681,6 +8730,9 @@ return {
 		s={
 			[1]="local_display_socketed_gems_supported_by_x_combustion_level"
 		},
+		u={
+			e=1
+		},
 		v={
 			[1]={
 				l={
@@ -8697,6 +8749,9 @@ return {
 		f=1,
 		s={
 			[1]="local_display_socketed_gems_supported_by_x_intensify_level"
+		},
+		u={
+			q=1
 		},
 		v={
 			[1]={
@@ -8715,6 +8770,9 @@ return {
 		s={
 			[1]="local_display_socketed_gems_supported_by_x_returning_projectiles_level"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -8731,6 +8789,9 @@ return {
 		f=1,
 		s={
 			[1]="local_display_socketed_gems_supported_by_x_summon_phantasm_level"
+		},
+		u={
+			q=1
 		},
 		v={
 			[1]={
@@ -9464,6 +9525,9 @@ return {
 			[1]="local_random_support_gem_level",
 			[2]="local_random_support_gem_index"
 		},
+		u={
+			q=2
+		},
 		v={
 			[1]={
 				l={
@@ -9491,6 +9555,9 @@ return {
 		s={
 			[1]="local_random_support_gem_level_1",
 			[2]="local_random_support_gem_index_1"
+		},
+		u={
+			q=2
 		},
 		v={
 			[1]={
@@ -9655,6 +9722,8 @@ return {
 		s={
 			[1]="base_strength_and_intelligence"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -9722,6 +9791,10 @@ return {
 		f=1,
 		s={
 			[1]="local_display_socketed_gems_get_fire_penetration_level"
+		},
+		u={
+			i=1,
+			q=1
 		},
 		v={
 			[1]={
@@ -10093,6 +10166,11 @@ return {
 		s={
 			[1]="local_display_socketed_gems_get_increased_critical_damage_level"
 		},
+		u={
+			e=2,
+			i=2,
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -10178,6 +10256,8 @@ return {
 		s={
 			[1]="map_area_contains_ultimatum"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -10229,6 +10309,9 @@ return {
 		s={
 			[1]="local_display_socketed_gems_get_echo_level"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -10245,6 +10328,11 @@ return {
 		f=1,
 		s={
 			[1]="local_display_socketed_gems_get_reduced_mana_cost_level"
+		},
+		u={
+			e=4,
+			i=2,
+			q=2
 		},
 		v={
 			[1]={
@@ -10399,6 +10487,9 @@ return {
 		s={
 			[1]="local_display_socketed_gems_supported_by_x_focused_channelling_level"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -10467,6 +10558,9 @@ return {
 		s={
 			[1]="local_display_socketed_gems_supported_by_x_increased_critical_damage_level"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -10501,6 +10595,10 @@ return {
 		s={
 			[1]="local_display_socketed_gems_supported_by_pierce_level"
 		},
+		u={
+			i=4,
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -10517,6 +10615,9 @@ return {
 		f=1,
 		s={
 			[1]="local_display_socketed_gems_get_pierce_level"
+		},
+		u={
+			q=2
 		},
 		v={
 			[1]={
@@ -10603,6 +10704,8 @@ return {
 		s={
 			[1]="map_area_contains_rituals"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -10670,6 +10773,9 @@ return {
 		f=1,
 		s={
 			[1]="local_display_socketed_gems_supported_by_x_reduced_mana_cost"
+		},
+		u={
+			q=3
 		},
 		v={
 			[1]={
@@ -14145,6 +14251,9 @@ return {
 		s={
 			[1]="local_display_grants_skill_abyssal_cry_level"
 		},
+		u={
+			e=1
+		},
 		v={
 			[1]={
 				l={
@@ -14637,6 +14746,9 @@ return {
 		f=1,
 		s={
 			[1]="local_display_grants_skill_intimidating_cry_level"
+		},
+		u={
+			q=1
 		},
 		v={
 			[1]={
@@ -15621,6 +15733,10 @@ return {
 		s={
 			[1]="curse_on_hit_level_assassins_mark"
 		},
+		u={
+			e=2,
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -15637,6 +15753,9 @@ return {
 		f=1,
 		s={
 			[1]="curse_on_hit_level_poachers_mark"
+		},
+		u={
+			e=2
 		},
 		v={
 			[1]={
@@ -15655,6 +15774,9 @@ return {
 		s={
 			[1]="curse_on_hit_level_poachers_mark_bypass_hexproof"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -15671,6 +15793,9 @@ return {
 		f=1,
 		s={
 			[1]="curse_on_hit_level_warlords_mark"
+		},
+		u={
+			e=2
 		},
 		v={
 			[1]={
@@ -16426,6 +16551,10 @@ return {
 		s={
 			[1]="local_display_trigger_level_X_assassins_mark_when_you_hit_rare_or_unique_enemy"
 		},
+		u={
+			e=2,
+			q=2
+		},
 		v={
 			[1]={
 				l={
@@ -16511,6 +16640,9 @@ return {
 		s={
 			[1]="local_display_trigger_level_X_poachers_mark_when_you_hit_rare_or_unique_enemy"
 		},
+		u={
+			e=2
+		},
 		v={
 			[1]={
 				l={
@@ -16561,6 +16693,9 @@ return {
 		f=1,
 		s={
 			[1]="local_display_trigger_level_X_warlords_mark_when_you_hit_rare_or_unique_enemy"
+		},
+		u={
+			e=2
 		},
 		v={
 			[1]={
@@ -17288,6 +17423,8 @@ return {
 		s={
 			[1]="local_recharge_on_crit_%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -17895,6 +18032,8 @@ return {
 		s={
 			[1]="local_flask_recovery_amount_%_to_recover_instantly"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -17988,6 +18127,8 @@ return {
 		f=1,
 		s={
 			[1]="local_flask_recovers_instantly"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -18193,6 +18334,8 @@ return {
 		f=1,
 		s={
 			[1]="local_unique_flask_chaos_damage_%_of_maximum_life_to_deal_per_minute_while_healing"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -19342,6 +19485,9 @@ return {
 			[1]="local_flask_effect_+%",
 			[2]="local_flask_consume_flask_effect_+%_when_used"
 		},
+		u={
+			i=1
+		},
 		v={
 			[1]={
 				l={
@@ -19695,6 +19841,8 @@ return {
 		s={
 			[1]="old_do_not_use_local_flask_life_leech_%_while_healing"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -19764,6 +19912,8 @@ return {
 		s={
 			[1]="local_flask_life_leech_permyriad_while_healing"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -19787,6 +19937,8 @@ return {
 		s={
 			[1]="old_do_not_use_local_flask_mana_leech_%_while_healing"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -19809,6 +19961,8 @@ return {
 		f=1,
 		s={
 			[1]="local_flask_mana_leech_permyriad_while_healing"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -19901,6 +20055,8 @@ return {
 		s={
 			[1]="local_unique_flask_avoid_chill_%_while_healing"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -19934,6 +20090,8 @@ return {
 		f=1,
 		s={
 			[1]="local_unique_flask_avoid_freeze_%_while_healing"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -19969,6 +20127,8 @@ return {
 		s={
 			[1]="local_avoid_chill_%_during_flask_effect"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -19985,6 +20145,8 @@ return {
 		f=1,
 		s={
 			[1]="local_avoid_freeze_%_during_flask_effect"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -20458,6 +20620,8 @@ return {
 		f=1,
 		s={
 			[1]="local_flask_item_found_rarity_+%_during_flask_effect"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -21337,6 +21501,8 @@ return {
 		s={
 			[1]="local_unique_flask_item_rarity_+%_while_healing"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -21370,6 +21536,8 @@ return {
 		f=1,
 		s={
 			[1]="local_unique_flask_life_leech_from_chaos_damage_permyriad_while_healing"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -21658,6 +21826,8 @@ return {
 		s={
 			[1]="local_unique_flask_vaal_skill_soul_gain_preventation_duration_+%_during_flask_effect"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -21706,6 +21876,8 @@ return {
 		f=1,
 		s={
 			[1]="old_do_not_use_local_unique_flask_life_leech_from_chaos_damage_permyriad_while_healing"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -22380,6 +22552,8 @@ return {
 		f=1,
 		s={
 			[1]="map_experience_gain_+%"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -23984,6 +24158,9 @@ return {
 		s={
 			[1]="shield_block_%"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -24000,6 +24177,8 @@ return {
 		f=1,
 		s={
 			[1]="shield_spell_block_%"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -24044,6 +24223,11 @@ return {
 		s={
 			[1]="base_spell_suppression_chance_150%_of_value"
 		},
+		u={
+			e=32,
+			i=7,
+			q=4
+		},
 		v={
 			[1]={
 				l={
@@ -24066,6 +24250,11 @@ return {
 		f=1,
 		s={
 			[1]="base_spell_suppression_chance_%"
+		},
+		u={
+			e=10,
+			i=39,
+			q=15
 		},
 		v={
 			[1]={
@@ -24230,6 +24419,9 @@ return {
 		s={
 			[1]="staff_block_%"
 		},
+		u={
+			q=7
+		},
 		v={
 			[1]={
 				l={
@@ -24281,6 +24473,8 @@ return {
 		s={
 			[1]="additional_staff_block_%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -24297,6 +24491,11 @@ return {
 		f=1,
 		s={
 			[1]="old_do_not_use_spell_block_%_from_assumed_block_value"
+		},
+		u={
+			e=5,
+			i=1,
+			q=8
 		},
 		v={
 			[1]={
@@ -24387,6 +24586,11 @@ return {
 		s={
 			[1]="base_spell_block_%"
 		},
+		u={
+			e=24,
+			i=38,
+			q=14
+		},
 		v={
 			[1]={
 				l={
@@ -24454,6 +24658,8 @@ return {
 		f=1,
 		s={
 			[1]="block_chance_%_while_holding_shield"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -24863,6 +25069,9 @@ return {
 		f=1,
 		s={
 			[1]="additional_strength_and_intelligence"
+		},
+		u={
+			q=3
 		},
 		v={
 			[1]={
@@ -25349,6 +25558,9 @@ return {
 		f=1,
 		s={
 			[1]="unique_ryuslathas_clutches_maximum_physical_attack_damage_+%_final"
+		},
+		u={
+			q=1
 		},
 		v={
 			[1]={
@@ -27168,6 +27380,9 @@ return {
 			[1]="global_minimum_added_physical_damage",
 			[2]="global_maximum_added_physical_damage"
 		},
+		u={
+			q=3
+		},
 		v={
 			[1]={
 				l={
@@ -27409,6 +27624,11 @@ return {
 		s={
 			[1]="local_minimum_added_physical_damage",
 			[2]="local_maximum_added_physical_damage"
+		},
+		u={
+			e=20,
+			i=114,
+			q=97
 		},
 		v={
 			[1]={
@@ -30046,6 +30266,10 @@ return {
 			[1]="global_minimum_added_fire_damage",
 			[2]="global_maximum_added_fire_damage"
 		},
+		u={
+			i=1,
+			q=6
+		},
 		v={
 			[1]={
 				l={
@@ -30111,6 +30335,11 @@ return {
 		s={
 			[1]="local_minimum_added_fire_damage",
 			[2]="local_maximum_added_fire_damage"
+		},
+		u={
+			e=49,
+			i=95,
+			q=24
 		},
 		v={
 			[1]={
@@ -30274,6 +30503,10 @@ return {
 			[1]="global_minimum_added_cold_damage",
 			[2]="global_maximum_added_cold_damage"
 		},
+		u={
+			i=1,
+			q=8
+		},
 		v={
 			[1]={
 				l={
@@ -30339,6 +30572,11 @@ return {
 		s={
 			[1]="local_minimum_added_cold_damage",
 			[2]="local_maximum_added_cold_damage"
+		},
+		u={
+			e=48,
+			i=92,
+			q=27
 		},
 		v={
 			[1]={
@@ -30546,6 +30784,10 @@ return {
 			[1]="global_minimum_added_lightning_damage",
 			[2]="global_maximum_added_lightning_damage"
 		},
+		u={
+			i=1,
+			q=5
+		},
 		v={
 			[1]={
 				l={
@@ -30611,6 +30853,11 @@ return {
 		s={
 			[1]="local_minimum_added_lightning_damage",
 			[2]="local_maximum_added_lightning_damage"
+		},
+		u={
+			e=48,
+			i=93,
+			q=27
 		},
 		v={
 			[1]={
@@ -30730,6 +30977,10 @@ return {
 			[1]="global_minimum_added_chaos_damage",
 			[2]="global_maximum_added_chaos_damage"
 		},
+		u={
+			i=1,
+			q=9
+		},
 		v={
 			[1]={
 				l={
@@ -30818,6 +31069,11 @@ return {
 			[1]="local_minimum_added_chaos_damage",
 			[2]="local_maximum_added_chaos_damage"
 		},
+		u={
+			e=26,
+			i=67,
+			q=14
+		},
 		v={
 			[1]={
 				l={
@@ -30894,6 +31150,8 @@ return {
 			[1]="spell_minimum_base_physical_damage",
 			[2]="spell_maximum_base_physical_damage"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -30916,6 +31174,8 @@ return {
 			[1]="spell_minimum_base_fire_damage",
 			[2]="spell_maximum_base_fire_damage",
 			[3]="spell_base_fire_damage_%_maximum_life"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -30977,6 +31237,8 @@ return {
 			[1]="spell_minimum_base_cold_damage",
 			[2]="spell_maximum_base_cold_damage"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -30998,6 +31260,8 @@ return {
 		s={
 			[1]="spell_minimum_base_lightning_damage",
 			[2]="spell_maximum_base_lightning_damage"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -31021,6 +31285,8 @@ return {
 			[1]="spell_minimum_base_chaos_damage",
 			[2]="spell_maximum_base_chaos_damage"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -31042,6 +31308,8 @@ return {
 		s={
 			[1]="secondary_minimum_base_physical_damage",
 			[2]="secondary_maximum_base_physical_damage"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -31065,6 +31333,8 @@ return {
 			[1]="secondary_minimum_base_fire_damage",
 			[2]="secondary_maximum_base_fire_damage"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -31086,6 +31356,8 @@ return {
 		s={
 			[1]="secondary_minimum_base_cold_damage",
 			[2]="secondary_maximum_base_cold_damage"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -31109,6 +31381,8 @@ return {
 			[1]="secondary_minimum_base_lightning_damage",
 			[2]="secondary_maximum_base_lightning_damage"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -31130,6 +31404,8 @@ return {
 		s={
 			[1]="secondary_minimum_base_chaos_damage",
 			[2]="secondary_maximum_base_chaos_damage"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -31306,6 +31582,11 @@ return {
 		s={
 			[1]="attack_speed_+%"
 		},
+		u={
+			e=19,
+			i=38,
+			q=44
+		},
 		v={
 			[1]={
 				l={
@@ -31337,6 +31618,8 @@ return {
 		f=1,
 		s={
 			[1]="active_skill_attack_speed_+%_final"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -31370,6 +31653,8 @@ return {
 		s={
 			[1]="flicker_strike_more_attack_speed_+%_final"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -31401,6 +31686,11 @@ return {
 		f=1,
 		s={
 			[1]="local_attack_speed_+%"
+		},
+		u={
+			e=39,
+			i=89,
+			q=113
 		},
 		v={
 			[1]={
@@ -31514,6 +31804,8 @@ return {
 		f=1,
 		s={
 			[1]="attack_speed_+%_while_holding_shield"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -31867,6 +32159,8 @@ return {
 		s={
 			[1]="shield_attack_speed_+%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -32026,6 +32320,11 @@ return {
 		f=1,
 		s={
 			[1]="accuracy_rating"
+		},
+		u={
+			e=19,
+			i=4,
+			q=22
 		},
 		v={
 			[1]={
@@ -32697,6 +32996,8 @@ return {
 		s={
 			[1]="additional_base_critical_strike_chance"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -32834,6 +33135,9 @@ return {
 		f=1,
 		s={
 			[1]="local_critical_strike_chance"
+		},
+		u={
+			i=37
 		},
 		v={
 			[1]={
@@ -34115,6 +34419,9 @@ return {
 		s={
 			[1]="critical_strike_multiplier_is_100"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -34215,6 +34522,8 @@ return {
 		s={
 			[1]="global_knockback"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -34231,6 +34540,8 @@ return {
 		f=1,
 		s={
 			[1]="avoid_knockback_%"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -34309,6 +34620,8 @@ return {
 		s={
 			[1]="local_knockback"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -34325,6 +34638,8 @@ return {
 		f=1,
 		s={
 			[1]="base_ward"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -34343,6 +34658,10 @@ return {
 		s={
 			[1]="local_ward"
 		},
+		u={
+			e=15,
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -34359,6 +34678,8 @@ return {
 		f=1,
 		s={
 			[1]="ward_+%"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -34391,6 +34712,10 @@ return {
 		f=1,
 		s={
 			[1]="local_ward_+%"
+		},
+		u={
+			e=14,
+			q=4
 		},
 		v={
 			[1]={
@@ -34456,6 +34781,8 @@ return {
 		s={
 			[1]="base_adaptation_rating"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -34473,6 +34800,8 @@ return {
 		s={
 			[1]="local_adaptation_rating"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -34489,6 +34818,8 @@ return {
 		f=1,
 		s={
 			[1]="adaptation_rating_+%"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -34521,6 +34852,8 @@ return {
 		f=1,
 		s={
 			[1]="local_adaptation_rating_+%"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -34620,6 +34953,10 @@ return {
 		s={
 			[1]="base_physical_damage_reduction_rating"
 		},
+		u={
+			e=12,
+			q=15
+		},
 		v={
 			[1]={
 				l={
@@ -34637,6 +34974,11 @@ return {
 		s={
 			[1]="local_base_physical_damage_reduction_rating"
 		},
+		u={
+			e=49,
+			i=37,
+			q=16
+		},
 		v={
 			[1]={
 				l={
@@ -34653,6 +34995,11 @@ return {
 		f=1,
 		s={
 			[1]="physical_damage_reduction_rating_+%"
+		},
+		u={
+			e=13,
+			i=26,
+			q=2
 		},
 		v={
 			[1]={
@@ -34685,6 +35032,11 @@ return {
 		f=1,
 		s={
 			[1]="local_physical_damage_reduction_rating_+%"
+		},
+		u={
+			e=16,
+			i=5,
+			q=58
 		},
 		v={
 			[1]={
@@ -34749,6 +35101,10 @@ return {
 		f=1,
 		s={
 			[1]="base_evasion_rating"
+		},
+		u={
+			e=8,
+			q=15
 		},
 		v={
 			[1]={
@@ -34818,6 +35174,11 @@ return {
 		s={
 			[1]="local_base_evasion_rating"
 		},
+		u={
+			e=52,
+			i=37,
+			q=17
+		},
 		v={
 			[1]={
 				l={
@@ -34834,6 +35195,11 @@ return {
 		f=1,
 		s={
 			[1]="evasion_rating_+%"
+		},
+		u={
+			e=12,
+			i=32,
+			q=3
 		},
 		v={
 			[1]={
@@ -34866,6 +35232,11 @@ return {
 		f=1,
 		s={
 			[1]="local_evasion_rating_+%"
+		},
+		u={
+			e=14,
+			i=5,
+			q=49
 		},
 		v={
 			[1]={
@@ -35123,6 +35494,11 @@ return {
 		s={
 			[1]="base_maximum_energy_shield"
 		},
+		u={
+			e=17,
+			i=8,
+			q=27
+		},
 		v={
 			[1]={
 				l={
@@ -35139,6 +35515,11 @@ return {
 		f=1,
 		s={
 			[1]="local_energy_shield"
+		},
+		u={
+			e=56,
+			i=42,
+			q=59
 		},
 		v={
 			[1]={
@@ -35220,6 +35601,11 @@ return {
 		f=1,
 		s={
 			[1]="energy_shield_delay_-%"
+		},
+		u={
+			e=12,
+			i=3,
+			q=4
 		},
 		v={
 			[1]={
@@ -35308,6 +35694,11 @@ return {
 		s={
 			[1]="energy_shield_recharge_rate_+%"
 		},
+		u={
+			e=6,
+			i=28,
+			q=3
+		},
 		v={
 			[1]={
 				l={
@@ -35373,6 +35764,11 @@ return {
 		f=1,
 		s={
 			[1]="energy_shield_recovery_rate_+%"
+		},
+		u={
+			e=7,
+			i=26,
+			q=3
 		},
 		v={
 			[1]={
@@ -35487,6 +35883,8 @@ return {
 		s={
 			[1]="monster_life_+%_final_from_rarity"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -35518,6 +35916,8 @@ return {
 		f=1,
 		s={
 			[1]="monster_life_+%_final_from_map"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -35574,6 +35974,9 @@ return {
 		s={
 			[1]="life_degeneration_per_10_seconds_not_in_grace"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -35596,6 +35999,10 @@ return {
 		f=1,
 		s={
 			[1]="life_degeneration_per_minute_not_in_grace"
+		},
+		u={
+			e=9,
+			q=1
 		},
 		v={
 			[1]={
@@ -35643,6 +36050,11 @@ return {
 		s={
 			[1]="life_regeneration_rate_+%"
 		},
+		u={
+			e=5,
+			i=26,
+			q=4
+		},
 		v={
 			[1]={
 				l={
@@ -35674,6 +36086,11 @@ return {
 		f=1,
 		s={
 			[1]="life_recovery_rate_+%"
+		},
+		u={
+			e=7,
+			i=36,
+			q=1
 		},
 		v={
 			[1]={
@@ -35802,6 +36219,9 @@ return {
 		s={
 			[1]="mana_degeneration_per_minute_not_in_grace"
 		},
+		u={
+			e=2
+		},
 		v={
 			[1]={
 				l={
@@ -35824,6 +36244,11 @@ return {
 		f=1,
 		s={
 			[1]="mana_regeneration_rate_+%"
+		},
+		u={
+			e=21,
+			i=42,
+			q=41
 		},
 		v={
 			[1]={
@@ -35879,6 +36304,11 @@ return {
 		f=1,
 		s={
 			[1]="mana_recovery_rate_+%"
+		},
+		u={
+			e=7,
+			i=26,
+			q=2
 		},
 		v={
 			[1]={
@@ -36025,6 +36455,8 @@ return {
 		s={
 			[1]="item_found_quantity_+%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -36056,6 +36488,11 @@ return {
 		f=1,
 		s={
 			[1]="base_item_found_quantity_+%"
+		},
+		u={
+			e=6,
+			i=2,
+			q=10
 		},
 		v={
 			[1]={
@@ -36153,6 +36590,8 @@ return {
 		s={
 			[1]="item_found_rarity_+%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -36184,6 +36623,11 @@ return {
 		f=1,
 		s={
 			[1]="base_item_found_rarity_+%"
+		},
+		u={
+			e=8,
+			i=22,
+			q=40
 		},
 		v={
 			[1]={
@@ -36408,6 +36852,11 @@ return {
 		f=1,
 		s={
 			[1]="experience_gain_+%"
+		},
+		u={
+			e=2,
+			i=1,
+			q=7
 		},
 		v={
 			[1]={
@@ -37322,6 +37771,10 @@ return {
 		s={
 			[1]="old_do_not_use_life_leech_from_physical_damage_%"
 		},
+		u={
+			e=3,
+			q=11
+		},
 		v={
 			[1]={
 				l={
@@ -37368,6 +37821,11 @@ return {
 		s={
 			[1]="life_leech_from_physical_attack_damage_permyriad"
 		},
+		u={
+			e=20,
+			i=7,
+			q=15
+		},
 		v={
 			[1]={
 				l={
@@ -37390,6 +37848,10 @@ return {
 		f=1,
 		s={
 			[1]="old_do_not_use_local_life_leech_from_physical_damage_%"
+		},
+		u={
+			i=2,
+			q=10
 		},
 		v={
 			[1]={
@@ -37414,6 +37876,11 @@ return {
 		s={
 			[1]="local_life_leech_from_physical_damage_permyriad"
 		},
+		u={
+			e=25,
+			i=7,
+			q=11
+		},
 		v={
 			[1]={
 				l={
@@ -37437,6 +37904,8 @@ return {
 		s={
 			[1]="old_do_not_use_life_leech_from_physical_damage_with_claw_%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -37459,6 +37928,8 @@ return {
 		f=1,
 		s={
 			[1]="life_leech_from_physical_damage_with_claw_permyriad"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -37506,6 +37977,8 @@ return {
 		s={
 			[1]="life_and_mana_leech_from_physical_damage_permyriad"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -37529,6 +38002,9 @@ return {
 		s={
 			[1]="local_life_and_mana_leech_from_physical_damage_permyriad"
 		},
+		u={
+			i=1
+		},
 		v={
 			[1]={
 				l={
@@ -37551,6 +38027,8 @@ return {
 		f=1,
 		s={
 			[1]="old_do_not_use_mana_leech_from_physical_damage_with_claw_%"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -37591,6 +38069,8 @@ return {
 		f=1,
 		s={
 			[1]="mana_leech_from_physical_damage_with_claw_permyriad"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -37661,6 +38141,8 @@ return {
 		s={
 			[1]="old_do_not_use_life_leech_from_spell_damage_%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -37683,6 +38165,8 @@ return {
 		f=1,
 		s={
 			[1]="base_life_leech_from_spell_damage_permyriad"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -37707,6 +38191,10 @@ return {
 		s={
 			[1]="base_life_leech_from_attack_damage_permyriad"
 		},
+		u={
+			i=2,
+			q=5
+		},
 		v={
 			[1]={
 				l={
@@ -37730,6 +38218,9 @@ return {
 		s={
 			[1]="old_do_not_use_base_life_leech_from_physical_damage_permyriad"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -37752,6 +38243,11 @@ return {
 		f=1,
 		s={
 			[1]="base_life_leech_from_physical_damage_permyriad"
+		},
+		u={
+			e=5,
+			i=5,
+			q=1
 		},
 		v={
 			[1]={
@@ -37799,6 +38295,9 @@ return {
 		s={
 			[1]="horrible_ugly_life_leech_from_physical_damage_perhundredthousand"
 		},
+		u={
+			i=18
+		},
 		v={
 			[1]={
 				l={
@@ -37822,6 +38321,9 @@ return {
 		s={
 			[1]="old_do_not_use_base_life_leech_from_fire_damage_permyriad"
 		},
+		u={
+			q=2
+		},
 		v={
 			[1]={
 				l={
@@ -37844,6 +38346,11 @@ return {
 		f=1,
 		s={
 			[1]="base_life_leech_from_fire_damage_permyriad"
+		},
+		u={
+			e=7,
+			i=7,
+			q=2
 		},
 		v={
 			[1]={
@@ -37891,6 +38398,9 @@ return {
 		s={
 			[1]="horrible_ugly_life_leech_from_fire_damage_perhundredthousand"
 		},
+		u={
+			i=18
+		},
 		v={
 			[1]={
 				l={
@@ -37931,6 +38441,9 @@ return {
 		s={
 			[1]="old_do_not_use_base_life_leech_from_cold_damage_permyriad"
 		},
+		u={
+			q=2
+		},
 		v={
 			[1]={
 				l={
@@ -37953,6 +38466,11 @@ return {
 		f=1,
 		s={
 			[1]="base_life_leech_from_cold_damage_permyriad"
+		},
+		u={
+			e=7,
+			i=7,
+			q=2
 		},
 		v={
 			[1]={
@@ -38000,6 +38518,9 @@ return {
 		s={
 			[1]="horrible_ugly_life_leech_from_cold_damage_perhundredthousand"
 		},
+		u={
+			i=18
+		},
 		v={
 			[1]={
 				l={
@@ -38023,6 +38544,9 @@ return {
 		s={
 			[1]="old_do_not_use_base_life_leech_from_lightning_damage_permyriad"
 		},
+		u={
+			q=2
+		},
 		v={
 			[1]={
 				l={
@@ -38045,6 +38569,11 @@ return {
 		f=1,
 		s={
 			[1]="base_life_leech_from_lightning_damage_permyriad"
+		},
+		u={
+			e=7,
+			i=7,
+			q=1
 		},
 		v={
 			[1]={
@@ -38092,6 +38621,9 @@ return {
 		s={
 			[1]="horrible_ugly_life_leech_from_lightning_damage_perhundredthousand"
 		},
+		u={
+			i=18
+		},
 		v={
 			[1]={
 				l={
@@ -38114,6 +38646,11 @@ return {
 		f=1,
 		s={
 			[1]="base_life_leech_from_chaos_damage_permyriad"
+		},
+		u={
+			e=4,
+			i=5,
+			q=4
 		},
 		v={
 			[1]={
@@ -38161,6 +38698,9 @@ return {
 		s={
 			[1]="horrible_ugly_life_leech_from_chaos_damage_perhundredthousand"
 		},
+		u={
+			i=18
+		},
 		v={
 			[1]={
 				l={
@@ -38183,6 +38723,9 @@ return {
 		f=1,
 		s={
 			[1]="old_do_not_use_base_life_leech_from_elemental_damage_permyriad"
+		},
+		u={
+			q=1
 		},
 		v={
 			[1]={
@@ -38207,6 +38750,10 @@ return {
 		s={
 			[1]="base_life_leech_from_elemental_damage_permyriad"
 		},
+		u={
+			i=1,
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -38229,6 +38776,9 @@ return {
 		f=1,
 		s={
 			[1]="old_do_not_use_life_leech_permyriad_vs_shocked_enemies"
+		},
+		u={
+			q=1
 		},
 		v={
 			[1]={
@@ -38253,6 +38803,9 @@ return {
 		s={
 			[1]="base_life_leech_permyriad_vs_shocked_enemies"
 		},
+		u={
+			q=2
+		},
 		v={
 			[1]={
 				l={
@@ -38275,6 +38828,9 @@ return {
 		f=1,
 		s={
 			[1]="old_do_not_use_life_leech_%_vs_frozen_enemies"
+		},
+		u={
+			q=1
 		},
 		v={
 			[1]={
@@ -38316,6 +38872,9 @@ return {
 		s={
 			[1]="base_life_leech_permyriad_vs_frozen_enemies"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -38338,6 +38897,9 @@ return {
 		f=1,
 		s={
 			[1]="old_do_not_use_life_leech_from_attack_damage_permyriad_vs_chilled_enemies"
+		},
+		u={
+			q=1
 		},
 		v={
 			[1]={
@@ -38362,6 +38924,9 @@ return {
 		s={
 			[1]="base_life_leech_from_attack_damage_permyriad_vs_chilled_enemies"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -38385,6 +38950,9 @@ return {
 		s={
 			[1]="old_do_not_use_life_leech_permyriad_on_crit"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -38407,6 +38975,9 @@ return {
 		f=1,
 		s={
 			[1]="life_leech_permyriad_on_crit"
+		},
+		u={
+			q=1
 		},
 		v={
 			[1]={
@@ -38454,6 +39025,10 @@ return {
 		s={
 			[1]="old_do_not_use_mana_leech_from_physical_damage_%"
 		},
+		u={
+			e=2,
+			q=8
+		},
 		v={
 			[1]={
 				l={
@@ -38500,6 +39075,11 @@ return {
 		s={
 			[1]="mana_leech_from_physical_attack_damage_permyriad"
 		},
+		u={
+			e=6,
+			i=7,
+			q=8
+		},
 		v={
 			[1]={
 				l={
@@ -38523,6 +39103,9 @@ return {
 		s={
 			[1]="old_do_not_use_local_mana_leech_from_physical_damage_%"
 		},
+		u={
+			q=4
+		},
 		v={
 			[1]={
 				l={
@@ -38545,6 +39128,11 @@ return {
 		f=1,
 		s={
 			[1]="local_mana_leech_from_physical_damage_permyriad"
+		},
+		u={
+			e=5,
+			i=5,
+			q=6
 		},
 		v={
 			[1]={
@@ -38592,6 +39180,8 @@ return {
 		s={
 			[1]="old_do_not_use_mana_leech_from_spell_damage_%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -38615,6 +39205,8 @@ return {
 		s={
 			[1]="base_mana_leech_from_spell_damage_permyriad"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -38637,6 +39229,10 @@ return {
 		f=1,
 		s={
 			[1]="base_mana_leech_from_attack_damage_permyriad"
+		},
+		u={
+			i=1,
+			q=3
 		},
 		v={
 			[1]={
@@ -38776,6 +39372,9 @@ return {
 		s={
 			[1]="old_do_not_use_base_mana_leech_from_lightning_damage_permyriad"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -38798,6 +39397,9 @@ return {
 		f=1,
 		s={
 			[1]="base_mana_leech_from_lightning_damage_permyriad"
+		},
+		u={
+			q=1
 		},
 		v={
 			[1]={
@@ -38914,6 +39516,9 @@ return {
 		s={
 			[1]="old_do_not_use_mana_leech_%_vs_shocked_enemies"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -38936,6 +39541,8 @@ return {
 		f=1,
 		s={
 			[1]="base_mana_leech_permyriad_vs_shocked_enemies"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -38960,6 +39567,9 @@ return {
 		s={
 			[1]="old_do_not_use_mana_leech_from_physical_damage_%_per_power_charge"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -38982,6 +39592,8 @@ return {
 		f=1,
 		s={
 			[1]="mana_leech_from_physical_damage_permyriad_per_power_charge"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -39257,6 +39869,11 @@ return {
 		s={
 			[1]="maximum_life_leech_rate_+%"
 		},
+		u={
+			e=6,
+			i=3,
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -39288,6 +39905,9 @@ return {
 		f=1,
 		s={
 			[1]="maximum_life_leech_rate_+1%_per_12_stat_value"
+		},
+		u={
+			e=1
 		},
 		v={
 			[1]={
@@ -39395,6 +40015,9 @@ return {
 		s={
 			[1]="maximum_energy_shield_leech_rate_+%_while_affected_by_zealotry"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -39427,6 +40050,9 @@ return {
 		s={
 			[1]="maximum_es_leech_rate_+1%_per_6_stat_value_while_affected_by_zealotry"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -39449,6 +40075,8 @@ return {
 		f=1,
 		s={
 			[1]="life_gain_per_target"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -39545,6 +40173,11 @@ return {
 		f=1,
 		s={
 			[1]="base_life_gain_per_target"
+		},
+		u={
+			e=8,
+			i=10,
+			q=7
 		},
 		v={
 			[1]={
@@ -39674,6 +40307,11 @@ return {
 		s={
 			[1]="mana_gain_per_target"
 		},
+		u={
+			e=6,
+			i=10,
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -39737,6 +40375,8 @@ return {
 		f=1,
 		s={
 			[1]="virtual_mana_gain_per_target"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -39834,6 +40474,11 @@ return {
 		s={
 			[1]="recover_%_maximum_life_on_kill"
 		},
+		u={
+			e=6,
+			i=7,
+			q=11
+		},
 		v={
 			[1]={
 				l={
@@ -39866,6 +40511,11 @@ return {
 		s={
 			[1]="recover_energy_shield_%_on_kill"
 		},
+		u={
+			e=6,
+			i=3,
+			q=2
+		},
 		v={
 			[1]={
 				l={
@@ -39897,6 +40547,11 @@ return {
 		f=1,
 		s={
 			[1]="recover_%_maximum_mana_on_kill"
+		},
+		u={
+			e=6,
+			i=4,
+			q=2
 		},
 		v={
 			[1]={
@@ -39979,6 +40634,8 @@ return {
 		s={
 			[1]="maximum_life_%_lost_on_kill"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -39996,6 +40653,8 @@ return {
 		s={
 			[1]="maximum_mana_%_gained_on_kill"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -40012,6 +40671,8 @@ return {
 		f=1,
 		s={
 			[1]="maximum_energy_shield_%_lost_on_kill"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -40208,6 +40869,8 @@ return {
 		f=1,
 		s={
 			[1]="support_minion_maximum_life_+%_final"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -40966,6 +41629,11 @@ return {
 		s={
 			[1]="projectile_base_number_of_targets_to_pierce"
 		},
+		u={
+			e=14,
+			i=23,
+			q=2
+		},
 		v={
 			[1]={
 				l={
@@ -40991,6 +41659,10 @@ return {
 		f=1,
 		s={
 			[1]="arrow_base_number_of_targets_to_pierce"
+		},
+		u={
+			i=6,
+			q=1
 		},
 		v={
 			[1]={
@@ -41840,6 +42512,8 @@ return {
 		s={
 			[1]="add_power_charge_on_critical_strike"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -41856,6 +42530,11 @@ return {
 		f=1,
 		s={
 			[1]="add_power_charge_on_critical_strike_%"
+		},
+		u={
+			e=6,
+			i=2,
+			q=3
 		},
 		v={
 			[1]={
@@ -41933,6 +42612,9 @@ return {
 		f=1,
 		s={
 			[1]="add_power_charge_on_skill_hit_%"
+		},
+		u={
+			q=1
 		},
 		v={
 			[1]={
@@ -42206,6 +42888,8 @@ return {
 		s={
 			[1]="avoid_stun_%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -42222,6 +42906,11 @@ return {
 		f=1,
 		s={
 			[1]="base_avoid_stun_%"
+		},
+		u={
+			e=15,
+			i=25,
+			q=4
 		},
 		v={
 			[1]={
@@ -42517,6 +43206,11 @@ return {
 		s={
 			[1]="base_stun_duration_+%"
 		},
+		u={
+			e=11,
+			i=16,
+			q=11
+		},
 		v={
 			[1]={
 				l={
@@ -42677,6 +43371,8 @@ return {
 		s={
 			[1]="self_chill_duration_-%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -42708,6 +43404,8 @@ return {
 		f=1,
 		s={
 			[1]="self_shock_duration_-%"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -42741,6 +43439,8 @@ return {
 		s={
 			[1]="self_freeze_duration_-%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -42772,6 +43472,8 @@ return {
 		f=1,
 		s={
 			[1]="self_ignite_duration_-%"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -42805,6 +43507,9 @@ return {
 		s={
 			[1]="base_self_chill_duration_-%"
 		},
+		u={
+			q=2
+		},
 		v={
 			[1]={
 				l={
@@ -42836,6 +43541,10 @@ return {
 		f=1,
 		s={
 			[1]="base_self_shock_duration_-%"
+		},
+		u={
+			i=4,
+			q=3
 		},
 		v={
 			[1]={
@@ -42869,6 +43578,11 @@ return {
 		s={
 			[1]="base_self_freeze_duration_-%"
 		},
+		u={
+			e=4,
+			i=28,
+			q=2
+		},
 		v={
 			[1]={
 				l={
@@ -42900,6 +43614,11 @@ return {
 		f=1,
 		s={
 			[1]="base_self_ignite_duration_-%"
+		},
+		u={
+			e=4,
+			i=28,
+			q=3
 		},
 		v={
 			[1]={
@@ -43013,6 +43732,9 @@ return {
 		f=1,
 		s={
 			[1]="gem_experience_gain_+%"
+		},
+		u={
+			q=1
 		},
 		v={
 			[1]={
@@ -43372,6 +44094,8 @@ return {
 		s={
 			[1]="skill_repeat_count"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -43397,6 +44121,8 @@ return {
 		f=1,
 		s={
 			[1]="spell_repeat_count"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -43995,6 +44721,8 @@ return {
 		f=1,
 		s={
 			[1]="local_gem_experience_gain_+%"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -44636,6 +45364,8 @@ return {
 		s={
 			[1]="base_chaos_damage_%_of_maximum_life_taken_per_minute"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -45003,6 +45733,9 @@ return {
 		s={
 			[1]="base_lightning_damage_%_to_convert_to_chaos"
 		},
+		u={
+			q=3
+		},
 		v={
 			[1]={
 				l={
@@ -45019,6 +45752,8 @@ return {
 		f=1,
 		s={
 			[1]="base_lightning_damage_%_to_convert_to_chaos_60%_value"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -45077,6 +45812,9 @@ return {
 		s={
 			[1]="base_fire_damage_%_to_convert_to_chaos"
 		},
+		u={
+			q=3
+		},
 		v={
 			[1]={
 				l={
@@ -45093,6 +45831,9 @@ return {
 		f=1,
 		s={
 			[1]="base_fire_damage_%_to_convert_to_chaos_60%_value"
+		},
+		u={
+			q=2
 		},
 		v={
 			[1]={
@@ -45148,6 +45889,11 @@ return {
 		f=1,
 		s={
 			[1]="minion_damage_+%"
+		},
+		u={
+			e=66,
+			i=89,
+			q=17
 		},
 		v={
 			[1]={
@@ -45212,6 +45958,8 @@ return {
 		f=1,
 		s={
 			[1]="virtual_minion_damage_+%"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -46028,6 +46776,8 @@ return {
 		s={
 			[1]="stun_duration_+%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -46430,6 +47180,11 @@ return {
 		s={
 			[1]="local_accuracy_rating"
 		},
+		u={
+			e=26,
+			i=36,
+			q=16
+		},
 		v={
 			[1]={
 				l={
@@ -46530,6 +47285,8 @@ return {
 		f=1,
 		s={
 			[1]="chieftain_burning_damage_+%_final"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -46846,6 +47603,8 @@ return {
 		s={
 			[1]="local_hit_causes_monster_flee_%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -46862,6 +47621,10 @@ return {
 		f=1,
 		s={
 			[1]="global_hit_causes_monster_flee_%"
+		},
+		u={
+			i=1,
+			q=3
 		},
 		v={
 			[1]={
@@ -46963,6 +47726,8 @@ return {
 		s={
 			[1]="attack_speed_+%_per_frenzy_charge"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -47026,6 +47791,9 @@ return {
 		f=1,
 		s={
 			[1]="base_attack_speed_+%_per_frenzy_charge"
+		},
+		u={
+			q=1
 		},
 		v={
 			[1]={
@@ -48938,6 +49706,8 @@ return {
 		s={
 			[1]="chance_to_gain_power_charge_when_block_%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -49705,6 +50475,11 @@ return {
 			[1]="base_number_of_skeletons_allowed",
 			[2]="quality_display_summon_skeleton_is_gem"
 		},
+		u={
+			e=7,
+			i=2,
+			q=7
+		},
 		v={
 			[1]={
 				l={
@@ -49936,6 +50711,8 @@ return {
 		s={
 			[1]="cannot_be_stunned"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -49952,6 +50729,9 @@ return {
 		f=1,
 		s={
 			[1]="base_cannot_be_stunned"
+		},
+		u={
+			q=2
 		},
 		v={
 			[1]={
@@ -50055,6 +50835,8 @@ return {
 		s={
 			[1]="base_no_mana"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -50071,6 +50853,8 @@ return {
 		f=1,
 		s={
 			[1]="no_mana"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -50971,6 +51755,10 @@ return {
 		s={
 			[1]="gloves_ignite_proliferation_radius"
 		},
+		u={
+			i=18,
+			q=2
+		},
 		v={
 			[1]={
 				l={
@@ -51008,6 +51796,8 @@ return {
 		f=1,
 		s={
 			[1]="passive_notable_ignite_proliferation_radius"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -51047,6 +51837,9 @@ return {
 		s={
 			[1]="amulet_freeze_proliferation_radius"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -51085,6 +51878,9 @@ return {
 		s={
 			[1]="gloves_freeze_proliferation_radius"
 		},
+		u={
+			i=18
+		},
 		v={
 			[1]={
 				l={
@@ -51122,6 +51918,10 @@ return {
 		f=1,
 		s={
 			[1]="gloves_shock_proliferation_radius"
+		},
+		u={
+			i=18,
+			q=2
 		},
 		v={
 			[1]={
@@ -51306,6 +52106,11 @@ return {
 		s={
 			[1]="base_mana_reservation_efficiency_+%"
 		},
+		u={
+			e=9,
+			i=20,
+			q=6
+		},
 		v={
 			[1]={
 				l={
@@ -51369,6 +52174,10 @@ return {
 		f=1,
 		s={
 			[1]="base_reservation_efficiency_+%"
+		},
+		u={
+			i=12,
+			q=10
 		},
 		v={
 			[1]={
@@ -51434,6 +52243,11 @@ return {
 		s={
 			[1]="mana_reservation_efficiency_-2%_per_1"
 		},
+		u={
+			e=11,
+			i=3,
+			q=3
+		},
 		v={
 			[1]={
 				l={
@@ -51471,6 +52285,9 @@ return {
 		f=1,
 		s={
 			[1]="reservation_efficiency_-2%_per_1"
+		},
+		u={
+			q=3
 		},
 		v={
 			[1]={
@@ -51949,6 +52766,8 @@ return {
 		s={
 			[1]="base_number_of_totems_allowed"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -52017,6 +52836,10 @@ return {
 		f=1,
 		s={
 			[1]="number_of_additional_totems_allowed"
+		},
+		u={
+			e=1,
+			q=4
 		},
 		v={
 			[1]={
@@ -52265,6 +53088,10 @@ return {
 		f=1,
 		s={
 			[1]="chance_to_fortify_on_melee_hit_+%"
+		},
+		u={
+			i=19,
+			q=1
 		},
 		v={
 			[1]={
@@ -52658,6 +53485,8 @@ return {
 		s={
 			[1]="delve_biome_boss_life_+%_final"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -53045,6 +53874,8 @@ return {
 		s={
 			[1]="map_base_ground_fire_damage_to_deal_per_minute"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -53061,6 +53892,8 @@ return {
 		f=1,
 		s={
 			[1]="map_base_ground_fire_damage_to_deal_per_10_seconds"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -53079,6 +53912,8 @@ return {
 		s={
 			[1]="map_ground_ice"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -53096,6 +53931,8 @@ return {
 		s={
 			[1]="map_ground_ice_base_magnitude"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -53112,6 +53949,8 @@ return {
 		f=1,
 		s={
 			[1]="map_ground_lightning"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -53147,6 +53986,8 @@ return {
 		s={
 			[1]="map_ground_tar_movement_speed_+%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -53163,6 +54004,8 @@ return {
 		f=1,
 		s={
 			[1]="map_base_ground_desecration_damage_to_deal_per_minute"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -53181,6 +54024,8 @@ return {
 		s={
 			[1]="map_tempest_base_ground_fire_damage_to_deal_per_minute"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -53197,6 +54042,8 @@ return {
 		f=1,
 		s={
 			[1]="map_tempest_ground_ice"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -53215,6 +54062,8 @@ return {
 		s={
 			[1]="map_tempest_ground_lightning"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -53232,6 +54081,8 @@ return {
 		s={
 			[1]="map_tempest_ground_tar_movement_speed_+%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -53248,6 +54099,8 @@ return {
 		f=1,
 		s={
 			[1]="map_tempest_base_ground_desecration_damage_to_deal_per_minute"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -53599,6 +54452,8 @@ return {
 		s={
 			[1]="map_num_extra_shrines"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -53761,6 +54616,8 @@ return {
 		f=1,
 		s={
 			[1]="map_num_extra_strongboxes"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -54239,6 +55096,9 @@ return {
 		f=1,
 		s={
 			[1]="map_monsters_life_+%"
+		},
+		u={
+			q=5
 		},
 		v={
 			[1]={
@@ -55073,6 +55933,8 @@ return {
 		s={
 			[1]="map_monsters_add_endurance_charge_on_hit_%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -55361,6 +56223,8 @@ return {
 		f=1,
 		s={
 			[1]="map_monster_no_drops"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -55902,6 +56766,9 @@ return {
 		s={
 			[1]="base_fire_hit_damage_taken_%_as_physical"
 		},
+		u={
+			q=3
+		},
 		v={
 			[1]={
 				l={
@@ -55918,6 +56785,9 @@ return {
 		f=1,
 		s={
 			[1]="base_fire_hit_damage_taken_%_as_physical_value_negated"
+		},
+		u={
+			q=1
 		},
 		v={
 			[1]={
@@ -56103,6 +56973,9 @@ return {
 		f=1,
 		s={
 			[1]="unique_quill_rain_damage_+%_final"
+		},
+		u={
+			q=1
 		},
 		v={
 			[1]={
@@ -56727,6 +57600,8 @@ return {
 		s={
 			[1]="bleed_on_melee_crit_chance_%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -57006,6 +57881,9 @@ return {
 			[1]="minimum_added_physical_damage_vs_bleeding_enemies",
 			[2]="maximum_added_physical_damage_vs_bleeding_enemies"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -57127,6 +58005,11 @@ return {
 		s={
 			[1]="light_radius_+%"
 		},
+		u={
+			e=10,
+			i=8,
+			q=30
+		},
 		v={
 			[1]={
 				l={
@@ -57158,6 +58041,8 @@ return {
 		f=1,
 		s={
 			[1]="virtual_light_radius_+%"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -57372,6 +58257,9 @@ return {
 		s={
 			[1]="chaos_damage_does_not_bypass_energy_shield"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -57423,6 +58311,10 @@ return {
 		s={
 			[1]="curse_on_hit_%_enfeeble"
 		},
+		u={
+			i=1,
+			q=2
+		},
 		v={
 			[1]={
 				l={
@@ -57448,6 +58340,9 @@ return {
 		f=1,
 		s={
 			[1]="curse_on_hit_%_conductivity"
+		},
+		u={
+			i=1
 		},
 		v={
 			[1]={
@@ -57475,6 +58370,9 @@ return {
 		s={
 			[1]="curse_on_hit_%_despair"
 		},
+		u={
+			i=1
+		},
 		v={
 			[1]={
 				l={
@@ -57500,6 +58398,10 @@ return {
 		f=1,
 		s={
 			[1]="curse_on_hit_%_elemental_weakness"
+		},
+		u={
+			i=1,
+			q=1
 		},
 		v={
 			[1]={
@@ -57527,6 +58429,10 @@ return {
 		s={
 			[1]="curse_on_hit_%_flammability"
 		},
+		u={
+			i=1,
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -57552,6 +58458,9 @@ return {
 		f=1,
 		s={
 			[1]="curse_on_hit_%_frostbite"
+		},
+		u={
+			i=1
 		},
 		v={
 			[1]={
@@ -57579,6 +58488,10 @@ return {
 		s={
 			[1]="curse_on_hit_%_temporal_chains"
 		},
+		u={
+			i=1,
+			q=3
+		},
 		v={
 			[1]={
 				l={
@@ -57604,6 +58517,10 @@ return {
 		f=1,
 		s={
 			[1]="curse_on_hit_%_vulnerability"
+		},
+		u={
+			i=1,
+			q=1
 		},
 		v={
 			[1]={
@@ -57657,6 +58574,10 @@ return {
 		s={
 			[1]="curse_on_hit_level_temporal_chains"
 		},
+		u={
+			i=2,
+			q=2
+		},
 		v={
 			[1]={
 				l={
@@ -57674,6 +58595,10 @@ return {
 		s={
 			[1]="curse_on_hit_level_vulnerability"
 		},
+		u={
+			e=3,
+			i=4
+		},
 		v={
 			[1]={
 				l={
@@ -57690,6 +58615,10 @@ return {
 		f=1,
 		s={
 			[1]="curse_on_hit_level_10_vulnerability_%"
+		},
+		u={
+			e=1,
+			q=1
 		},
 		v={
 			[1]={
@@ -57717,6 +58646,10 @@ return {
 		s={
 			[1]="curse_on_hit_level_elemental_weakness"
 		},
+		u={
+			e=2,
+			i=3
+		},
 		v={
 			[1]={
 				l={
@@ -57733,6 +58666,8 @@ return {
 		f=1,
 		s={
 			[1]="curse_on_hit_level_cold_weakness"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -57751,6 +58686,10 @@ return {
 		s={
 			[1]="curse_on_hit_level_conductivity"
 		},
+		u={
+			e=4,
+			i=3
+		},
 		v={
 			[1]={
 				l={
@@ -57767,6 +58706,10 @@ return {
 		f=1,
 		s={
 			[1]="curse_on_hit_level_despair"
+		},
+		u={
+			e=4,
+			i=2
 		},
 		v={
 			[1]={
@@ -57785,6 +58728,9 @@ return {
 		s={
 			[1]="curse_on_hit_level_enfeeble"
 		},
+		u={
+			i=1
+		},
 		v={
 			[1]={
 				l={
@@ -57802,6 +58748,11 @@ return {
 		s={
 			[1]="curse_on_hit_level_flammability"
 		},
+		u={
+			e=4,
+			i=3,
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -57818,6 +58769,10 @@ return {
 		f=1,
 		s={
 			[1]="curse_on_hit_level_frostbite"
+		},
+		u={
+			e=4,
+			i=3
 		},
 		v={
 			[1]={
@@ -57869,6 +58824,11 @@ return {
 		f=1,
 		s={
 			[1]="melee_range_+"
+		},
+		u={
+			e=6,
+			i=1,
+			q=1
 		},
 		v={
 			[1]={
@@ -57959,6 +58919,9 @@ return {
 		s={
 			[1]="base_leech_is_instant_on_critical"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -57975,6 +58938,8 @@ return {
 		f=1,
 		s={
 			[1]="unqiue_atzitis_acuity_instant_leech_60%_effectiveness_on_crit"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -60182,6 +61147,10 @@ return {
 		s={
 			[1]="base_energy_shield_regeneration_rate_per_minute"
 		},
+		u={
+			e=1,
+			q=2
+		},
 		v={
 			[1]={
 				l={
@@ -60227,6 +61196,9 @@ return {
 		f=1,
 		s={
 			[1]="energy_shield_degeneration_%_per_minute_not_in_grace"
+		},
+		u={
+			e=1
 		},
 		v={
 			[1]={
@@ -60918,6 +61890,10 @@ return {
 		f=1,
 		s={
 			[1]="no_critical_strike_multiplier"
+		},
+		u={
+			i=10,
+			q=2
 		},
 		v={
 			[1]={
@@ -62035,6 +63011,9 @@ return {
 		s={
 			[1]="old_do_not_use_global_mana_leech_from_physical_attack_damage_%_per_blue_socket_on_item"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -62057,6 +63036,9 @@ return {
 		f=1,
 		s={
 			[1]="global_mana_leech_from_physical_attack_damage_permyriad_per_blue_socket_on_item"
+		},
+		u={
+			q=2
 		},
 		v={
 			[1]={
@@ -64040,6 +65022,8 @@ return {
 		s={
 			[1]="damage_vs_enemies_on_low_life_+%_final"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -64088,6 +65072,10 @@ return {
 		f=1,
 		s={
 			[1]="damage_+%_vs_blinded_enemies"
+		},
+		u={
+			e=1,
+			q=2
 		},
 		v={
 			[1]={
@@ -65354,6 +66342,8 @@ return {
 		s={
 			[1]="base_all_damage_can_cause_elemental_ailments_you_are_suffering_from"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -65472,6 +66462,9 @@ return {
 		f=1,
 		s={
 			[1]="cold_damage_can_ignite"
+		},
+		u={
+			e=1
 		},
 		v={
 			[1]={
@@ -65659,6 +66652,9 @@ return {
 		f=1,
 		s={
 			[1]="unique_cold_damage_can_also_ignite"
+		},
+		u={
+			q=1
 		},
 		v={
 			[1]={
@@ -66263,6 +67259,8 @@ return {
 		s={
 			[1]="old_do_not_use_minion_life_leech_from_any_damage_permyriad"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -66285,6 +67283,10 @@ return {
 		f=1,
 		s={
 			[1]="minion_life_leech_from_any_damage_permyriad"
+		},
+		u={
+			e=1,
+			i=3
 		},
 		v={
 			[1]={
@@ -66591,6 +67593,8 @@ return {
 		f=1,
 		s={
 			[1]="unique_voltaxic_rift_shock_as_though_damage_+%_final"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -67554,6 +68558,9 @@ return {
 		s={
 			[1]="recharge_flasks_on_crit"
 		},
+		u={
+			q=3
+		},
 		v={
 			[1]={
 				l={
@@ -68161,6 +69168,8 @@ return {
 		f=1,
 		s={
 			[1]="display_map_has_oxygen"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -70900,6 +71909,9 @@ return {
 		s={
 			[1]="vaal_skill_soul_gain_preventation_duration_+%"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -71256,6 +72268,9 @@ return {
 		s={
 			[1]="self_cursed_with_level_x_vulnerability"
 		},
+		u={
+			q=2
+		},
 		v={
 			[1]={
 				l={
@@ -71392,6 +72407,10 @@ return {
 		s={
 			[1]="base_enemy_critical_strike_chance_+%_against_self"
 		},
+		u={
+			i=4,
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -71446,6 +72465,8 @@ return {
 		f=1,
 		s={
 			[1]="enemy_critical_strike_chance_+%_against_self_20_times_value"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -71623,6 +72644,11 @@ return {
 		s={
 			[1]="chill_enemy_when_hit_duration_ms"
 		},
+		u={
+			e=1,
+			i=2,
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -71692,6 +72718,8 @@ return {
 		f=1,
 		s={
 			[1]="new_arctic_armour_fire_damage_taken_when_hit_+%_final"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -72078,6 +73106,8 @@ return {
 		s={
 			[1]="split_arrow_number_of_additional_arrows"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -72137,6 +73167,11 @@ return {
 		f=1,
 		s={
 			[1]="cannot_be_knocked_back"
+		},
+		u={
+			e=1,
+			i=1,
+			q=1
 		},
 		v={
 			[1]={
@@ -72394,6 +73429,11 @@ return {
 		f=1,
 		s={
 			[1]="base_chance_to_poison_on_hit_%"
+		},
+		u={
+			e=5,
+			i=23,
+			q=1
 		},
 		v={
 			[1]={
@@ -73081,6 +74121,8 @@ return {
 		s={
 			[1]="attack_speed_+%_when_hit"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -73631,6 +74673,8 @@ return {
 		s={
 			[1]="movement_velocity_while_not_hit_+%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -73983,6 +75027,9 @@ return {
 		s={
 			[1]="enchantment_boots_life_leech_on_kill_permyriad"
 		},
+		u={
+			n=3
+		},
 		v={
 			[1]={
 				l={
@@ -74027,6 +75074,10 @@ return {
 		f=1,
 		s={
 			[1]="enchantment_boots_movement_speed_+%_when_not_hit_for_4_seconds"
+		},
+		u={
+			e=2,
+			n=3
 		},
 		v={
 			[1]={
@@ -74318,6 +75369,8 @@ return {
 		f=1,
 		s={
 			[1]="animate_weapon_can_animate_up_to_x_additional_ranged_weapons"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -74630,6 +75683,8 @@ return {
 		f=1,
 		s={
 			[1]="virtual_number_of_ranged_animated_weapons_allowed"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -77731,6 +78786,10 @@ return {
 		s={
 			[1]="gain_flask_chance_on_crit_%"
 		},
+		u={
+			e=1,
+			i=4
+		},
 		v={
 			[1]={
 				l={
@@ -78587,6 +79646,8 @@ return {
 		s={
 			[1]="soul_eater_on_rare_kill_ms"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -78609,6 +79670,8 @@ return {
 		f=1,
 		s={
 			[1]="map_players_gain_soul_eater_on_rare_kill_ms"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -79773,6 +80836,8 @@ return {
 		f=1,
 		s={
 			[1]="damage_+%_vs_bleeding_enemies"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -82292,6 +83357,8 @@ return {
 		s={
 			[1]="virtual_energy_shield_delay_-%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -82355,6 +83422,8 @@ return {
 		f=1,
 		s={
 			[1]="virtual_energy_shield_recharge_rate_+%"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -82667,6 +83736,8 @@ return {
 		s={
 			[1]="inquisitor_aura_elemental_damage_+%_final"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -82698,6 +83769,8 @@ return {
 		f=1,
 		s={
 			[1]="support_gem_elemental_damage_+%_final"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -82774,6 +83847,10 @@ return {
 		s={
 			[1]="base_should_have_onslaught_from_stat"
 		},
+		u={
+			i=1,
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -82790,6 +83867,8 @@ return {
 		f=1,
 		s={
 			[1]="silver_flask_display_onslaught"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -82876,6 +83955,8 @@ return {
 		f=1,
 		s={
 			[1]="add_power_charge_on_hit_%"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -87218,6 +88299,8 @@ return {
 		s={
 			[1]="hierophant_passive_damage_+%_final_per_totem"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -87249,6 +88332,8 @@ return {
 		f=1,
 		s={
 			[1]="totem_damage_+%_final_per_active_totem"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -93033,6 +94118,9 @@ return {
 		s={
 			[1]="spark_num_of_additional_projectiles"
 		},
+		u={
+			n=2
+		},
 		v={
 			[1]={
 				l={
@@ -93058,6 +94146,9 @@ return {
 		f=1,
 		s={
 			[1]="split_arrow_num_of_additional_projectiles"
+		},
+		u={
+			n=2
 		},
 		v={
 			[1]={
@@ -94075,6 +95166,8 @@ return {
 		s={
 			[1]="blast_rain_number_of_blasts"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -94100,6 +95193,9 @@ return {
 		f=1,
 		s={
 			[1]="blast_rain_single_additional_projectile"
+		},
+		u={
+			n=2
 		},
 		v={
 			[1]={
@@ -94318,6 +95414,8 @@ return {
 		f=1,
 		s={
 			[1]="summon_skeletons_num_additional_warrior_skeletons"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -95937,6 +97035,8 @@ return {
 		s={
 			[1]="berserker_damage_+%_final"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -97326,6 +98426,8 @@ return {
 		s={
 			[1]="blast_rain_%_chance_for_additional_blast"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -97506,6 +98608,10 @@ return {
 		s={
 			[1]="rallying_cry_buff_effect_+%"
 		},
+		u={
+			i=18,
+			n=2
+		},
 		v={
 			[1]={
 				l={
@@ -97678,6 +98784,9 @@ return {
 		f=1,
 		s={
 			[1]="desecrate_number_of_corpses_to_create"
+		},
+		u={
+			n=2
 		},
 		v={
 			[1]={
@@ -99559,6 +100668,9 @@ return {
 		s={
 			[1]="attacks_number_of_additional_projectiles_when_in_off_hand"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -100987,6 +102099,8 @@ return {
 		s={
 			[1]="desecrate_creates_X_additional_corpses"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -101125,6 +102239,8 @@ return {
 		f=1,
 		s={
 			[1]="gain_life_leech_on_kill_permyriad"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -101413,6 +102529,9 @@ return {
 		s={
 			[1]="power_charge_on_block_%_chance"
 		},
+		u={
+			e=2
+		},
 		v={
 			[1]={
 				l={
@@ -101616,6 +102735,8 @@ return {
 		f=1,
 		s={
 			[1]="bleed_on_melee_critical_strike"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -102020,6 +103141,8 @@ return {
 		f=1,
 		s={
 			[1]="memory_line_number_of_shrines"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -105399,6 +106522,8 @@ return {
 		s={
 			[1]="chill_minimum_slow_%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -107128,6 +108253,9 @@ return {
 		s={
 			[1]="accuracy_rating_against_marked_enemies_+%_final_from_crucible_tree"
 		},
+		u={
+			i=2
+		},
 		v={
 			[1]={
 				l={
@@ -107159,6 +108287,8 @@ return {
 		f=1,
 		s={
 			[1]="accuracy_rating_against_marked_enemies_+%_final_from_mastery"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -107659,6 +108789,9 @@ return {
 		s={
 			[1]="additional_attack_block_%_per_endurance_charge"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -107775,6 +108908,9 @@ return {
 		f=1,
 		s={
 			[1]="additional_block_%_per_endurance_charge"
+		},
+		u={
+			e=1
 		},
 		v={
 			[1]={
@@ -108847,6 +109983,8 @@ return {
 		s={
 			[1]="additive_flask_effect_modifiers_apply_to_arcane_surge"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -108863,6 +110001,9 @@ return {
 		f=1,
 		s={
 			[1]="additive_flask_effect_modifiers_apply_to_arcane_surge_at_%_value"
+		},
+		u={
+			q=1
 		},
 		v={
 			[1]={
@@ -110811,6 +111952,10 @@ return {
 		s={
 			[1]="anger_mana_reservation_efficiency_-2%_per_1"
 		},
+		u={
+			e=1,
+			n=2
+		},
 		v={
 			[1]={
 				l={
@@ -110848,6 +111993,11 @@ return {
 		f=1,
 		s={
 			[1]="anger_mana_reservation_efficiency_+%"
+		},
+		u={
+			e=2,
+			i=1,
+			n=2
 		},
 		v={
 			[1]={
@@ -111456,6 +112606,8 @@ return {
 		s={
 			[1]="arctic_armour_chill_when_hit_duration"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -111494,6 +112646,10 @@ return {
 		s={
 			[1]="arctic_armour_mana_reservation_efficiency_-2%_per_1"
 		},
+		u={
+			e=1,
+			n=2
+		},
 		v={
 			[1]={
 				l={
@@ -111531,6 +112687,10 @@ return {
 		f=1,
 		s={
 			[1]="arctic_armour_mana_reservation_efficiency_+%"
+		},
+		u={
+			e=1,
+			n=2
 		},
 		v={
 			[1]={
@@ -111740,6 +112900,9 @@ return {
 		f=1,
 		s={
 			[1]="area_of_effect_+%_per_enemy_killed_recently_up_to_25%"
+		},
+		u={
+			q=1
 		},
 		v={
 			[1]={
@@ -112124,6 +113287,9 @@ return {
 		f=1,
 		s={
 			[1]="area_of_effect_+%_per_enemy_killed_recently"
+		},
+		u={
+			q=1
 		},
 		v={
 			[1]={
@@ -113414,6 +114580,9 @@ return {
 		f=1,
 		s={
 			[1]="arrows_pierce_additional_target"
+		},
+		u={
+			q=1
 		},
 		v={
 			[1]={
@@ -116076,6 +117245,8 @@ return {
 			[1]="attack_minimum_added_physical_damage_if_have_crit_recently",
 			[2]="attack_maximum_added_physical_damage_if_have_crit_recently"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -116589,6 +117760,9 @@ return {
 		f=1,
 		s={
 			[1]="attack_speed_+%_if_have_been_hit_recently"
+		},
+		u={
+			e=1
 		},
 		v={
 			[1]={
@@ -117187,6 +118361,11 @@ return {
 		f=1,
 		s={
 			[1]="attacks_impale_on_hit_%_chance"
+		},
+		u={
+			e=4,
+			i=22,
+			q=5
 		},
 		v={
 			[1]={
@@ -117905,6 +119084,8 @@ return {
 		f=1,
 		s={
 			[1]="axe_mastery_hit_and_ailment_damage_+%_final_vs_enemies_on_low_life"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -118698,6 +119879,8 @@ return {
 		s={
 			[1]="base_always_inflict_elemental_ailments_you_are_suffering_from"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -119085,6 +120268,9 @@ return {
 		s={
 			[1]="base_chaos_damage_damages_energy_shield_%"
 		},
+		u={
+			q=2
+		},
 		v={
 			[1]={
 				l={
@@ -119168,6 +120354,11 @@ return {
 		f=1,
 		s={
 			[1]="base_cooldown_speed_+%"
+		},
+		u={
+			e=9,
+			i=29,
+			q=5
 		},
 		v={
 			[1]={
@@ -120144,6 +121335,10 @@ return {
 		s={
 			[1]="base_max_fortification"
 		},
+		u={
+			i=2,
+			q=2
+		},
 		v={
 			[1]={
 				l={
@@ -121028,6 +122223,9 @@ return {
 		s={
 			[1]="bear_trap_additional_damage_taken_+%_from_traps_and_mines"
 		},
+		u={
+			n=2
+		},
 		v={
 			[1]={
 				l={
@@ -121059,6 +122257,8 @@ return {
 		f=1,
 		s={
 			[1]="bear_trap_damage_taken_+%_from_traps_and_mines"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -121401,6 +122601,8 @@ return {
 		s={
 			[1]="blackstar_moonlight_cold_damage_taken_+%_final"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -121432,6 +122634,8 @@ return {
 		f=1,
 		s={
 			[1]="blackstar_moonlight_fire_damage_taken_+%_final"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -121465,6 +122669,8 @@ return {
 		s={
 			[1]="blackstar_sunlight_cold_damage_taken_+%_final"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -121496,6 +122702,8 @@ return {
 		f=1,
 		s={
 			[1]="blackstar_sunlight_fire_damage_taken_+%_final"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -122363,6 +123571,9 @@ return {
 		s={
 			[1]="blight_arc_tower_damage_+%"
 		},
+		u={
+			i=1
+		},
 		v={
 			[1]={
 				l={
@@ -122595,6 +123806,9 @@ return {
 		s={
 			[1]="blight_chilling_tower_range_+%"
 		},
+		u={
+			i=1
+		},
 		v={
 			[1]={
 				l={
@@ -122780,6 +123994,9 @@ return {
 		f=1,
 		s={
 			[1]="blight_fireball_tower_additional_projectiles_+"
+		},
+		u={
+			i=2
 		},
 		v={
 			[1]={
@@ -125076,6 +126293,8 @@ return {
 		s={
 			[1]="blight_tower_arc_damage_+%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -125107,6 +126326,8 @@ return {
 		f=1,
 		s={
 			[1]="blight_tower_chilling_cost_+%"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -125156,6 +126377,8 @@ return {
 		f=1,
 		s={
 			[1]="blight_tower_fireball_additional_projectile"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -125550,6 +126773,8 @@ return {
 		s={
 			[1]="block_spells_chance_%_while_holding_shield"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -125599,6 +126824,8 @@ return {
 		s={
 			[1]="blood_sand_mana_reservation_efficiency_-2%_per_1"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -125636,6 +126863,8 @@ return {
 		f=1,
 		s={
 			[1]="blood_sand_mana_reservation_efficiency_+%"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -129414,6 +130643,9 @@ return {
 		s={
 			[1]="buff_time_passed_+%_only_buff_category"
 		},
+		u={
+			i=16
+		},
 		v={
 			[1]={
 				l={
@@ -129445,6 +130677,8 @@ return {
 		f=1,
 		s={
 			[1]="buff_time_passed_+%"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -136746,6 +137980,10 @@ return {
 		s={
 			[1]="chance_to_intimidate_on_hit_%"
 		},
+		u={
+			e=2,
+			i=21
+		},
 		v={
 			[1]={
 				l={
@@ -138030,6 +139268,8 @@ return {
 		s={
 			[1]="chill_minimum_slow_%_from_mastery"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -138340,6 +139580,9 @@ return {
 		s={
 			[1]="clarity_mana_reservation_efficiency_-2%_per_1"
 		},
+		u={
+			n=2
+		},
 		v={
 			[1]={
 				l={
@@ -138377,6 +139620,9 @@ return {
 		f=1,
 		s={
 			[1]="clarity_mana_reservation_efficiency_+%"
+		},
+		u={
+			n=2
 		},
 		v={
 			[1]={
@@ -143246,6 +144492,9 @@ return {
 		s={
 			[1]="curse_aura_skills_mana_reservation_efficiency_-2%_per_1"
 		},
+		u={
+			e=1
+		},
 		v={
 			[1]={
 				l={
@@ -143283,6 +144532,9 @@ return {
 		f=1,
 		s={
 			[1]="curse_aura_skills_mana_reservation_efficiency_+%"
+		},
+		u={
+			e=1
 		},
 		v={
 			[1]={
@@ -143903,6 +145155,8 @@ return {
 		f=1,
 		s={
 			[1]="damage_+%_per_poison_stack"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -145199,6 +146453,9 @@ return {
 		f=1,
 		s={
 			[1]="damage_+%_per_poison_up_to_75%"
+		},
+		u={
+			q=1
 		},
 		v={
 			[1]={
@@ -147928,6 +149185,8 @@ return {
 		s={
 			[1]="delve_boss_life_+%_final_from_biome"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -148075,6 +149334,11 @@ return {
 		s={
 			[1]="determination_mana_reservation_efficiency_-2%_per_1"
 		},
+		u={
+			e=1,
+			i=1,
+			n=2
+		},
 		v={
 			[1]={
 				l={
@@ -148112,6 +149376,11 @@ return {
 		f=1,
 		s={
 			[1]="determination_mana_reservation_efficiency_+%"
+		},
+		u={
+			e=1,
+			i=2,
+			n=2
 		},
 		v={
 			[1]={
@@ -148479,6 +149748,11 @@ return {
 		s={
 			[1]="discipline_mana_reservation_efficiency_-2%_per_1"
 		},
+		u={
+			e=1,
+			i=1,
+			n=2
+		},
 		v={
 			[1]={
 				l={
@@ -148516,6 +149790,11 @@ return {
 		f=1,
 		s={
 			[1]="discipline_mana_reservation_efficiency_+%"
+		},
+		u={
+			e=1,
+			i=2,
+			n=2
 		},
 		v={
 			[1]={
@@ -148990,6 +150269,8 @@ return {
 		s={
 			[1]="display_legion_uber_fragment_improved_rewards_+%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -149024,6 +150305,8 @@ return {
 		s={
 			[1]="display_map_inhabited_by_lunaris_fanatics"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -149040,6 +150323,8 @@ return {
 		f=1,
 		s={
 			[1]="display_map_inhabited_by_solaris_fanatics"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -149543,6 +150828,8 @@ return {
 		s={
 			[1]="display_monster_no_drops"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -149788,6 +151075,9 @@ return {
 		f=1,
 		s={
 			[1]="doedre_aura_damage_+%_final"
+		},
+		u={
+			q=1
 		},
 		v={
 			[1]={
@@ -154089,6 +155379,8 @@ return {
 		s={
 			[1]="energy_shield_lost_per_minute_%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -154558,6 +155850,8 @@ return {
 		s={
 			[1]="energy_shield_regeneration_rate_per_second"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -154574,6 +155868,8 @@ return {
 		f=1,
 		s={
 			[1]="energy_shield_regeneration_rate_+%"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -154960,6 +156256,9 @@ return {
 		s={
 			[1]="evasion_+%_per_10_intelligence"
 		},
+		u={
+			q=2
+		},
 		v={
 			[1]={
 				l={
@@ -154993,6 +156292,8 @@ return {
 		f=1,
 		s={
 			[1]="evasion_rating_+%_per_10_intelligence"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -158882,6 +160183,9 @@ return {
 		s={
 			[1]="flask_charges_gained_from_kills_+%_final_from_unique"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -159281,6 +160585,9 @@ return {
 		s={
 			[1]="flesh_stone_mana_reservation_efficiency_-2%_per_1"
 		},
+		u={
+			n=2
+		},
 		v={
 			[1]={
 				l={
@@ -159318,6 +160625,9 @@ return {
 		f=1,
 		s={
 			[1]="flesh_stone_mana_reservation_efficiency_+%"
+		},
+		u={
+			n=2
 		},
 		v={
 			[1]={
@@ -159651,6 +160961,8 @@ return {
 		f=1,
 		s={
 			[1]="fortify_on_hit"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -163043,6 +164355,9 @@ return {
 		s={
 			[1]="gain_shrine_buff_every_x_ms"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -163074,6 +164389,8 @@ return {
 		f=1,
 		s={
 			[1]="gain_shrine_buff_every_x_ms_from_ascendancy"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -164661,6 +165978,8 @@ return {
 			[1]="global_minimum_added_physical_damage_vs_bleeding_enemies",
 			[2]="global_maximum_added_physical_damage_vs_bleeding_enemies"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -165066,6 +166385,11 @@ return {
 		s={
 			[1]="grace_mana_reservation_efficiency_-2%_per_1"
 		},
+		u={
+			e=1,
+			i=1,
+			n=2
+		},
 		v={
 			[1]={
 				l={
@@ -165103,6 +166427,11 @@ return {
 		f=1,
 		s={
 			[1]="grace_mana_reservation_efficiency_+%"
+		},
+		u={
+			e=1,
+			i=2,
+			n=2
 		},
 		v={
 			[1]={
@@ -165805,6 +167134,9 @@ return {
 		s={
 			[1]="haste_mana_reservation_efficiency_-2%_per_1"
 		},
+		u={
+			n=2
+		},
 		v={
 			[1]={
 				l={
@@ -165842,6 +167174,9 @@ return {
 		f=1,
 		s={
 			[1]="haste_mana_reservation_efficiency_+%"
+		},
+		u={
+			n=2
 		},
 		v={
 			[1]={
@@ -165924,6 +167259,11 @@ return {
 		s={
 			[1]="hatred_mana_reservation_efficiency_-2%_per_1"
 		},
+		u={
+			e=1,
+			n=2,
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -165961,6 +167301,12 @@ return {
 		f=1,
 		s={
 			[1]="hatred_mana_reservation_efficiency_+%"
+		},
+		u={
+			e=1,
+			i=1,
+			n=2,
+			q=1
 		},
 		v={
 			[1]={
@@ -168935,6 +170281,8 @@ return {
 		s={
 			[1]="heist_npc_contract_generates_gianna_intelligence"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -168960,6 +170308,8 @@ return {
 		f=1,
 		s={
 			[1]="heist_npc_contract_generates_niles_intelligence"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -169036,6 +170386,8 @@ return {
 		s={
 			[1]="heist_npc_nenet_alert_level_+%_final"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -169068,6 +170420,8 @@ return {
 		s={
 			[1]="heist_npc_tullina_alert_level_+%_final"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -169099,6 +170453,8 @@ return {
 		f=1,
 		s={
 			[1]="heist_npc_vinderi_alert_level_+%_final"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -169893,6 +171249,9 @@ return {
 		s={
 			[1]="helmet_mod_shock_as_though_damage_+%_final"
 		},
+		u={
+			e=1
+		},
 		v={
 			[1]={
 				l={
@@ -170023,6 +171382,10 @@ return {
 		s={
 			[1]="herald_of_agony_mana_reservation_efficiency_-2%_per_1"
 		},
+		u={
+			n=2,
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -170060,6 +171423,10 @@ return {
 		f=1,
 		s={
 			[1]="herald_of_agony_mana_reservation_efficiency_+%"
+		},
+		u={
+			n=2,
+			q=1
 		},
 		v={
 			[1]={
@@ -170157,6 +171524,10 @@ return {
 		s={
 			[1]="herald_of_ash_mana_reservation_efficiency_-2%_per_1"
 		},
+		u={
+			n=2,
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -170194,6 +171565,10 @@ return {
 		f=1,
 		s={
 			[1]="herald_of_ash_mana_reservation_efficiency_+%"
+		},
+		u={
+			n=2,
+			q=1
 		},
 		v={
 			[1]={
@@ -170291,6 +171666,10 @@ return {
 		s={
 			[1]="herald_of_ice_mana_reservation_efficiency_-2%_per_1"
 		},
+		u={
+			n=2,
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -170328,6 +171707,10 @@ return {
 		f=1,
 		s={
 			[1]="herald_of_ice_mana_reservation_efficiency_+%"
+		},
+		u={
+			n=2,
+			q=1
 		},
 		v={
 			[1]={
@@ -170442,6 +171825,10 @@ return {
 		s={
 			[1]="herald_of_purity_mana_reservation_efficiency_-2%_per_1"
 		},
+		u={
+			n=2,
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -170479,6 +171866,10 @@ return {
 		f=1,
 		s={
 			[1]="herald_of_purity_mana_reservation_efficiency_+%"
+		},
+		u={
+			n=2,
+			q=1
 		},
 		v={
 			[1]={
@@ -170602,6 +171993,10 @@ return {
 		s={
 			[1]="herald_of_thunder_mana_reservation_efficiency_-2%_per_1"
 		},
+		u={
+			n=2,
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -170639,6 +172034,10 @@ return {
 		f=1,
 		s={
 			[1]="herald_of_thunder_mana_reservation_efficiency_+%"
+		},
+		u={
+			n=2,
+			q=1
 		},
 		v={
 			[1]={
@@ -170715,6 +172114,8 @@ return {
 		s={
 			[1]="herald_skills_mana_reservation_efficiency_-2%_per_1"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -170752,6 +172153,9 @@ return {
 		f=1,
 		s={
 			[1]="herald_skills_mana_reservation_efficiency_+%"
+		},
+		u={
+			q=1
 		},
 		v={
 			[1]={
@@ -171218,6 +172622,9 @@ return {
 		s={
 			[1]="hit_and_ailment_damage_+%_vs_bleeding_enemies"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -171249,6 +172656,9 @@ return {
 		f=1,
 		s={
 			[1]="hit_and_ailment_damage_+%_vs_blinded_enemies"
+		},
+		u={
+			q=1
 		},
 		v={
 			[1]={
@@ -173768,6 +175178,8 @@ return {
 		s={
 			[1]="impurity_cold_damage_taken_+%_final"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -173800,6 +175212,8 @@ return {
 		s={
 			[1]="impurity_fire_damage_taken_+%_final"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -173831,6 +175245,8 @@ return {
 		f=1,
 		s={
 			[1]="impurity_lightning_damage_taken_+%_final"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -174742,6 +176158,9 @@ return {
 		s={
 			[1]="item_found_gold_+%"
 		},
+		u={
+			q=6
+		},
 		v={
 			[1]={
 				l={
@@ -174933,6 +176352,8 @@ return {
 		f=1,
 		s={
 			[1]="killed_monster_dropped_gold_+%"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -175165,6 +176586,9 @@ return {
 		s={
 			[1]="kinetic_wand_implicit_cannot_roll_caster_modifiers"
 		},
+		u={
+			i=1
+		},
 		v={
 			[1]={
 				l={
@@ -175198,6 +176622,8 @@ return {
 		f=1,
 		s={
 			[1]="labyrinth_darkshrine_additional_divine_font_use_display"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -175241,6 +176667,8 @@ return {
 		f=1,
 		s={
 			[1]="labyrinth_darkshrine_divine_font_grants_one_additional_enchantment_use_to_player_x"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -182175,6 +183603,8 @@ return {
 		s={
 			[1]="local_affliction_notable_evil_eye"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -185490,6 +186920,8 @@ return {
 		s={
 			[1]="local_affliction_notable_whispers_of_death"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -185826,6 +187258,9 @@ return {
 		s={
 			[1]="local_attacks_impale_on_hit_%_chance"
 		},
+		u={
+			i=10
+		},
 		v={
 			[1]={
 				l={
@@ -186133,6 +187568,10 @@ return {
 		f=1,
 		s={
 			[1]="local_chance_to_intimidate_on_hit_%"
+		},
+		u={
+			e=2,
+			i=3
 		},
 		v={
 			[1]={
@@ -186781,6 +188220,9 @@ return {
 		s={
 			[1]="local_display_nearby_enemies_are_chilled"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -187168,6 +188610,9 @@ return {
 		s={
 			[1]="local_double_damage_with_attacks"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -187184,6 +188629,9 @@ return {
 		f=1,
 		s={
 			[1]="local_double_damage_with_attacks_chance_%"
+		},
+		u={
+			i=6
 		},
 		v={
 			[1]={
@@ -188457,6 +189905,9 @@ return {
 		s={
 			[1]="local_life_leech_from_any_damage_permyriad"
 		},
+		u={
+			i=5
+		},
 		v={
 			[1]={
 				l={
@@ -188522,6 +189973,9 @@ return {
 		f=1,
 		s={
 			[1]="local_mana_leech_from_any_damage_permyriad"
+		},
+		u={
+			i=4
 		},
 		v={
 			[1]={
@@ -188798,6 +190252,9 @@ return {
 			[2]="local_pearl_random_support_gem_1_index",
 			[3]="local_pearl_random_support_gem_1_level"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -188899,6 +190356,9 @@ return {
 			[1]="local_pearl_random_support_gem_2_slot_index",
 			[2]="local_pearl_random_support_gem_2_index",
 			[3]="local_pearl_random_support_gem_2_level"
+		},
+		u={
+			q=1
 		},
 		v={
 			[1]={
@@ -189025,6 +190485,11 @@ return {
 		f=1,
 		s={
 			[1]="local_poison_on_hit_%"
+		},
+		u={
+			e=10,
+			i=11,
+			q=5
 		},
 		v={
 			[1]={
@@ -189224,6 +190689,9 @@ return {
 		s={
 			[1]="local_ring_attack_speed_+%_final"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -189255,6 +190723,9 @@ return {
 		f=1,
 		s={
 			[1]="local_ring_burning_damage_+%_final"
+		},
+		u={
+			q=1
 		},
 		v={
 			[1]={
@@ -192037,6 +193508,9 @@ return {
 		s={
 			[1]="local_weapon_passive_tree_granted_passive_hash"
 		},
+		u={
+			i=79
+		},
 		v={
 			[1]={
 				l={
@@ -192779,6 +194253,10 @@ return {
 		s={
 			[1]="malevolence_mana_reservation_efficiency_-2%_per_1"
 		},
+		u={
+			e=1,
+			n=2
+		},
 		v={
 			[1]={
 				l={
@@ -192816,6 +194294,11 @@ return {
 		f=1,
 		s={
 			[1]="malevolence_mana_reservation_efficiency_+%"
+		},
+		u={
+			e=1,
+			i=1,
+			n=2
 		},
 		v={
 			[1]={
@@ -193104,6 +194587,10 @@ return {
 		f=1,
 		s={
 			[1]="mana_degeneration_per_minute"
+		},
+		u={
+			i=8,
+			q=1
 		},
 		v={
 			[1]={
@@ -194155,6 +195642,9 @@ return {
 		s={
 			[1]="mana_reservation_efficiency_+%_for_skills_that_throw_mines"
 		},
+		u={
+			i=4
+		},
 		v={
 			[1]={
 				l={
@@ -194186,6 +195676,8 @@ return {
 		f=1,
 		s={
 			[1]="mana_reservation_efficiency_-2%_per_1_for_skills_that_throw_mines"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -194225,6 +195717,9 @@ return {
 		s={
 			[1]="mana_reservation_efficiency_-2%_per_250_total_attributes"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -194262,6 +195757,9 @@ return {
 		f=1,
 		s={
 			[1]="mana_reservation_efficiency_+%_per_250_total_attributes"
+		},
+		u={
+			q=2
 		},
 		v={
 			[1]={
@@ -195666,6 +197164,8 @@ return {
 		s={
 			[1]="map_area_contains_x_additional_clusters_of_beacon_barrels"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -195683,6 +197183,8 @@ return {
 		s={
 			[1]="map_area_contains_x_additional_clusters_of_bloodworm_barrels"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -195699,6 +197201,8 @@ return {
 		f=1,
 		s={
 			[1]="map_area_contains_x_additional_clusters_of_explosive_barrels"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -195734,6 +197238,8 @@ return {
 		s={
 			[1]="map_area_contains_x_additional_clusters_of_parasite_barrels"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -195751,6 +197257,8 @@ return {
 		s={
 			[1]="map_area_contains_x_additional_clusters_of_volatile_barrels",
 			[2]="display_stat_uber_barrels"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -195786,6 +197294,8 @@ return {
 		s={
 			[1]="map_area_contains_x_additional_clusters_of_wealthy_barrels"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -195802,6 +197312,8 @@ return {
 		f=1,
 		s={
 			[1]="map_area_ritual_additional_chance_%"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -196192,6 +197704,8 @@ return {
 		s={
 			[1]="map_blight_chest_%_chance_for_additional_drop"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -196217,6 +197731,8 @@ return {
 		f=1,
 		s={
 			[1]="map_blight_chests_repeat_drops_count"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -198815,6 +200331,8 @@ return {
 		s={
 			[1]="map_custom_league_damage_taken_+%_final"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -199770,6 +201288,8 @@ return {
 		s={
 			[1]="map_endgame_affliction_reward_1"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -199792,6 +201312,8 @@ return {
 		f=1,
 		s={
 			[1]="map_endgame_affliction_reward_2"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -199816,6 +201338,8 @@ return {
 		s={
 			[1]="map_endgame_affliction_reward_3"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -199838,6 +201362,8 @@ return {
 		f=1,
 		s={
 			[1]="map_endgame_affliction_reward_4"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -199862,6 +201388,8 @@ return {
 		s={
 			[1]="map_endgame_affliction_reward_5"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -199884,6 +201412,8 @@ return {
 		f=1,
 		s={
 			[1]="map_endgame_affliction_reward_6"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -199908,6 +201438,8 @@ return {
 		s={
 			[1]="map_endgame_affliction_reward_7"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -199931,6 +201463,8 @@ return {
 		s={
 			[1]="map_endgame_affliction_reward_8"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -199953,6 +201487,8 @@ return {
 		f=1,
 		s={
 			[1]="map_endgame_affliction_reward_9"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -202849,6 +204385,8 @@ return {
 		s={
 			[1]="map_leaguestone_override_base_num_breaches"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -203536,6 +205074,8 @@ return {
 		s={
 			[1]="map_lethal_after_X_seconds"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -204182,6 +205722,8 @@ return {
 		s={
 			[1]="map_monster_chance_to_gain_endurance_charge_when_hit_%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -204239,6 +205781,8 @@ return {
 		f=1,
 		s={
 			[1]="map_monster_damage_taken_+%_final_from_atlas_keystone"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -204620,6 +206164,8 @@ return {
 		f=1,
 		s={
 			[1]="map_monster_slain_experience_+%"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -206826,6 +208372,8 @@ return {
 		s={
 			[1]="map_packs_are_lunaris"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -206842,6 +208390,8 @@ return {
 		f=1,
 		s={
 			[1]="map_packs_are_solaris"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -207768,6 +209318,8 @@ return {
 		s={
 			[1]="map_player_movement_velocity_+%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -208688,6 +210240,8 @@ return {
 		f=1,
 		s={
 			[1]="map_players_movement_speed_+%"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -210314,6 +211868,8 @@ return {
 		s={
 			[1]="map_storm_area_of_effect_+%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -210838,6 +212394,8 @@ return {
 		s={
 			[1]="map_synthesised_magic_monster_additional_breach_splinter_drop_chance_%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -210941,6 +212499,8 @@ return {
 		f=1,
 		s={
 			[1]="map_synthesised_magic_monster_additional_elder_item_drop_chance_%"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -211263,6 +212823,8 @@ return {
 		f=1,
 		s={
 			[1]="map_synthesised_monster_additional_breach_splinter_drop_chance_%"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -211707,6 +213269,8 @@ return {
 		s={
 			[1]="map_synthesised_rare_monster_additional_currency_shard_drop_chance_%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -211758,6 +213322,8 @@ return {
 		f=1,
 		s={
 			[1]="map_synthesised_rare_monster_additional_elder_item_drop_chance_%"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -212071,6 +213637,8 @@ return {
 		s={
 			[1]="map_synthesised_rare_monster_drop_additional_currency_shard"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -212357,6 +213925,8 @@ return {
 		f=1,
 		s={
 			[1]="map_tempest_area_of_effect_+%_visible"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -212741,6 +214311,8 @@ return {
 		f=1,
 		s={
 			[1]="map_ultimatum_encounter_additional_chance_%"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -214720,6 +216292,8 @@ return {
 		s={
 			[1]="map_watchstone_monsters_life_+%_final"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -215277,6 +216851,11 @@ return {
 		f=1,
 		s={
 			[1]="max_fortification_+1_per_5"
+		},
+		u={
+			e=4,
+			i=3,
+			q=3
 		},
 		v={
 			[1]={
@@ -216669,6 +218248,8 @@ return {
 		f=1,
 		s={
 			[1]="maximum_physical_attack_damage_+%_final"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -218611,6 +220192,9 @@ return {
 		s={
 			[1]="minimum_added_physical_damage_if_have_crit_recently",
 			[2]="maximum_added_physical_damage_if_have_crit_recently"
+		},
+		u={
+			e=3
 		},
 		v={
 			[1]={
@@ -220883,6 +222467,8 @@ return {
 		s={
 			[1]="minions_gain_half_your_strength_from_ascendancy"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -220916,6 +222502,9 @@ return {
 		f=1,
 		s={
 			[1]="minions_gain_your_strength"
+		},
+		u={
+			q=2
 		},
 		v={
 			[1]={
@@ -221461,6 +223050,9 @@ return {
 		s={
 			[1]="mod_granted_passive_hash"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -221483,6 +223075,9 @@ return {
 		f=1,
 		s={
 			[1]="mod_granted_passive_hash_2"
+		},
+		u={
+			q=1
 		},
 		v={
 			[1]={
@@ -221507,6 +223102,9 @@ return {
 		s={
 			[1]="mod_granted_passive_hash_3"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -221530,6 +223128,9 @@ return {
 		s={
 			[1]="mod_granted_passive_hash_4"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -221552,6 +223153,9 @@ return {
 		f=1,
 		s={
 			[1]="mod_granted_passive_hash_5"
+		},
+		u={
+			q=1
 		},
 		v={
 			[1]={
@@ -221927,6 +223531,8 @@ return {
 		s={
 			[1]="monster_slain_experience_+%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -222017,6 +223623,9 @@ return {
 		s={
 			[1]="mortar_barrage_mine_throwing_speed_halved_+%"
 		},
+		u={
+			n=2
+		},
 		v={
 			[1]={
 				l={
@@ -222058,6 +223667,9 @@ return {
 		f=1,
 		s={
 			[1]="mortar_barrage_mine_throwing_speed_+%"
+		},
+		u={
+			n=2
 		},
 		v={
 			[1]={
@@ -222722,6 +224334,9 @@ return {
 		s={
 			[1]="movement_speed_+%_per_poison_up_to_50%"
 		},
+		u={
+			q=2
+		},
 		v={
 			[1]={
 				l={
@@ -223138,6 +224753,8 @@ return {
 		s={
 			[1]="movement_velocity_+%_per_poison_stack"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -223398,6 +225015,8 @@ return {
 		f=1,
 		s={
 			[1]="nearby_enemies_are_chilled"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -223717,6 +225336,8 @@ return {
 		f=1,
 		s={
 			[1]="necromancer_defensive_notable_minion_maximum_life_+%_final"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -225330,6 +226951,9 @@ return {
 		s={
 			[1]="number_of_skeletons_allowed_per_2_old"
 		},
+		u={
+			q=3
+		},
 		v={
 			[1]={
 				l={
@@ -226254,6 +227878,8 @@ return {
 		s={
 			[1]="passive_mastery_less_projectile_speed_+%_final"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -226285,6 +227911,8 @@ return {
 		f=1,
 		s={
 			[1]="passive_mastery_less_skill_effect_duration_+%_final"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -226350,6 +227978,8 @@ return {
 		s={
 			[1]="passive_mastery_more_projectile_speed_+%_final"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -226381,6 +228011,8 @@ return {
 		f=1,
 		s={
 			[1]="passive_mastery_more_skill_effect_duration_+%_final"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -226445,6 +228077,8 @@ return {
 		f=1,
 		s={
 			[1]="passive_mastery_shock_proliferation_radius"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -227265,6 +228899,9 @@ return {
 		s={
 			[1]="petrified_blood_mana_reservation_efficiency_-2%_per_1"
 		},
+		u={
+			n=2
+		},
 		v={
 			[1]={
 				l={
@@ -227302,6 +228939,9 @@ return {
 		f=1,
 		s={
 			[1]="petrified_blood_mana_reservation_efficiency_+%"
+		},
+		u={
+			n=2
 		},
 		v={
 			[1]={
@@ -229447,6 +231087,9 @@ return {
 		s={
 			[1]="precision_mana_reservation_efficiency_-2%_per_1"
 		},
+		u={
+			n=2
+		},
 		v={
 			[1]={
 				l={
@@ -229501,6 +231144,10 @@ return {
 		f=1,
 		s={
 			[1]="precision_mana_reservation_efficiency_+%"
+		},
+		u={
+			n=2,
+			q=1
 		},
 		v={
 			[1]={
@@ -229718,6 +231365,10 @@ return {
 		s={
 			[1]="pride_mana_reservation_efficiency_-2%_per_1"
 		},
+		u={
+			e=1,
+			n=2
+		},
 		v={
 			[1]={
 				l={
@@ -229755,6 +231406,11 @@ return {
 		f=1,
 		s={
 			[1]="pride_mana_reservation_efficiency_+%"
+		},
+		u={
+			e=1,
+			i=1,
+			n=2
 		},
 		v={
 			[1]={
@@ -230522,6 +232178,8 @@ return {
 		s={
 			[1]="projectiles_pierce_1_additional_target_per_10_stat_value"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -230553,6 +232211,8 @@ return {
 		f=1,
 		s={
 			[1]="projectiles_pierce_1_additional_target_per_15_stat_value"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -230874,6 +232534,9 @@ return {
 		s={
 			[1]="purity_of_elements_mana_reservation_efficiency_-2%_per_1"
 		},
+		u={
+			n=2
+		},
 		v={
 			[1]={
 				l={
@@ -230911,6 +232574,10 @@ return {
 		f=1,
 		s={
 			[1]="purity_of_elements_mana_reservation_efficiency_+%"
+		},
+		u={
+			i=1,
+			n=2
 		},
 		v={
 			[1]={
@@ -230961,6 +232628,11 @@ return {
 		s={
 			[1]="purity_of_fire_mana_reservation_efficiency_-2%_per_1"
 		},
+		u={
+			e=1,
+			i=2,
+			n=2
+		},
 		v={
 			[1]={
 				l={
@@ -230998,6 +232670,11 @@ return {
 		f=1,
 		s={
 			[1]="purity_of_fire_mana_reservation_efficiency_+%"
+		},
+		u={
+			e=1,
+			i=2,
+			n=2
 		},
 		v={
 			[1]={
@@ -231048,6 +232725,11 @@ return {
 		s={
 			[1]="purity_of_ice_mana_reservation_efficiency_-2%_per_1"
 		},
+		u={
+			e=1,
+			i=2,
+			n=2
+		},
 		v={
 			[1]={
 				l={
@@ -231085,6 +232767,11 @@ return {
 		f=1,
 		s={
 			[1]="purity_of_ice_mana_reservation_efficiency_+%"
+		},
+		u={
+			e=1,
+			i=2,
+			n=2
 		},
 		v={
 			[1]={
@@ -231135,6 +232822,11 @@ return {
 		s={
 			[1]="purity_of_lightning_mana_reservation_efficiency_-2%_per_1"
 		},
+		u={
+			e=1,
+			i=2,
+			n=2
+		},
 		v={
 			[1]={
 				l={
@@ -231172,6 +232864,11 @@ return {
 		f=1,
 		s={
 			[1]="purity_of_lightning_mana_reservation_efficiency_+%"
+		},
+		u={
+			e=1,
+			i=2,
+			n=2
 		},
 		v={
 			[1]={
@@ -231345,6 +233042,9 @@ return {
 		f=1,
 		s={
 			[1]="quiver_projectiles_pierce_1_additional_target"
+		},
+		u={
+			e=2
 		},
 		v={
 			[1]={
@@ -231942,6 +233642,8 @@ return {
 		s={
 			[1]="rain_of_arrows_additional_sequence_chance_%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -231958,6 +233660,9 @@ return {
 		f=1,
 		s={
 			[1]="rain_of_arrows_rain_of_arrows_additional_sequence_chance_%"
+		},
+		u={
+			n=2
 		},
 		v={
 			[1]={
@@ -232225,6 +233930,9 @@ return {
 		s={
 			[1]="rallying_cry_buff_effect_1%_per_3_stat_value"
 		},
+		u={
+			n=2
+		},
 		v={
 			[1]={
 				l={
@@ -232247,6 +233955,9 @@ return {
 		f=1,
 		s={
 			[1]="rallying_cry_buff_effect_1%_per_5_stat_value"
+		},
+		u={
+			n=2
 		},
 		v={
 			[1]={
@@ -238045,6 +239756,9 @@ return {
 		s={
 			[1]="skitterbots_mana_reservation_efficiency_-2%_per_1"
 		},
+		u={
+			n=2
+		},
 		v={
 			[1]={
 				l={
@@ -238083,6 +239797,9 @@ return {
 		s={
 			[1]="skitterbots_mana_reservation_efficiency_+%"
 		},
+		u={
+			n=2
+		},
 		v={
 			[1]={
 				l={
@@ -238114,6 +239831,8 @@ return {
 		f=1,
 		s={
 			[1]="slayer_area_of_effect_+%_per_enemy_killed_recently_up_to_50%"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -238195,6 +239914,8 @@ return {
 		f=1,
 		s={
 			[1]="slayer_damage_+%_final_from_distance"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -238697,6 +240418,8 @@ return {
 		f=1,
 		s={
 			[1]="spark_number_of_additional_projectiles"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -240980,6 +242703,9 @@ return {
 		s={
 			[1]="spellslinger_mana_reservation_efficiency_-2%_per_1"
 		},
+		u={
+			n=2
+		},
 		v={
 			[1]={
 				l={
@@ -241017,6 +242743,9 @@ return {
 		f=1,
 		s={
 			[1]="spellslinger_mana_reservation_efficiency_+%"
+		},
+		u={
+			n=2
 		},
 		v={
 			[1]={
@@ -243429,6 +245158,9 @@ return {
 		s={
 			[1]="summon_skeletons_additional_warrior_skeleton_one_twentieth_chance"
 		},
+		u={
+			n=2
+		},
 		v={
 			[1]={
 				l={
@@ -244024,6 +245756,8 @@ return {
 		f=1,
 		s={
 			[1]="support_slashing_damage_+%_final_from_distance"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -244639,6 +246373,9 @@ return {
 		s={
 			[1]="talisman_implicit_projectiles_pierce_1_additional_target_per_10"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -244864,6 +246601,9 @@ return {
 		s={
 			[1]="tectonic_slam_side_crack_additional_chance_1%_per_2_stat_value"
 		},
+		u={
+			n=2
+		},
 		v={
 			[1]={
 				l={
@@ -244887,6 +246627,9 @@ return {
 		s={
 			[1]="tectonic_slam_side_crack_additional_chance_%",
 			[2]="quality_display_tectonic_slam_is_gem"
+		},
+		u={
+			n=2
 		},
 		v={
 			[1]={
@@ -245912,6 +247655,8 @@ return {
 		s={
 			[1]="totems_explode_on_death_for_%_life_as_physical"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -245928,6 +247673,9 @@ return {
 		f=1,
 		s={
 			[1]="totems_explode_on_death_for_%_life_as_physical_divide_20"
+		},
+		u={
+			i=4
 		},
 		v={
 			[1]={
@@ -247204,6 +248952,8 @@ return {
 		s={
 			[1]="uber_domain_monster_power_added_to_cocooned_items_+%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -247907,6 +249657,9 @@ return {
 		f=1,
 		s={
 			[1]="unique_attacks_fire_X_additional_projectiles_while_in_off_hand"
+		},
+		u={
+			q=1
 		},
 		v={
 			[1]={
@@ -248634,6 +250387,8 @@ return {
 		s={
 			[1]="unique_jewel_flask_charges_gained_+%_final_from_kills"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -248743,6 +250498,9 @@ return {
 		f=1,
 		s={
 			[1]="unique_jewel_reserved_blood_maximum_life_+%_final"
+		},
+		u={
+			q=1
 		},
 		v={
 			[1]={
@@ -248955,6 +250713,9 @@ return {
 		s={
 			[1]="unique_sunblast_throw_traps_in_circle_radius"
 		},
+		u={
+			q=1
+		},
 		v={
 			[1]={
 				l={
@@ -249055,6 +250816,8 @@ return {
 		s={
 			[1]="utility_flask_cold_damage_taken_+%_final"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -249087,6 +250850,8 @@ return {
 		s={
 			[1]="utility_flask_fire_damage_taken_+%_final"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -249118,6 +250883,8 @@ return {
 		f=1,
 		s={
 			[1]="utility_flask_lightning_damage_taken_+%_final"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -249643,6 +251410,10 @@ return {
 		s={
 			[1]="vitality_mana_reservation_efficiency_-2%_per_1"
 		},
+		u={
+			i=1,
+			n=2
+		},
 		v={
 			[1]={
 				l={
@@ -249680,6 +251451,10 @@ return {
 		f=1,
 		s={
 			[1]="vitality_mana_reservation_efficiency_+%"
+		},
+		u={
+			i=1,
+			n=2
 		},
 		v={
 			[1]={
@@ -251231,6 +253006,9 @@ return {
 		s={
 			[1]="weapon_tree_local_sell_price_divine_orb"
 		},
+		u={
+			i=2
+		},
 		v={
 			[1]={
 				l={
@@ -251299,6 +253077,8 @@ return {
 		f=1,
 		s={
 			[1]="weapon_tree_local_sell_price_for_additional_specific_currency"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -251657,6 +253437,9 @@ return {
 		f=1,
 		s={
 			[1]="weapon_tree_throw_traps_in_circle_radius"
+		},
+		u={
+			i=2
 		},
 		v={
 			[1]={
@@ -252117,6 +253900,10 @@ return {
 		s={
 			[1]="wrath_mana_reservation_efficiency_-2%_per_1"
 		},
+		u={
+			e=1,
+			n=2
+		},
 		v={
 			[1]={
 				l={
@@ -252154,6 +253941,11 @@ return {
 		f=1,
 		s={
 			[1]="wrath_mana_reservation_efficiency_+%"
+		},
+		u={
+			e=1,
+			i=1,
+			n=2
 		},
 		v={
 			[1]={
@@ -252642,6 +254434,9 @@ return {
 		f=1,
 		s={
 			[1]="you_are_cursed_with_vulnerability"
+		},
+		u={
+			i=1
 		},
 		v={
 			[1]={
@@ -254037,6 +255832,10 @@ return {
 		s={
 			[1]="zealotry_mana_reservation_efficiency_-2%_per_1"
 		},
+		u={
+			e=1,
+			n=2
+		},
 		v={
 			[1]={
 				l={
@@ -254074,6 +255873,11 @@ return {
 		f=1,
 		s={
 			[1]="zealotry_mana_reservation_efficiency_+%"
+		},
+		u={
+			e=1,
+			i=1,
+			n=2
 		},
 		v={
 			[1]={
@@ -257524,6 +259328,8 @@ return {
 		s={
 			[1]="melee_tinctured_weapon_range_+"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -257680,6 +259486,8 @@ return {
 		s={
 			[1]="local_tincture_cooldown_recovery_+%"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -257711,6 +259519,8 @@ return {
 		f=2,
 		s={
 			[1]="local_tincture_mod_effect_+%"
+		},
+		u={
 		},
 		v={
 			[1]={
@@ -260533,6 +262343,8 @@ return {
 		s={
 			[1]="graft_skill_tul_tornado_damage_+%_final"
 		},
+		u={
+		},
 		v={
 			[1]={
 				l={
@@ -260633,6 +262445,8 @@ return {
 		f=3,
 		s={
 			[1]="graft_skill_uulnetol_hand_slam_damage_for_cdr_damage_+%_final"
+		},
+		u={
 		},
 		v={
 			[1]={

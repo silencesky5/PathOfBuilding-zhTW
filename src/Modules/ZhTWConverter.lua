@@ -580,8 +580,29 @@ local function tryCandidate(c, captures, ignoreLimits)
 	return t_concat(out, "\n")
 end
 
--- Matches text against templates with the given number of lines
-local function matchText(text, lineCount)
+-- Which mod kinds count for a modifier field (see Export/Scripts/zhTW.lua, desc.u)
+local fieldKinds = {
+	implicitMods = { "i" },
+	enchantMods = { "n" },
+	explicitMods = { "e", "q" },
+	craftedMods = { "e" },
+	fracturedMods = { "e" },
+}
+local function usageScore(desc, field)
+	if not desc.u then
+		return 0
+	end
+	local score = 0
+	for _, kind in ipairs(fieldKinds[field] or { "i", "e", "q", "n" }) do
+		score = score + (desc.u[kind] or 0)
+	end
+	return score
+end
+
+-- Matches text against templates with the given number of lines.
+-- field is the API field the line came from (implicitMods, explicitMods, ...), used to
+-- choose between different stats that share the same Chinese text.
+local function matchText(text, lineCount, field)
 	local list = compileAll()[lineCount]
 	if not list then
 		return nil
@@ -602,6 +623,10 @@ local function matchText(text, lineCount)
 	table.sort(candidates, function(a, b)
 		if a.c.fixed ~= b.c.fixed then
 			return a.c.fixed > b.c.fixed
+		end
+		local ua, ub = usageScore(a.c.desc, field), usageScore(b.c.desc, field)
+		if ua ~= ub then
+			return ua > ub
 		end
 		return a.c.desc.f < b.c.desc.f
 	end)
@@ -631,9 +656,10 @@ local prefixRules = {
 local cache = { }
 
 -- Converts a (possibly multi-line) modifier. Returns English or nil.
-local function convertModText(text)
-	if cache[text] ~= nil then
-		return cache[text] or nil
+local function convertModText(text, field)
+	local cacheKey = text .. "|" .. tostring(field)
+	if cache[cacheKey] ~= nil then
+		return cache[cacheKey] or nil
 	end
 	local lines = { }
 	for line in (text .. "\n"):gmatch("([^\n]*)\n") do
@@ -641,7 +667,7 @@ local function convertModText(text)
 	end
 	local result
 	-- Whole text first, then greedy spans of up to 3 lines
-	result = matchText(text, #lines)
+	result = matchText(text, #lines, field)
 	if not result and #lines > 1 then
 		local out = { }
 		local i = 1
@@ -650,7 +676,7 @@ local function convertModText(text)
 			local done = false
 			for span = math.min(3, #lines - i + 1), 1, -1 do
 				local chunk = t_concat(lines, "\n", i, i + span - 1)
-				local en = (span < #lines or i > 1) and matchText(chunk, span)
+				local en = (span < #lines or i > 1) and matchText(chunk, span, field)
 				if en then
 					t_insert(out, en)
 					i = i + span
@@ -670,19 +696,19 @@ local function convertModText(text)
 	if not result and #lines == 1 then
 		for _, rule in ipairs(prefixRules) do
 			if text:sub(1, #rule.zh) == rule.zh then
-				local inner = convertModText(text:sub(#rule.zh + 1))
+				local inner = convertModText(text:sub(#rule.zh + 1), field)
 				if inner and not inner:find("\n") then
 					result = rule.en .. inner
 				end
 			end
 		end
 	end
-	cache[text] = result or false
+	cache[cacheKey] = result or false
 	return result
 end
 
-function ZhTW.convertModLine(text)
-	return convertModText(text)
+function ZhTW.convertModLine(text, field)
+	return convertModText(text, field)
 end
 
 -- Converts an array of modifiers (strings or { description = ... } tables) in place
@@ -707,7 +733,7 @@ local function convertModList(list, itemName, field)
 	for i, m in ipairs(list) do
 		local text = getText(m)
 		if type(text) == "string" and text ~= "" then
-			local en = convertModText(text)
+			local en = convertModText(text, field)
 			if en then
 				setText(i, en)
 			else
@@ -719,7 +745,7 @@ local function convertModList(list, itemName, field)
 	local i = 1
 	while i < #list do
 		if failed[i] and failed[i + 1] then
-			local en = convertModText(getText(list[i]) .. "\n" .. getText(list[i + 1]))
+			local en = convertModText(getText(list[i]) .. "\n" .. getText(list[i + 1]), field)
 			if en then
 				setText(i, en)
 				table.remove(list, i + 1)
@@ -737,14 +763,14 @@ local function convertModList(list, itemName, field)
 	for k in pairs(failed) do
 		local text = getText(list[k])
 		for line in (text .. "\n"):gmatch("([^\n]*)\n") do
-			if line ~= "" and not convertModText(line) then
+			if line ~= "" and not convertModText(line, field) then
 				addFailure(itemName, field, line)
 			end
 		end
 		-- Keep the line, converting any parts that do match
 		local parts = { }
 		for line in (text .. "\n"):gmatch("([^\n]*)\n") do
-			t_insert(parts, convertModText(line) or line)
+			t_insert(parts, convertModText(line, field) or line)
 		end
 		setText(k, t_concat(parts, "\n"))
 	end
