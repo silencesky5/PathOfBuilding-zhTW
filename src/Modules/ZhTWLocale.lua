@@ -27,6 +27,7 @@ local names -- English -> Chinese game names
 local rareWords -- English rare name word -> Chinese
 local affixes -- { prefix = { [en] = zh }, suffix = { [en] = zh } }
 local baseNames -- English base names, longest first (for magic item names)
+local baseSet -- the same names as a set
 local patterns -- { { pattern, replacement } } from Data/zhTW/UI.lua
 local display -- Data/zhTW/Display.lua: descriptions, skill names, tags, flavour, client strings
 local braceFormats -- compiled ClientStrings templates like "+{0} Levels from Item"
@@ -175,6 +176,19 @@ local function load()
 		end
 	end
 	table.sort(baseNames, function(a, b) return #a > #b end)
+	-- Item bases only (gems are base items too, but "Skill, Skill" lists are not item names)
+	local gemNames = { }
+	for _, en in pairs(LoadModule("Data/zhTW/Gems") or { }) do
+		for _, e in ipairs(type(en) == "table" and en or { en }) do
+			gemNames[e] = true
+		end
+	end
+	baseSet = { }
+	for _, name in ipairs(baseNames) do
+		if not gemNames[name] then
+			baseSet[name] = true
+		end
+	end
 	patterns = { }
 	for _, p in ipairs(data.patterns or { }) do
 		t_insert(patterns, { p[1], p[2] })
@@ -416,7 +430,14 @@ local function translateCore(core)
 			t_insert(parts, t or part)
 		end
 		if any then
-			return t_concat(parts, ", ")
+			-- Chinese separators: "名稱 · 基底" for an item name, "、" for lists
+			local englishParts = { }
+			for part in (core .. ", "):gmatch("(.-), ") do
+				t_insert(englishParts, part)
+			end
+			local last = englishParts[#englishParts]
+			local isItem = #parts == 2 and last and baseSet[(StripEscapes(last):gsub("%^[x%d]%x*", ""))]
+			return t_concat(parts, isItem and " · " or "、")
 		end
 	end
 	-- Trailing notes like "(Disabled)"

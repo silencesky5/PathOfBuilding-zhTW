@@ -105,6 +105,28 @@ local ok, err = xpcall(function()
 				log("[gem box] " .. k)
 			end
 		end
+		-- Items tab slot positions with and without the Chinese layout
+		build.viewMode = "ITEMS"
+		frames(1)
+		for _, enabled in ipairs({ true, false }) do
+			ZhTWLocale.enabled = enabled
+			local parts = { }
+			for _, name in ipairs({ "Weapon 1", "Weapon 2", "Helmet", "Boots", "Amulet", "Belt", "Flask 1", "Flask 5" }) do
+				local slot = build.itemsTab.slots[name]
+				local x, y = slot:GetPos()
+				table.insert(parts, name .. "=" .. y)
+			end
+			local h = build.itemsTab.controls["zhTWHeading_Helmet"]
+			local hx, hy = h:GetPos()
+			log(string.format("== Item slots (%s): %s | heading 防具 at %d,%d shown=%s", enabled and "zh" or "en", table.concat(parts, " "), hx, hy, tostring(h:IsShown())))
+		end
+		ZhTWLocale.enabled = true
+		-- Side bar as the Chinese layout builds it
+		log("== Side bar (" .. idx .. ")")
+		for _, line in ipairs(build.controls.statBox.list) do
+			log(string.format("   [%d] %s | %s", line.height or 0, tostring(line[1] and ZhTWLocale.tr(line[1]) or ""), tostring(line[2] or "")))
+		end
+		log("   columns: " .. build.controls.statBox.columns[1].x .. " " .. build.controls.statBox.columns[1].align .. " / " .. build.controls.statBox.columns[2].x .. " " .. build.controls.statBox.columns[2].align)
 		-- Tooltips
 		local tooltip = new("Tooltip"):Tooltip()
 		local function drainTooltip(area)

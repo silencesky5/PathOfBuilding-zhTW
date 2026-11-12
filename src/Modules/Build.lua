@@ -576,6 +576,9 @@ function buildMode:Init(dbFileName, buildName, buildXML, convertBuild, importLin
 	function self.controls.statBox.onClick(hoveredLine)
 		self:SetDisplayStat(hoveredLine, true)
 	end
+	if ZhTWLayout then -- zhTW: summary cards above the side bar stats
+		ZhTWLayout.setupSidebar(self)
+	end
 	self.controls.warnings = new("Control"):Control({"TOPLEFT",self.controls.statBox,"BOTTOMLEFT",true}, {0, 0, 0, 18})
 	self.controls.warnings.lines = {}
 	self.controls.warnings.width = function(control)
@@ -2116,6 +2119,9 @@ function buildMode:RefreshStatList()
 	self:AddDisplayStatList(self.displayStats, self.calcsTab.mainEnv.player, "player")
 	self:InsertItemWarnings()
 	self:EstimatePlayerProgress()
+	if ZhTWLayout then -- zhTW: group headings, labels left / values right
+		ZhTWLayout.refreshSidebar(self)
+	end
 end
 
 function buildMode:CompareStatList(tooltip, statList, actor, baseOutput, compareOutput, header, nodeCount)

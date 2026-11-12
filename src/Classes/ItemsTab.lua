@@ -232,6 +232,9 @@ function ItemsTabClass:ItemsTab(build)
 		self.sockets[node.id] = socketControl
 		addSlot(socketControl)
 	end
+	if ZhTWLayout then -- zhTW: group headings above the item slots
+		ZhTWLayout.setupItemsTab(self)
+	end
 	self.controls.slotHeader = new("LabelControl"):LabelControl({"BOTTOMLEFT",self.slotAnchor,"TOPLEFT"}, {0, -4, 0, 16}, "^7Equipped items:")
 	self.controls.weaponSwap1 = new("ButtonControl"):ButtonControl({"BOTTOMRIGHT",self.slotAnchor,"TOPRIGHT"}, {-20, -2, 18, 18}, "I", function()
 		if self.activeItemSet.useSecondWeaponSet then
