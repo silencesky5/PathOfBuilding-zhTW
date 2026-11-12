@@ -208,9 +208,12 @@ local function patchEditControl()
 					self.prompt = prompt and tr(prompt)
 					self.placeholder = placeholder and tr(placeholder)
 				end
-				ZhTWLocale.suspend = ZhTWLocale.suspend + 1
+				-- Gem name boxes show the gem in Chinese until you click in to type a search
+				local keep = self._className == "GemSelectControl" and not self.hasFocus
+				local inc = keep and 0 or 1
+				ZhTWLocale.suspend = ZhTWLocale.suspend + inc
 				local ok, a1, a2, a3 = pcall(func, self, ...)
-				ZhTWLocale.suspend = ZhTWLocale.suspend - 1
+				ZhTWLocale.suspend = ZhTWLocale.suspend - inc
 				self.prompt, self.placeholder = prompt, placeholder
 				if not ok then
 					error(a1, 0)
