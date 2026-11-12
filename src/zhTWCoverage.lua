@@ -121,6 +121,85 @@ local ok, err = xpcall(function()
 			log(string.format("== Item slots (%s): %s | heading 防具 at %d,%d shown=%s", enabled and "zh" or "en", table.concat(parts, " "), hx, hy, tostring(h:IsShown())))
 		end
 		ZhTWLocale.enabled = true
+		frames(1)
+		-- Items tab areas (x, y, width, height)
+		do
+			local parts = { }
+			local c = build.itemsTab.controls
+			for _, name in ipairs({ "setManage", "itemList", "uniqueDB", "rareDB", "craftDisplayItem", "displayItemTip", "sharedItemList", "specSelect", "zhTWDetails", "zhTWJewelToggle" }) do
+				local ctrl = c[name]
+				if ctrl and ctrl:IsShown() then
+					local x, y = ctrl:GetPos()
+					local w, h = ctrl:GetSize()
+					table.insert(parts, string.format("%s=%d,%d,%d,%d", name, x, y, w, h))
+				end
+			end
+			local lastShown
+			for _, slot in ipairs(build.itemsTab.orderedSlots) do
+				if slot:IsShown() then lastShown = slot end
+			end
+			local lx, ly = lastShown:GetPos()
+			table.insert(parts, string.format("lastSlot=%s@%d", lastShown.slotName, ly))
+			log("== Items areas: " .. table.concat(parts, " ") .. " maxY=" .. tostring(build.itemsTab.maxY))
+		end
+		-- Jewel sockets collapsed / expanded, docked details panel
+		do
+			local itemsTab = build.itemsTab
+			local function socketInfo()
+				local shown, total, firstY = 0, 0, nil
+				for _, slot in ipairs(itemsTab.orderedSlots) do
+					if slot.nodeId and not slot.inactive then
+						total = total + 1
+						if slot:IsShown() then
+							shown = shown + 1
+							firstY = firstY or select(2, slot:GetPos())
+						end
+					end
+				end
+				return shown, total, firstY
+			end
+			for _, expanded in ipairs({ false, true }) do
+				ZhTWLayout.jewelsExpanded = expanded
+				frames(1)
+				local shown, total, firstY = socketInfo()
+				local chips = itemsTab.controls.zhTWJewelChips
+				local cx, cy = chips:GetPos()
+				log(string.format("== Jewels expanded=%s: sockets shown %d/%d firstY=%s chips shown=%s at %d,%d h=%d toggle=%s",
+					tostring(expanded), shown, total, tostring(firstY), tostring(chips:IsShown()), cx, cy, select(2, chips:GetSize()),
+					ZhTWLocale.tr(itemsTab.controls.zhTWJewelToggle:GetProperty("label"))))
+			end
+			ZhTWLayout.jewelsExpanded = false
+			-- headless only: "Couldn't save the build file" popup from switching builds
+			while main.popups[1] do
+				main:ClosePopup()
+			end
+			frames(1)
+			local vp = ZhTWLayout.detailsViewPort
+			local dx, dy, dw, dh = ZhTWLayout.detailsRect(itemsTab, vp)
+			log(string.format("== Details panel: %s,%s,%s,%s", tostring(dx), tostring(dy), tostring(dw), tostring(dh)))
+			if not dx then
+				if main.popups[1] then
+					for k, c in pairs(main.popups[1].controls or { }) do
+						local lbl = c.GetProperty and c:GetProperty("label")
+						if type(lbl) == "string" then log("   popup " .. tostring(k) .. ": " .. lbl) end
+					end
+				end
+				log(string.format("   why: portrait=%s displayItem=%s popup=%s shared=%s vp=%s", tostring(main.portraitMode), tostring(itemsTab.displayItem and itemsTab.displayItem.name), tostring(main.popups[1] and (main.popups[1].title or "?")), tostring(itemsTab.controls.sharedItemList:IsShown()), vp and (vp.x .. "," .. vp.width) or "nil"))
+			end
+			local firstId = itemsTab.itemOrderList[1]
+			local tt = new("Tooltip"):Tooltip()
+			itemsTab.controls.itemList:AddValueTooltip(tt, 1, firstId)
+			frames(1)
+			local d = itemsTab.zhTWDetails or { }
+			log(string.format("== Details hover: floating tooltip lines=%d, docked item=%s, docked lines=%d",
+				#tt.lines, tostring(d.item and d.item.name), d.tooltip and #d.tooltip.lines or -1))
+			-- Item editor open: docked panel steps aside
+			itemsTab:SetDisplayItem(itemsTab.items[firstId])
+			frames(1)
+			log("== Details with editor open: " .. tostring(ZhTWLayout.detailsRect(itemsTab, vp)))
+			itemsTab:SetDisplayItem()
+			frames(1)
+		end
 		-- Side bar as the Chinese layout builds it
 		log("== Side bar (" .. idx .. ")")
 		for _, line in ipairs(build.controls.statBox.list) do

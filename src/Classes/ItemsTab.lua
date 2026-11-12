@@ -2608,7 +2608,8 @@ function ItemsTabClass:GetComparisonSlotNameForItem(item)
 	end
 	if item.type == "Jewel" then
 		for _, slot in ipairs(self.orderedSlots) do
-			if not slot.inactive and slot.selItemId == 0 and slot:IsShown() and self:IsItemValidForSlot(item, slot.slotName) then
+			-- zhTW: collapsed jewel sockets are hidden but still usable
+			if not slot.inactive and slot.selItemId == 0 and (slot:IsShown() or (slot.zhTWShownExpanded and slot.zhTWShownExpanded())) and self:IsItemValidForSlot(item, slot.slotName) then
 				return slot.slotName
 			end
 		end
