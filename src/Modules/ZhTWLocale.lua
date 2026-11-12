@@ -37,7 +37,7 @@ local function compileFormat(en, zh)
 	local pos = 1
 	local count = 0
 	while pos <= #en do
-		local s, e, flags, conv = en:find("%%([%-%+ #0]*%d*%.?%d*)([dsfgxi%%])", pos)
+		local s, e, flags, conv = en:find("%%([%-%+#0]*%d*%.?%d*)([dsfgx%%])", pos)
 		local lit = en:sub(pos, (s or #en + 1) - 1)
 		if #lit > #longest then
 			longest = lit
@@ -51,7 +51,7 @@ local function compileFormat(en, zh)
 		elseif conv == "s" then
 			t_insert(parts, "(.-)")
 			count = count + 1
-		elseif conv == "d" or conv == "i" or conv == "x" then
+		elseif conv == "d" or conv == "x" then
 			t_insert(parts, "([%+%-]?[%d,]+)")
 			count = count + 1
 		else
@@ -134,13 +134,22 @@ local function splitEscape(line)
 end
 
 local function lookup(core)
-	local v = ui[core]
+	local v = ui[core] or ui[core .. " "] or names[core]
+	if v then
+		return (v:gsub("%s+$", ""))
+	end
+	return nil
+end
+
+-- A label is often stored with its colon ("Character import status: ")
+local function lookupLabel(label)
+	local v = lookup(label)
 	if v then
 		return v
 	end
-	v = names[core]
+	v = ui[label .. ":"] or ui[label .. ": "]
 	if v then
-		return v
+		return (v:gsub(":%s*$", ""):gsub("：%s*$", ""))
 	end
 	return nil
 end
@@ -164,36 +173,40 @@ local function translateCore(core)
 			return lead .. v .. trail
 		end
 	end
-	-- "Label:" and "Label: value"
-	local label, sep, value = s_match(core, "^([^:]-)(:%s*)(.*)$")
-	if label and label ~= "" then
-		local l = lookup(label)
-		if l then
-			if value == "" then
-				return l .. sep
-			end
-			return l .. sep .. (translateLine(value) or value)
-		end
-	end
 	-- printf-style interface strings
 	for _, f in ipairs(formats) do
 		if s_find(core, f.anchor, 1, true) then
 			local caps = { s_match(core, f.pattern) }
 			if caps[1] ~= nil then
 				local i = 0
-				local out = f.zh:gsub("%%[%-%+ #0]*%d*%.?%d*([dsfgxi%%])", function(conv)
+				local out = f.zh:gsub("%%[%-%+#0]*%d*%.?%d*([dsfgx%%])", function(conv)
 					if conv == "%" then
 						return "%"
 					end
 					i = i + 1
 					local v = caps[i] or ""
 					if conv == "s" then
+						-- English plural suffixes passed as %s ("Brand%s") are dropped in Chinese
+						if v == "s" or v == "es" then
+							return ""
+						end
 						return translateLine(v) or v
 					end
 					return v
 				end)
 				return out
 			end
+		end
+	end
+	-- "Label:" and "Label: value"
+	local label, sep, value = s_match(core, "^([^:]-)(:%s*)(.*)$")
+	if label and label ~= "" then
+		local l = lookupLabel(label)
+		if l then
+			if value == "" then
+				return l .. sep
+			end
+			return l .. sep .. (translateLine(value) or value)
 		end
 	end
 	-- Game modifier text
