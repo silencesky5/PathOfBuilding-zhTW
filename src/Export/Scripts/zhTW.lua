@@ -24,6 +24,8 @@ local datNames = {
 	"AlternateQualityTypes",
 	"PassiveSkills",
 	"ItemVisualIdentity",
+	"Characters",
+	"Ascendancy",
 }
 -- Stat description files whose Traditional Chinese blocks are exported.
 -- Item modifiers are described by these (tincture/graft include stat_descriptions).
@@ -486,6 +488,21 @@ do
 	writeTable("Leagues.lua", { names = finalMap(leagues), modes = modes, short = short },
 		"League names. Seasonal league names change every league: re-run this export after each league launch.")
 	logConflicts(leagues)
+end
+
+---------------------------------------------------------------------------
+-- Classes.lua (character classes and ascendancies, for display)
+---------------------------------------------------------------------------
+do
+	local classes = newMap("Classes")
+	for enRow, tcRow in eachPair("Characters", "Name") do
+		mapAdd(classes, tcRow.Name, enRow.Name)
+	end
+	for enRow, tcRow in eachPair("Ascendancy", "Name") do
+		mapAdd(classes, tcRow.Name, enRow.Name)
+	end
+	writeTable("Classes.lua", finalMap(classes), "Character class and ascendancy names: Traditional Chinese -> English")
+	logConflicts(classes)
 end
 
 ---------------------------------------------------------------------------

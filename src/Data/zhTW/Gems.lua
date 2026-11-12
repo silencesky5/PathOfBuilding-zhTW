@@ -3,7 +3,7 @@
 -- Source: C:\Program Files (x86)\Steam\steamapps\common\流亡黯道
 -- Client build revision: 328228
 -- Latest league in client data: Allflame
--- Exported: 2026-11-12 18:02
+-- Exported: 2026-11-12 18:54
 -- Skill gem names (incl. transfigured and secondary support names): Traditional Chinese -> English (a list when ambiguous)
 
 return {

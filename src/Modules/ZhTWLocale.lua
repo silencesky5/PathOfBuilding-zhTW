@@ -104,6 +104,7 @@ local function load()
 	addReverse(uniques and uniques.uniques)
 	addReverse(LoadModule("Data/zhTW/Gems"))
 	addReverse(LoadModule("Data/zhTW/Passives"))
+	addReverse(LoadModule("Data/zhTW/Classes"))
 	if not modTranslator then
 		local ok, mods = pcall(LoadModule, "Modules/ZhTWMods")
 		if ok and type(mods) == "table" then
