@@ -11,6 +11,7 @@ local t_insert = table.insert
 local s_format = string.format
 local m_floor = math.floor
 local m_min = math.min
+local m_max = math.max
 
 local ZhTWLayout = { }
 
@@ -85,6 +86,7 @@ function ZhTWLayout.setupSidebar(build)
 	end
 	controls.zhTWSummary = cards
 	controls.statBox:SetAnchor("TOPLEFT", cards, "BOTTOMLEFT", 0, 2)
+	ZhTWLayout.setupTopBar(build)
 	-- Original sidebar columns, restored when the Chinese interface is off
 	ZhTWLayout.originalColumns = controls.statBox.columns
 end
@@ -197,12 +199,14 @@ function ZhTWLayout.setupItemsTab(itemsTab)
 		end
 	end
 	ZhTWLayout.setupJewelSockets(itemsTab)
+	ZhTWLayout.setupFlaskRow(itemsTab)
 	-- Docked item details: drawn after the tab itself (instance override, the class stays as it is)
 	local origDraw = itemsTab.Draw
 	itemsTab.Draw = function(self, viewPort, inputEvents)
 		ZhTWLayout.detailsFrame = (ZhTWLayout.detailsFrame or 0) + 1
 		ZhTWLayout.detailsViewPort = viewPort
 		ZhTWLayout.hookItemLists(self)
+		ZhTWLayout.updateFlaskRow(self)
 		origDraw(self, viewPort, inputEvents)
 		ZhTWLayout.drawDetails(self, viewPort)
 	end
@@ -352,6 +356,243 @@ function ZhTWLayout.setupJewelSockets(itemsTab)
 end
 
 ---------------------------------------------------------------------------
+-- Items tab: the five flasks in one row (check box + short name)
+---------------------------------------------------------------------------
+
+local FLASK_W = 56 -- drop-down width in the row (the dropped list keeps the full width)
+local FLASK_STEP = 80 -- check box 20 + gap 2 + drop-down 56 + gap 2
+
+-- x offset of flask i from the normal slot column (the row starts where the slot labels start)
+local function flaskShift(i)
+	return -88 + 22 + (i - 1) * FLASK_STEP
+end
+
+-- Short name shown in the small drop-down: unique name, or the base name without "藥劑"
+local function flaskShortName(item)
+	if not item then
+		return "^x8C8478無"
+	end
+	local color = colorCodes[item.rarity] or "^7"
+	if item.rarity == "UNIQUE" or item.rarity == "RELIC" then
+		return color .. ZhTWLocale.tr(item.title or item.name)
+	end
+	local base = ZhTWLocale.tr(item.baseName or item.name)
+	base = base:gsub("藥劑$", "")
+	return color .. base
+end
+
+function ZhTWLayout.setupFlaskRow(itemsTab)
+	local flasks = { }
+	for i = 1, 5 do
+		flasks[i] = itemsTab.slots["Flask " .. i]
+		if not flasks[i] then
+			return
+		end
+	end
+	itemsTab.zhTWFlasks = flasks
+	local first = flasks[1]
+	local firstGetPos = first.GetPos -- includes the "藥劑" heading space
+	for i, slot in ipairs(flasks) do
+		slot.zhTWFullWidth = slot.width
+		local origGetPos = slot.GetPos
+		slot.GetPos = function(self)
+			if not enabled() then
+				return origGetPos(self)
+			end
+			local x, y = firstGetPos(first)
+			return x + flaskShift(i), y
+		end
+		-- No "Flask N:" label in the row; the selected flask shows its short name
+		-- Note: never call ItemSlotControl's own Draw from here: it draws through the parent
+		-- proxy (self.DropDownControl:Draw), which finds this instance override again.
+		slot.Draw = function(self, viewPort)
+			if not enabled() then
+				-- same steps as ItemSlotClass:Draw (flasks have no tree socket viewer)
+				local x, y = self:GetPos()
+				local _, height = self:GetSize()
+				DrawString(x + self.labelOffset, y + 2, "RIGHT_X", height - 4, "VAR", "^7" .. self.label .. ":")
+				common.classes.DropDownControl.Draw(self, viewPort)
+				self:DrawControls(viewPort)
+				return
+			end
+			local index = self.selIndex
+			local saved = self.list[index]
+			if saved and not self.dropped then
+				self.list[index] = flaskShortName(itemsTab.items[self.selItemId])
+			end
+			-- not self.DropDownControl:Draw(): the parent proxy would find this instance override again
+			common.classes.DropDownControl.Draw(self, viewPort)
+			if saved then
+				self.list[index] = saved
+			end
+			self:DrawControls(viewPort)
+		end
+	end
+	-- Heading stays above the row's left edge
+	local heading = itemsTab.controls["zhTWHeading_Flask 1"]
+	if heading then
+		heading.x = -88 - flaskShift(1)
+	end
+	-- The passive tree selector below the flasks goes back to the slot column
+	local specSelect = itemsTab.controls.specSelect
+	if specSelect then
+		local origGetPos = specSelect.GetPos
+		specSelect.GetPos = function(self)
+			local x, y = origGetPos(self)
+			if enabled() then
+				x = x - flaskShift(5)
+			end
+			return x, y
+		end
+	end
+end
+
+-- Width is a plain number in DropDownControl, so it is switched every frame
+function ZhTWLayout.updateFlaskRow(itemsTab)
+	for _, slot in ipairs(itemsTab.zhTWFlasks or { }) do
+		local width = enabled() and FLASK_W or slot.zhTWFullWidth
+		if slot.width ~= width then
+			slot.width = width
+			slot.droppedWidth = slot.zhTWFullWidth
+		end
+	end
+end
+
+---------------------------------------------------------------------------
+-- Items tab: unique / rare template databases behind two toggle buttons
+---------------------------------------------------------------------------
+
+function ZhTWLayout.setupItemDBs(itemsTab)
+	local controls = itemsTab.controls
+	local itemList, selectDB = controls.itemList, controls.selectDB
+	local uniqueDB, rareDB, label = controls.uniqueDB, controls.rareDB, controls.selectDBLabel
+	if not (itemList and selectDB and uniqueDB and rareDB and label) then
+		return
+	end
+	local function wrap(control, key, zhValue)
+		local orig = control[key]
+		control[key] = function(...)
+			if enabled() then
+				return zhValue(...)
+			end
+			if type(orig) == "function" then
+				return orig(...)
+			end
+			return orig
+		end
+	end
+	-- POB's own "Import from:" drop-down is replaced by the buttons
+	wrap(label, "shown", function() return false end)
+	wrap(uniqueDB, "shown", function() return selectDB.selIndex == 1 end)
+	wrap(rareDB, "shown", function() return selectDB.selIndex == 2 end)
+	-- same places as POB's compact layout, but the list runs down to the bottom
+	wrap(uniqueDB, "y", function() return 118 end)
+	wrap(rareDB, "y", function() return 78 end)
+	local function fillHeight(c)
+		local _, y = c:GetPos()
+		return m_max(120, (itemsTab.maxY or 1000) - y - 4)
+	end
+	wrap(uniqueDB, "height", fillHeight)
+	wrap(rareDB, "height", fillHeight)
+	local function sourceButton(index, text, anchor, x, y)
+		local button = new("ButtonControl"):ButtonControl(anchor, { x, y, 110, 22 }, function()
+			return (selectDB.selIndex == index and GOLD or "^7") .. text
+		end, function()
+			selectDB.selIndex = index
+		end)
+		button.shown = enabled
+		return button
+	end
+	local unique = sourceButton(1, "傳奇資料庫", { "TOPLEFT", itemList, "BOTTOMLEFT" }, 0, 12)
+	local rare = sourceButton(2, "稀有範本", { "LEFT", unique, "RIGHT" }, 6, 0)
+	controls.zhTWSourceUnique = unique
+	controls.zhTWSourceRare = rare
+	-- gold underline under the chosen one
+	local mark = new("Control"):Control({ "TOPLEFT", unique, "BOTTOMLEFT" }, { 0, 1, 226, 2 })
+	mark.shown = enabled
+	mark.Draw = function(control)
+		local chosen = selectDB.selIndex == 2 and rare or unique
+		local x, y = chosen:GetPos()
+		local w, h = chosen:GetSize()
+		rect(x, y + h + 1, w, 2, 0.78, 0.64, 0.35)
+		SetDrawColor(1, 1, 1)
+	end
+	controls.zhTWSourceMark = mark
+end
+
+---------------------------------------------------------------------------
+-- Top bar: labelled passive point counts, gold Save button with unsaved changes
+---------------------------------------------------------------------------
+
+-- "^7123 / 123   ^78 / 8" (colours are ^7 or ^xRRGGBB)
+local function splitPoints(str)
+	local parts = { }
+	-- "^7" has no fixed length against the digits after it, so make it a 6-digit colour first
+	str = (str or ""):gsub("%^7", "^xFFFFFF")
+	for color, a, b in str:gmatch("(%^x%x%x%x%x%x%x)%s*(%d+) / (%d+)") do
+		t_insert(parts, { color = color, used = a, max = b })
+	end
+	return parts
+end
+ZhTWLayout.splitPoints = splitPoints
+
+local function pointsText(str)
+	local parts = splitPoints(str)
+	if #parts < 2 then
+		return str
+	end
+	local gray = "^x8C8478"
+	return s_format("%s天賦點 %s%s / %s  %s|  昇華 %s%s / %s", gray, parts[1].color, parts[1].used, parts[1].max, gray, parts[2].color, parts[2].used, parts[2].max)
+end
+ZhTWLayout.pointsText = pointsText
+
+function ZhTWLayout.setupTopBar(build)
+	local controls = build.controls
+	local points = controls.pointDisplay
+	if points then
+		local origWidth, origDraw = points.width, points.Draw
+		points.width = function(control)
+			if enabled() and control.str then
+				return DrawStringWidth(16, "VAR", pointsText(control.str)) + 12
+			end
+			return origWidth(control)
+		end
+		points.Draw = function(control, ...)
+			if not enabled() or not control.str then
+				return origDraw(control, ...)
+			end
+			-- POB draws str with the fixed-width font; in Chinese draw the labelled text instead
+			local x, y = control:GetPos()
+			local width, height = control:GetSize()
+			rect(x, y, width + 2, height, 0.35, 0.29, 0.19)
+			rect(x + 1, y + 1, width, height - 2, 0.08, 0.07, 0.05)
+			SetDrawColor(1, 1, 1)
+			DrawString(x + 6, y + 2, "LEFT", 16, "VAR", pointsText(control.str))
+			if control:IsMouseInBounds() and control.req then
+				SetDrawLayer(nil, 10)
+				local tip = ZhTWLayout.pointsTooltip or new("Tooltip"):Tooltip()
+				ZhTWLayout.pointsTooltip = tip
+				tip:Clear()
+				tip:AddLine(16, control.req)
+				tip:Draw(x, y, width, height, main.viewPort)
+				SetDrawLayer(nil, 0)
+			end
+			SetDrawColor(1, 1, 1)
+		end
+	end
+	local save = controls.save
+	if save then
+		local origLabel = save.label
+		save.label = function()
+			if enabled() and build.unsaved then
+				return GOLD .. "Save"
+			end
+			return origLabel
+		end
+	end
+end
+
+---------------------------------------------------------------------------
 -- Items tab: item details docked on the right instead of floating tooltips
 ---------------------------------------------------------------------------
 
@@ -394,6 +635,7 @@ function ZhTWLayout.hookItemLists(itemsTab)
 		return
 	end
 	itemsTab.zhTWListsHooked = true
+	ZhTWLayout.setupItemDBs(itemsTab)
 	local function hook(list, toItem, dbMode, fromBuild)
 		if not list then
 			return

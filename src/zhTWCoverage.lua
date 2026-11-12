@@ -28,6 +28,27 @@ local currentArea = "?"
 
 local ok, err = xpcall(function()
 	dofile("HeadlessWrapper.lua")
+	-- errors inside OnFrame come with a short stack trace in the log
+	PCall = function(func, ...)
+		local r = { xpcall(func, function(e)
+			local parts = { }
+			for level = 2, 60 do
+				local info = debug.getinfo(level, "Sl")
+				if not info then break end
+				local who = ""
+				local n, v = debug.getlocal(level, 1)
+				if n == "self" and type(v) == "table" then
+					who = " [" .. tostring(rawget(v, "slotName") or rawget(v, "label") or rawget(v, "_className") or tostring(v)) .. "]"
+				end
+				table.insert(parts, info.short_src .. ":" .. tostring(info.currentline) .. who)
+			end
+			return tostring(e) .. " | " .. table.concat(parts, " < ")
+		end, ...) }
+		if r[1] then
+			return nil, unpack(r, 2)
+		end
+		return r[2]
+	end
 	local dkjson = require "dkjson"
 	local ZhTW = LoadModule("Modules/ZhTWConverter")
 	ZhTWLocale.enabled = true
@@ -199,6 +220,62 @@ local ok, err = xpcall(function()
 			log("== Details with editor open: " .. tostring(ZhTWLayout.detailsRect(itemsTab, vp)))
 			itemsTab:SetDisplayItem()
 			frames(1)
+		end
+		-- Flask row, database toggle buttons, top bar
+		do
+			local itemsTab = build.itemsTab
+			for _, zh in ipairs({ true, false }) do
+				ZhTWLocale.enabled = zh
+				frames(1)
+				local parts = { }
+				for i = 1, 5 do
+					local slot = itemsTab.slots["Flask " .. i]
+					local x, y = slot:GetPos()
+					local cx = slot.controls.activate:GetPos()
+					table.insert(parts, string.format("%d:%d,%d w%d box%d", i, x, y, slot:GetSize(), cx))
+				end
+				local sx, sy = itemsTab.controls.specSelect:GetPos()
+				log(string.format("== Flasks (%s): %s | specSelect %d,%d", zh and "zh" or "en", table.concat(parts, "  "), sx, sy))
+				local seen = { }
+				ZhTWLocale.onDraw = function(text)
+					if type(text) == "string" then seen[#seen + 1] = text end
+				end
+				frames(1)
+				ZhTWLocale.onDraw = nil
+				local flaskText = { }
+				local x1, y1 = itemsTab.slots["Flask 1"]:GetPos()
+				for _, t in ipairs(seen) do
+					if t:find("藥劑") == nil and #t < 40 then end
+				end
+				for i = 1, 5 do
+					local slot = itemsTab.slots["Flask " .. i]
+					local item = itemsTab.items[slot.selItemId]
+					table.insert(flaskText, item and item.name or "-")
+				end
+				log("   flask items: " .. table.concat(flaskText, " | "))
+			end
+			ZhTWLocale.enabled = true
+			frames(1)
+			local c = itemsTab.controls
+			for _, idx in ipairs({ 1, 2, 1 }) do
+				if idx == 2 then c.zhTWSourceRare:Click() else c.zhTWSourceUnique:Click() end
+				frames(1)
+				local function info(ctrl)
+					if not ctrl:IsShown() then return "hidden" end
+					local x, y = ctrl:GetPos()
+					local w, h = ctrl:GetSize()
+					return string.format("%d,%d %dx%d", x, y, w, h)
+				end
+				log(string.format("== DB source %d: uniqueDB %s | rareDB %s | label shown=%s | buttons %s / %s",
+					idx, info(c.uniqueDB), info(c.rareDB), tostring(c.selectDBLabel:IsShown()),
+					ZhTWLocale.tr(c.zhTWSourceUnique:GetProperty("label")), ZhTWLocale.tr(c.zhTWSourceRare:GetProperty("label"))))
+			end
+			local pd = build.controls.pointDisplay
+			log("== Top bar points: raw=" .. tostring(pd.str) .. " | zh=" .. tostring(ZhTWLayout.pointsText(pd.str)) .. " | width " .. pd:GetSize())
+			build.unsaved = true
+			log("   save label (unsaved): " .. ZhTWLocale.tr(build.controls.save:GetProperty("label")))
+			build.unsaved = false
+			log("   save label (saved): " .. ZhTWLocale.tr(build.controls.save:GetProperty("label")))
 		end
 		-- Side bar as the Chinese layout builds it
 		log("== Side bar (" .. idx .. ")")
