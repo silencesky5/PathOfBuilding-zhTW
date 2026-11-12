@@ -45,3 +45,7 @@ runtime/SimpleGraphic/Screenshots
 
 .emmyrc.json
 .luarc.json
+
+# zhTW: logs from the zhTW export / test runners
+src/Export/zhTWRun.log
+src/zhTWTest.log

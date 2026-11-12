@@ -1,0 +1,111 @@
+zhTW export report
+Source: C:\Program Files (x86)\Steam\steamapps\common\流亡黯道
+Client build revision: 328228
+Latest league in client data: Allflame
+Exported: 2026-11-12 17:49
+
+Bases                      4300 entries,   15 name conflicts
+Uniques                    1641 entries,    3 name conflicts
+Rare name words             817 entries,   24 name conflicts
+Gems                       1043 entries,    2 name conflicts
+Properties                  100 entries,   17 name conflicts
+Property values               6 entries,    0 name conflicts
+Leagues                     145 entries,    2 name conflicts
+Passives                   3044 entries,   31 name conflicts
+StatDescriptions          11168 descriptors, 15997 templates
+
+Name conflicts:
+[Bases] 卷冊聖物 => [DO NOT USE] Tome Relic (RelicBase3x1) | Tome Relic (RelicBase3x1)
+[Bases] 古甕聖物 => [DO NOT USE] Urn Relic (RelicBase2x1) | Urn Relic (RelicBase2x1)
+[Bases] 史前遺跡 => Primeval Remnant (CrucibleGeodeOpen) | Primordial Remnant (CrucibleUberGeodeOpen)
+[Bases] 寶箱聖物 => [DO NOT USE] Coffer Relic (RelicBase2x2) | Coffer Relic (RelicBase2x2)
+[Bases] 持續時間延長輔助 => More Duration Support (IncreasedDuration) | Increased Duration Support (IncreasedDuration)
+[Bases] 燭台聖物 => [DO NOT USE] Candlestick Relic (RelicBase1x4) | Candlestick Relic (RelicBase1x4)
+[Bases] 狼王魔符 => Greatwolf Talisman (T4Talisman) | Wolf Alpha Talisman (TalismanWolfFangBlack)
+[Bases] 璀璨之石 => The Celestial Stone (InventoryIcon) | Celestial Stone (CelestialStone)
+[Bases] 絲絨手套 => Velour Gloves (GlovesDex4) | Velvet Gloves (GlovesInt2)
+[Bases] 草紙聖物 => [DO NOT USE] Papyrus Relic (RelicBase4x1) | Papyrus Relic (RelicBase4x1)
+[Bases] 術士長靴 => Sorcerer Boots (BootsInt4) | Warlock Boots (BootsInt4)
+[Bases] 詩歌聖物 => [DO NOT USE] Processional Relic (RelicBase1x3) | Processional Relic (RelicBase1x3)
+[Bases] 鋼之裂化 => Rending Steel (LancingSteel) | Splitting Steel (ImpactingSteelGem)
+[Bases] 香爐聖物 => [DO NOT USE] Censer Relic (RelicBase1x2) | Censer Relic (RelicBase1x2)
+[Bases] 龍骨細劍 => Wyrmbone Rapier (Rapier2) | Dragonbone Rapier (Rapier2)
+[Uniques] 恩吉爾的指環 => Ungil's Coil | Ungils's Coil
+[Uniques] 永恆鬥爭 => The Eternal Struggle | Timeless Conflict
+[Uniques] 禁語 => Ylfe Ban | Scold's Bridle
+[Rare name words] 不祥 => Dire | Ominous
+[Rare name words] 儀器 => Apparatus | Instrument
+[Rare name words] 命運 => Destiny | Fate
+[Rare name words] 天體 => Sphere | Orb
+[Rare name words] 孤寂 => Forlorn | Isolation
+[Rare name words] 巔峰 => Point | Zenith
+[Rare name words] 巢穴 => Sands | Gallery
+[Rare name words] 希望 => Wish | Hope
+[Rare name words] 幽暗 => Dark | Ghastly
+[Rare name words] 惡靈 => Evil | Wraith
+[Rare name words] 旅程 => Excursion | Journey | Travail
+[Rare name words] 汙濁 => Foul | Stained
+[Rare name words] 泥沼 => Morass | Slough
+[Rare name words] 泥潭 => Scum | Hideaway
+[Rare name words] 海灣 => Pool | Bay
+[Rare name words] 渴望 => Thirst | Desire | Anticipation
+[Rare name words] 災變 => Twisted | Cataclysm
+[Rare name words] 神話 => Mythic | Mythical | Myth
+[Rare name words] 聖曲 => Anthem | Chant
+[Rare name words] 行靴 => March | Stride
+[Rare name words] 設備 => Device | Equipment
+[Rare name words] 遺跡 => Relic | Ruins
+[Rare name words] 靈光 => Pith | Epiphany
+[Rare name words] 骯髒 => Squalid | Filthy
+[Gems] 持續時間延長輔助 => More Duration Support | Increased Duration Support
+[Gems] 鋼之裂化 => Rending Steel | Splitting Steel
+[Properties] {1} 秒內回復 {0} 生命 => Recovers {0} Life over {1} Second | Recovers {0} Life over {1} Seconds
+[Properties] {1} 秒內回復 {0} 魔力 => Recovers {0} Mana over {1} Second | Recovers {0} Mana over {1} Seconds
+[Properties] 可儲存 {0} 次 => Can Store {0} Use | Can Store {0} Uses
+[Properties] 持續 {0} 秒 => Lasts {0} Second | Lasts {0} Seconds
+[Properties] 武器距離: {0} 米 => Weapon Range: {0} metres | Weapon Range: {0} metre
+[Properties] 每 {0} 秒造成魔力灼燒 => Inflicts Mana Burn every {0} Second | Inflicts Mana Burn every {0} Seconds
+[Properties] 每次使用會從 {1} 充能次數中消耗 {0} 次 => Consumes {0} of {1} Charge on use | Consumes {0} of {1} Charges on use
+[Properties] 由物品 +{0} 等級 => +{0} Level from Item | +{0} Levels from Item
+[Properties] 由物品 -{0} 等級 => -{0} Level from Item | -{0} Levels from Item
+[Properties] 由輔助寶石 +{0} 等級 => +{0} Level from Support | +{0} Levels from Support
+[Properties] 由輔助寶石 -{0} 等級 => -{0} Level from Support | -{0} Levels from Support
+[Properties] 目前剩餘 {0} 分之 {1} 充能 => Currently has {0} of {1} Charge | Currently has {0} of {1} Charges
+[Properties] 目前有 {0} 充能次數 => Currently has {0} Charge | Currently has {0} Charges
+[Properties] 透過全域詞綴 +{0} 等級 => +{0} Level from Global Modifiers | +{0} Levels from Global Modifiers
+[Properties] 透過全域詞綴 -{0} 等級 => -{0} Level from Global Modifiers | -{0} Levels from Global Modifiers
+[Properties] 透過寶石 {0} 等 => {0} Level from Gem | {0} Levels from Gem
+[Properties] 透過寶石(最大) {0} 等 => {0} Level from Gem (Max) | {0} Levels from Gem (Max)
+[Leagues] 聯盟合併 => League Migrations | League Migration
+[Leagues] 聯盟資訊 => League Info | League Information
+[Passives] 劫盜走私者的祕寶機率 => Heist Smuggler's Cache Chance | Additional Smuggler's Cache Chance
+[Passives] 圖騰專精 => Primal Manifestation | Totem Mastery
+[Passives] 地圖頭目 => Map Bosses | Map Boss
+[Passives] 堅定不移 => Adamant | Unfaltering
+[Passives] 守護者 => Warden | Guardian
+[Passives] 帝王迷宮機率 => Labyrinth Trial Chance | Labyrinth
+[Passives] 復仇 => Retaliation | Vengeance
+[Passives] 持續傷害 => Damage Over Time | Damage over Time
+[Passives] 施放速度 => Cast Speed | Cast Speed and Spell Critical Strike Chance
+[Passives] 暈眩門檻 => StunThreshold | Stun Threshold
+[Passives] 暴擊專精 => Critical Mastery | Critical Chance Mastery
+[Passives] 暴擊率 => Critical Strike Chance | Critical Chance
+[Passives] 死亡印記 => Deathmarked | Marked for Death
+[Passives] 每顆狂怒球閃避 => Evasion Per Frenzy Charge | Evasion per Frenzy Charge
+[Passives] 深呼吸 => Deep Breaths | breathe deep
+[Passives] 物理傷害 => Physical Damage | Physical Attack Damage
+[Passives] 破壞者 => Destroyer | Saboteur
+[Passives] 移動速度 => Movement Speed | Movement Speed per Frenzy Charge
+[Passives] 穢生機率 => Foulborn Ancestry | Foulborn Gluttony
+[Passives] 範圍傷害 => Area of Effect Damage | Area Damage
+[Passives] 紀律 => Disciples | Discipline
+[Passives] 融合 => Melding | Syncretism
+[Passives] 血腥味 => Bloodscent | Scent of Blood
+[Passives] 裂痕機率 => Breach Chance | Breach Hiveblood Quantity
+[Passives] 詞綴階級 => Modifier Tier Rating | Additional Item Chance
+[Passives] 譫妄 => Delirium | Delirious
+[Passives] 豐收 => Bumper Crop | Harvest
+[Passives] 費爾羅之志 => Farrul's Will | Farric Will
+[Passives] 迅捷 => Alacrity | Swiftfooted
+[Passives] 閃電傷害 => Lightning Critical Strike Multiplier | Lightning Damage
+[Passives] 點燃機率 => Chance to Ignite | Ignite Chance
