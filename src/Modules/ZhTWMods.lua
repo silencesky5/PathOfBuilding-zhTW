@@ -67,16 +67,30 @@ local function compileAll()
 						local key = variant.text .. "|" .. t_concat(desc.stats, ",")
 						if not seen[key] then
 							seen[key] = true
-							local c = compileTemplate(variant.text, nameIndex)
-							-- Only single lines: PoB draws each line of a description separately
-							if c and c.lineCount == 1 and c.fixed >= 4 then
-								c.desc = desc
-								c.variant = variant
-								c.specials = specials
-								c.nameIndex = nameIndex
-								c.file = file
-								c.fileIndex = fileIndex
-								t_insert(compiled, c)
+							-- PoB draws each line of a description separately, so every line of a
+							-- multi-line description is also matched on its own (partIndex).
+							-- Matching ignores case: passive tree text differs in capitals.
+							local text = variant.text:lower()
+							local parts = { }
+							-- (line breaks are real newlines in the generated data files)
+							for part in (text:gsub("\\n", "\n") .. "\n"):gmatch("(.-)\n") do
+								t_insert(parts, part)
+							end
+							for partIndex, part in ipairs(parts) do
+								local c = compileTemplate(part, nameIndex)
+								if c and c.lineCount == 1 and c.fixed >= 4 then
+									c.desc = desc
+									c.variant = variant
+									c.specials = specials
+									c.nameIndex = nameIndex
+									c.file = file
+									c.fileIndex = fileIndex
+									if #parts > 1 then
+										c.partIndex = partIndex
+										c.partCount = #parts
+									end
+									t_insert(compiled, c)
+								end
 							end
 						end
 					end
@@ -88,6 +102,9 @@ local function compileAll()
 	table.sort(compiled, function(a, b)
 		if a.fixed ~= b.fixed then
 			return a.fixed > b.fixed
+		end
+		if (a.partIndex ~= nil) ~= (b.partIndex ~= nil) then
+			return a.partIndex == nil
 		end
 		return a.fileIndex < b.fileIndex
 	end)
@@ -202,14 +219,31 @@ local function tryCandidate(c, caps)
 	if not any then
 		return nil
 	end
-	local ok, out = pcall(describer, stats, "zhTW/tc/" .. c.file)
-	if not ok or not out or #out ~= 1 then
+	local ok, lines = pcall(describer, stats, "zhTW/tc/" .. c.file)
+	if not ok or not lines then
+		return nil
+	end
+	local out = { }
+	for _, l in ipairs(lines) do
+		for part in (l .. "\n"):gmatch("(.-)\n") do
+			t_insert(out, part)
+		end
+	end
+	if c.partIndex then
+		-- One line of a multi-line description: take the same line of the Chinese text
+		if #out ~= c.partCount then
+			return nil
+		end
+		return out[c.partIndex]
+	end
+	if #out ~= 1 then
 		return nil
 	end
 	return out[1]
 end
 
 local function translateSingle(line)
+	line = line:lower()
 	for _, c in ipairs(compileAll()) do
 		if line:find(c.anchor, 1, true) then
 			local caps = { line:match(c.pattern) }
@@ -285,8 +319,15 @@ function ZhTWMods.translate(line)
 	return nil
 end
 
-function ZhTWMods.setNameLookup(func)
-	nameLookup = func
+-- Names are looked up without case (the line is matched in lower case)
+function ZhTWMods.setNameLookup(func, names)
+	local lower = { }
+	for en, zh in pairs(names or { }) do
+		lower[en:lower()] = zh
+	end
+	nameLookup = function(en)
+		return func(en) or lower[en:lower()]
+	end
 end
 
 return ZhTWMods

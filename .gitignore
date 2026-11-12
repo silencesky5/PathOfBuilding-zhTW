@@ -52,3 +52,6 @@ src/zhTWTest.log
 
 # zhTW
 src/zhTWLocaleTest.log
+src/zhTWCoverage.log
+src/zhTWProbe.lua
+src/zhTWProbe.log

@@ -137,7 +137,64 @@ local function eachLine(text)
 	return (text .. "\n"):gmatch("([^\n]*)\n")
 end
 
+-- Word wrapping (main:WrapString, used by tooltips) runs on the English text, so long
+-- lines would be cut before they can be translated, and Chinese has no spaces to break at.
+-- The wrapper translates first, then breaks Chinese text by character.
+local wrapPatched = false
+local function patchWrapString()
+	wrapPatched = true
+	local origWrap = main.WrapString
+	main.WrapString = function(self, str, height, width)
+		if not ZhTWLocale.enabled or type(str) ~= "string" then
+			return origWrap(self, str, height, width)
+		end
+		str = tr(str)
+		if not hasWide(str) then
+			return copyTable(origWrap(self, str, height, width))
+		end
+		local lines = { }
+		local cur, curW = { }, 0
+		local esc = ""
+		local lineEsc = ""
+		local i, n = 1, #str
+		while i <= n do
+			local c = s_byte(str, i)
+			local piece
+			if c == 94 and s_sub(str, i + 1, i + 1) == "x" and s_find(str, "^%^x%x%x%x%x%x%x", i) then
+				piece = s_sub(str, i, i + 7)
+				esc = piece
+			elseif c == 94 and s_find(str, "^%^%d", i) then
+				piece = s_sub(str, i, i + 1)
+				esc = piece
+			else
+				local len = c < 0x80 and 1 or c < 0xE0 and 2 or c < 0xF0 and 3 or 4
+				piece = s_sub(str, i, i + len - 1)
+			end
+			local w = (piece:sub(1, 1) == "^") and 0 or DrawStringWidth(height, "VAR", piece)
+			if curW + w > width and #cur > 0 then
+				t_insert(lines, table.concat(cur))
+				cur, curW = { lineEsc }, 0
+				if piece == " " then
+					piece, w = "", 0
+				end
+			end
+			t_insert(cur, piece)
+			curW = curW + w
+			lineEsc = esc
+			i = i + #piece
+			if #piece == 0 then
+				i = i + 1
+			end
+		end
+		t_insert(lines, table.concat(cur))
+		return lines
+	end
+end
+
 function DrawString(left, top, align, height, font, text)
+	if not wrapPatched and main and main.WrapString then
+		patchWrapString()
+	end
 	text = tr(text)
 	if not hasWide(text) then
 		return origDrawString(left, top, align, height, font, text)
@@ -193,7 +250,7 @@ function DrawString(left, top, align, height, font, text)
 end
 
 function DrawStringWidth(height, font, text)
-	text = tr(text)
+	text = tr(text, true)
 	if not hasWide(text) then
 		return origDrawStringWidth(height, font, text)
 	end

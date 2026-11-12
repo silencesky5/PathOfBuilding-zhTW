@@ -26,6 +26,11 @@ local datNames = {
 	"ItemVisualIdentity",
 	"Characters",
 	"Ascendancy",
+	"Mods",
+	"ActiveSkills",
+	"GemTags",
+	"FlavourText",
+	"ReminderText",
 }
 -- Stat description files whose Traditional Chinese blocks are exported.
 -- Item modifiers are described by these (tincture/graft include stat_descriptions).
@@ -143,7 +148,7 @@ for _, name in ipairs(displayStatFiles) do
 	t_insert(extractList, "Metadata/StatDescriptions/" .. name .. ".txt")
 end
 -- English only: used to rank stats that share one Chinese text
-local englishOnlyDats = { "Stats", "Mods" }
+local englishOnlyDats = { "Stats" }
 for _, name in ipairs(englishOnlyDats) do
 	t_insert(extractList, "Data/" .. name .. ".datc64")
 end
@@ -488,6 +493,88 @@ do
 	writeTable("Leagues.lua", { names = finalMap(leagues), modes = modes, short = short },
 		"League names. Seasonal league names change every league: re-run this export after each league launch.")
 	logConflicts(leagues)
+end
+
+---------------------------------------------------------------------------
+-- Affixes.lua (magic item name prefixes/suffixes, English -> Chinese, for display)
+-- Chinese magic names are prefix + suffix + base, e.g. 涉獵者的 + 工藝之 + 紫晶藥劑
+---------------------------------------------------------------------------
+do
+	local out = { prefix = { }, suffix = { } }
+	local count = 0
+	for enRow, tcRow in eachPair("Mods", "Name") do
+		local en, zh = trim(enRow.Name), trim(tcRow.Name)
+		local kind = enRow.GenerationType == 1 and "prefix" or enRow.GenerationType == 2 and "suffix"
+		if kind and en ~= "" and zh ~= "" and en ~= zh and not out[kind][en] then
+			out[kind][en] = zh
+			count = count + 1
+		end
+	end
+	writeTable("Affixes.lua", out, "Magic item affix names: English -> Traditional Chinese (display only)")
+	t_insert(summary, s_format("%-24s %6d entries", "Affixes", count))
+end
+
+---------------------------------------------------------------------------
+-- Display.lua (English -> Chinese texts shown by PoB: skill descriptions, gem tags,
+-- flavour text, ClientStrings and their {0} templates)
+---------------------------------------------------------------------------
+do
+	local out = { descriptions = { }, skillNames = { }, tags = { }, flavour = { }, reminders = { }, clientStrings = { }, clientFormats = { } }
+	local counts = { }
+	local function add(tbl, en, zh)
+		-- writeLuaTable does not escape carriage returns, so drop them
+		en = trim((escapeGGGString(en or ""):gsub("\r", "")))
+		zh = trim((escapeGGGString(zh or ""):gsub("\r", "")))
+		if en ~= "" and zh ~= "" and en ~= zh and not out[tbl][en] then
+			out[tbl][en] = zh
+			counts[tbl] = (counts[tbl] or 0) + 1
+		end
+	end
+	for enRow, tcRow in eachPair("ActiveSkills", "DisplayName") do
+		add("skillNames", enRow.DisplayName, tcRow.DisplayName)
+		add("descriptions", enRow.Description, tcRow.Description)
+	end
+	for enRow, tcRow in eachPair("GemEffects", "Description") do
+		add("descriptions", enRow.Description, tcRow.Description)
+	end
+	for enRow, tcRow in eachPair("GemTags", "Name") do
+		add("tags", enRow.Name, tcRow.Name)
+	end
+	-- Flavour text is drawn line by line; map lines when both languages have the same count
+	for enRow, tcRow in eachPair("FlavourText", "Text") do
+		local enLines, tcLines = { }, { }
+		for l in (escapeGGGString(enRow.Text or "") .. "\n"):gmatch("([^\r\n]*)\r?\n") do
+			t_insert(enLines, l)
+		end
+		for l in (escapeGGGString(tcRow.Text or "") .. "\n"):gmatch("([^\r\n]*)\r?\n") do
+			t_insert(tcLines, l)
+		end
+		if #enLines == #tcLines then
+			for i = 1, #enLines do
+				add("flavour", enLines[i], tcLines[i])
+			end
+		end
+	end
+	-- Reminder text, e.g. "(Maximum Resistances cannot be raised above 90%)"
+	for enRow, tcRow in eachPair("ReminderText", "Text") do
+		add("reminders", enRow.Text, tcRow.Text)
+	end
+	for enRow, tcRow in eachPair("ClientStrings", "Text") do
+		local en, zh = enRow.Text or "", tcRow.Text or ""
+		if not en:find("[<%[]") and not en:find("\n") and #en <= 120 then
+			if en:find("{%d}") then
+				add("clientFormats", en, zh)
+			else
+				add("clientStrings", en, zh)
+			end
+		end
+	end
+	writeTable("Display.lua", out, "English -> Traditional Chinese texts for display (Modules/ZhTWLocale.lua)")
+	local parts = { }
+	for _, k in ipairs({ "descriptions", "skillNames", "tags", "flavour", "reminders", "clientStrings", "clientFormats" }) do
+		t_insert(parts, k .. " " .. (counts[k] or 0))
+	end
+	t_insert(summary, s_format("%-24s %s", "Display", table.concat(parts, ", ")))
 end
 
 ---------------------------------------------------------------------------
