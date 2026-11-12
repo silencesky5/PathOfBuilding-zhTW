@@ -49,3 +49,6 @@ runtime/SimpleGraphic/Screenshots
 # zhTW: logs from the zhTW export / test runners
 src/Export/zhTWRun.log
 src/zhTWTest.log
+
+# zhTW
+src/zhTWLocaleTest.log

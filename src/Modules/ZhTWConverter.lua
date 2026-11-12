@@ -1222,4 +1222,14 @@ function ZhTW.printReport(label)
 	return #r.failures
 end
 
+-- Shared with Modules/ZhTWMods.lua (English -> Chinese display)
+ZhTW.internal = {
+	compileTemplate = compileTemplate,
+	inverse = inverse,
+	nameSpecials = nameSpecials,
+	roundInt = roundInt,
+	limitOk = limitOk,
+	valueForLimit = valueForLimit,
+}
+
 return ZhTW

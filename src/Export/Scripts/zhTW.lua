@@ -33,6 +33,21 @@ local statFiles = {
 	"graft_stat_descriptions",
 }
 
+-- Stat description files exported in StatDescriber format, English and Traditional Chinese,
+-- for showing modifiers in Chinese (Modules/ZhTWMods.lua). Parents (include "...") are added
+-- automatically. Output: src/Data/StatDescriptions/zhTW/en/ and .../zhTW/tc/
+local displayStatFiles = {
+	"stat_descriptions", "tincture_stat_descriptions", "graft_stat_descriptions",
+	"passive_skill_stat_descriptions", "passive_skill_aura_stat_descriptions",
+	"active_skill_gem_stat_descriptions", "aura_skill_stat_descriptions", "banner_aura_skill_stat_descriptions",
+	"beam_skill_stat_descriptions", "brand_skill_stat_descriptions", "buff_skill_stat_descriptions",
+	"curse_skill_stat_descriptions", "debuff_skill_stat_descriptions", "secondary_debuff_skill_stat_descriptions",
+	"gem_stat_descriptions", "minion_attack_skill_stat_descriptions", "minion_skill_stat_descriptions",
+	"minion_spell_skill_stat_descriptions", "minion_spell_damage_skill_stat_descriptions",
+	"single_minion_spell_skill_stat_descriptions", "monster_stat_descriptions", "offering_skill_stat_descriptions",
+	"skill_stat_descriptions", "variable_duration_skill_stat_descriptions",
+}
+
 local ggpk = main.ggpk
 if not ggpk or not ggpk.oozPath then
 	print("zhTW: GGPK source is not set")
@@ -120,6 +135,9 @@ for _, name in ipairs(datNames) do
 	t_insert(extractList, "Data/" .. LANG .. "/" .. name .. ".datc64")
 end
 for _, name in ipairs(statFiles) do
+	t_insert(extractList, "Metadata/StatDescriptions/" .. name .. ".txt")
+end
+for _, name in ipairs(displayStatFiles) do
 	t_insert(extractList, "Metadata/StatDescriptions/" .. name .. ".txt")
 end
 -- English only: used to rank stats that share one Chinese text
@@ -660,6 +678,148 @@ do
 	t_insert(summary, s_format("%-24s %6d Chinese texts shared by different stats (ranked by mod usage)", "StatDescriptions", ambiguousTexts))
 	writeTable("StatDescriptions.lua", out, "Traditional Chinese stat description templates. s = stat ids, v = variants { l = limits, t = template, p = special functions }, u = mod usage counts (only on ambiguous texts)")
 	t_insert(summary, s_format("%-24s %6d descriptors, %d templates", "StatDescriptions", descCount, lineCount))
+end
+
+---------------------------------------------------------------------------
+-- Data/StatDescriptions/zhTW/{en,tc}/*.lua  (StatDescriber format, for display)
+---------------------------------------------------------------------------
+do
+	-- Same parsing as Export/Scripts/statdesc.lua, but keeps the requested language
+	local function parseFile(name, wantLang, dirName)
+		local raw = readFile("Metadata/StatDescriptions/" .. name .. ".txt")
+		if not raw then
+			return nil
+		end
+		local text = convertUTF16to8(raw):gsub("^\239\187\191", "")
+		local statDescriptor = { }
+		local curDescriptor = { }
+		local curLang, langName
+		local prepend
+		for line in text:gmatch("[^\r\n]+") do
+			if prepend then
+				line = prepend .. line
+				prepend = nil
+			end
+			local parent = line:match('include "Metadata/StatDescriptions/(.+)%.txt"$')
+			if parent then
+				statDescriptor.parent = dirName .. "/" .. parent
+			else
+				local noDesc = line:match("no_description ([%w_%+%-%%]+)")
+				if noDesc then
+					t_insert(statDescriptor, { stats = { noDesc } })
+					statDescriptor[noDesc] = #statDescriptor
+				elseif line:match("handed_description") or (line:match("description") and not line:match("_description")) then
+					curLang = { }
+					langName = "English"
+					curDescriptor = { curLang, name = line:match("description ([%w_]+)") }
+					t_insert(statDescriptor, curDescriptor)
+				elseif not curDescriptor.stats then
+					local stats = line:match("%d+%s+([%w_%+%-%% ]+)")
+					if stats then
+						curDescriptor.stats = { }
+						for stat in stats:gmatch("[%w_%+%-%%]+") do
+							t_insert(curDescriptor.stats, stat)
+							statDescriptor[stat] = #statDescriptor
+						end
+					else
+						prepend = line
+					end
+				else
+					local l = line:match('lang "(.+)"')
+					if l then
+						langName = l
+					elseif langName == wantLang and not line:match("table_only") then
+						local statLimits, quality, descText, special = line:match('([%d%-#| !]+)%s*([%w_]*)%s*"(.-)"%s*(.*)')
+						if statLimits then
+							local desc = { text = escapeGGGString(descText), limit = { } }
+							for statLimit in statLimits:gmatch("[!%d%-#|]+") do
+								local limit = { }
+								if statLimit == "#" then
+									limit[1], limit[2] = "#", "#"
+								elseif statLimit:match("^%-?%d+$") then
+									limit[1], limit[2] = tonumber(statLimit), tonumber(statLimit)
+								else
+									local negate = statLimit:match("^!(-?%d+)$")
+									if negate then
+										limit[1], limit[2] = "!", tonumber(negate)
+									else
+										limit[1], limit[2] = statLimit:match("([%d%-#]+)|([%d%-#]+)")
+										limit[1] = tonumber(limit[1]) or limit[1]
+										limit[2] = tonumber(limit[2]) or limit[2]
+									end
+								end
+								t_insert(desc.limit, limit)
+							end
+							local tokens = { }
+							for token in special:gmatch("([%w%%_]+)") do
+								t_insert(tokens, token)
+							end
+							local i = 1
+							while i <= #tokens do
+								local token = tokens[i]
+								if token == "canonical_line" then
+									i = i + 1
+								else
+									local value = tokens[i + 1]
+									if value then
+										t_insert(desc, { k = token, v = tonumber(value) or value })
+										i = i + 2
+									else
+										i = i + 1
+									end
+								end
+							end
+							if quality:match("gem_quality") then
+								desc[quality] = true
+							end
+							t_insert(curLang, desc)
+						end
+					end
+				end
+			end
+		end
+		return statDescriptor
+	end
+	for _, dir in ipairs({ "en", "tc" }) do
+		runUnicode("New-Item -ItemType Directory -Force -Path " .. psQuote(GetWorkDir() .. "\\..\\Data\\StatDescriptions\\zhTW\\" .. dir) .. " | Out-Null")
+	end
+	local done, queue = { }, { }
+	for _, name in ipairs(displayStatFiles) do
+		t_insert(queue, name)
+	end
+	local fileCount, missing = 0, { }
+	while #queue > 0 do
+		local name = table.remove(queue, 1)
+		if not done[name] then
+			done[name] = true
+			for lang, dir in pairs({ English = "en", ["Traditional Chinese"] = "tc" }) do
+				local sd = parseFile(name, lang, "zhTW/" .. dir)
+				if not sd then
+					t_insert(missing, name)
+					break
+				end
+				local out = io.open("../Data/StatDescriptions/zhTW/" .. dir .. "/" .. name .. ".lua", "w")
+				out:write("-- This file is automatically generated by Export/Scripts/zhTW.lua, do not edit!\n")
+				out:write("-- Item data (c) Grinding Gear Games\n")
+				for _, line in ipairs(versionInfo) do
+					out:write(line, "\n")
+				end
+				out:write("\nreturn ")
+				writeLuaTable(out, sd, 1)
+				out:close()
+				if sd.parent then
+					local parentName = sd.parent:match("[^/]+$")
+					if not done[parentName] then
+						-- Parent files must be extracted too
+						extract({ "Metadata/StatDescriptions/" .. parentName .. ".txt" })
+						t_insert(queue, parentName)
+					end
+				end
+			end
+			fileCount = fileCount + 1
+		end
+	end
+	t_insert(summary, s_format("%-24s %6d files (English + Traditional Chinese)%s", "Display stat descs", fileCount, #missing > 0 and (", missing: " .. table.concat(missing, ", ")) or ""))
 end
 
 ---------------------------------------------------------------------------

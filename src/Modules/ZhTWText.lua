@@ -16,6 +16,10 @@ local m_floor = math.floor
 local m_ceil = math.ceil
 local t_insert = table.insert
 
+-- Translation to Chinese happens here too (Modules/ZhTWLocale.lua), so every drawn string is covered
+ZhTWLocale = LoadModule("Modules/ZhTWLocale")
+local tr = ZhTWLocale.tr
+
 local origDrawString = DrawString
 local origDrawStringWidth = DrawStringWidth
 local origDrawStringCursorIndex = DrawStringCursorIndex
@@ -134,6 +138,7 @@ local function eachLine(text)
 end
 
 function DrawString(left, top, align, height, font, text)
+	text = tr(text)
 	if not hasWide(text) then
 		return origDrawString(left, top, align, height, font, text)
 	end
@@ -188,6 +193,7 @@ function DrawString(left, top, align, height, font, text)
 end
 
 function DrawStringWidth(height, font, text)
+	text = tr(text)
 	if not hasWide(text) then
 		return origDrawStringWidth(height, font, text)
 	end
@@ -201,7 +207,8 @@ function DrawStringWidth(height, font, text)
 	return max
 end
 
--- Returns the 1-based byte position of the caret, like the engine does for ASCII text
+-- Returns the 1-based byte position of the caret, like the engine does for ASCII text.
+-- Not translated: this is used for text the user is editing.
 function DrawStringCursorIndex(height, font, text, cursorX, cursorY)
 	if not hasWide(text) then
 		return origDrawStringCursorIndex(height, font, text, cursorX, cursorY)
