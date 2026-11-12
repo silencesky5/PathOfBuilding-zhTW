@@ -4,6 +4,8 @@
 -- Used by Modules/ZhTWLocale.lua at draw time. Edit freely; reload with F5.
 return {
 	strings = {
+		["Label"] = "標籤",
+		["Active"] = "啟用中",
 		["unallocating"] = "取消配置",
 		["allocating"] = "配置",
 		["- You can copy/paste socket groups using Ctrl+C and Ctrl+V."] = "- 可使用 Ctrl+C 與 Ctrl+V 複製/貼上插槽群組。",

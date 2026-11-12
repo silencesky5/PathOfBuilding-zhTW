@@ -89,6 +89,22 @@ local ok, err = xpcall(function()
 			build.viewMode = mode
 			frames(3)
 		end
+		-- Gem name boxes on the skills tab (edit controls) must show Chinese too
+		do
+			local seen = { }
+			ZhTWLocale.onDraw = function(text)
+				if type(text) == "string" and text:find("%S") then
+					seen[text] = true
+				end
+			end
+			build.viewMode = "SKILLS"
+			build.skillsTab:SetDisplayGroup(build.skillsTab.socketGroupList[1])
+			frames(3)
+			ZhTWLocale.onDraw = nil
+			for k in pairs(seen) do
+				log("[gem box] " .. k)
+			end
+		end
 		-- Tooltips
 		local tooltip = new("Tooltip"):Tooltip()
 		local function drainTooltip(area)

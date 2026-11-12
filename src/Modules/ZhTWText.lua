@@ -209,7 +209,8 @@ local function patchEditControl()
 					self.placeholder = placeholder and tr(placeholder)
 				end
 				-- Gem name boxes show the gem in Chinese until you click in to type a search
-				local keep = self._className == "GemSelectControl" and not self.hasFocus
+				-- (GemSelectControl calls these through a parent proxy, so test its own fields)
+				local keep = self.gemChangeFunc ~= nil and self.skillsTab ~= nil and not self.hasFocus
 				local inc = keep and 0 or 1
 				ZhTWLocale.suspend = ZhTWLocale.suspend + inc
 				local ok, a1, a2, a3 = pcall(func, self, ...)
@@ -232,6 +233,9 @@ function DrawString(left, top, align, height, font, text)
 		patchEditControl()
 	end
 	text = tr(text)
+	if ZhTWLocale.onDraw then -- test hook (zhTWCoverage.lua)
+		ZhTWLocale.onDraw(text)
+	end
 	if not hasWide(text) then
 		return origDrawString(left, top, align, height, font, text)
 	end
