@@ -1,0 +1,486 @@
+describe("TradeQueryRequests", function()
+	local dkjson = require "dkjson"
+	local mock_limiter = {
+		NextRequestTime = function()
+			return os.time()
+		end,
+		InsertRequest = function()
+			return 1
+		end,
+		FinishRequest = function() end,
+		UpdateFromHeader = function() end,
+		GetPolicyName = function(self, key)
+			return key
+		end
+	}
+	local requests = new("TradeQueryRequests"):TradeQueryRequests(mock_limiter)
+
+	local function simulateRetry(requests, mock_limiter, policy, current_time)
+		local now = current_time
+		local queue = requests.requestQueue.search
+		local request = table.remove(queue, 1)
+		local requestId = mock_limiter:InsertRequest(policy)
+		local response = { header = "HTTP/1.1 429 Too Many Requests" }
+		mock_limiter:FinishRequest(policy, requestId)
+		mock_limiter:UpdateFromHeader(response.header)
+		local status = response.header:match("HTTP/[%d%%%.]+ (%d+)")
+		if status == "429" then
+			request.attempts = (request.attempts or 0) + 1
+			local backoff = math.min(2 ^ request.attempts, 60)
+			request.retryTime = now + backoff
+			table.insert(queue, 1, request)
+			return true, request.attempts, request.retryTime
+		end
+		return false, nil, nil
+	end
+
+	describe("ProcessQueue", function()
+		-- Pass: No changes to empty queues
+		-- Fail: Alters queues unexpectedly, indicating loop errors, causing phantom requests
+		it("skips empty queue", function()
+			requests.requestQueue = { search = {}, fetch = {} }
+			requests:ProcessQueue()
+			assert.are.equal(#requests.requestQueue.search, 0)
+		end)
+
+		-- Pass: Dequeues and processes valid item
+		-- Fail: Queue unchanged, indicating timing/insertion bug, blocking trade searches
+		it("processes search queue item", function()
+			local orig_launch = launch
+			launch = {
+				DownloadPage = function(url, onComplete, opts)
+					onComplete({ body = "{}", header = "HTTP/1.1 200 OK" }, nil)
+				end
+			}
+			table.insert(requests.requestQueue.search, {
+				url = "test",
+				callback = function() end,
+				retryTime = nil
+			})
+			local function mock_next_time(self, policy, time)
+				return time - 1
+			end
+			mock_limiter.NextRequestTime = mock_next_time
+			requests:ProcessQueue()
+			assert.are.equal(#requests.requestQueue.search, 0)
+			launch = orig_launch
+		end)
+
+		-- Pass: Does not crash on 401, and passes error message
+		-- Fail: Crash, or returned error is wrong
+		it("does not crash on 401", function()
+			local json = '"{"error":"invalid_token","error_description":"The access token provided is invalid or has expired"}"'
+			local header = [[HTTP/1.1 401 Unauthorized
+Date: Fri, 24 Apr 2026 07:30:38 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Connection: keep-alive
+Server: cloudflare
+WWW-Authenticate: Bearer realm="pathofexile:production", error="invalid_token", error_description="The access token provided is invalid or has expired"
+Cache-Control: no-store
+Strict-Transport-Security: max-age=63115200; includeSubDomains; preload]]
+		local orig_launch = launch
+			launch = {
+				DownloadPage = function(url, onComplete, opts)
+					onComplete({ body = json, header = header }, nil)
+				end
+			}
+			table.insert(requests.requestQueue.search, {
+				url = "test",
+				callback = function(body, msg)
+					assert.are.equal(body, json)
+					assert.are.equal(msg, "Response code: 401\nAuthorization is invalid. Please Re-Log and reset")
+				end,
+				retryTime = nil
+			})
+			local function mock_next_time(self, policy, time)
+				return time - 1
+			end
+			mock_limiter.NextRequestTime = mock_next_time
+			requests:ProcessQueue()
+			assert.are.equal(#requests.requestQueue.search, 0)
+			launch = orig_launch
+		end)
+
+		-- Pass: Retries with increasing backoff up to cap, preventing infinite loops
+		-- Fail: No backoff or uncapped, indicating retry bug, risking API bans
+		it("retries on 429 with exponential backoff", function()
+			local orig_os_time = os.time
+			local mock_time = 1000
+			os.time = function() return mock_time end
+
+			local request = {
+				url = "test",
+				callback = function() end,
+				retryTime = nil,
+				attempts = 0
+			}
+			table.insert(requests.requestQueue.search, request)
+
+			local policy = mock_limiter:GetPolicyName("search")
+
+			for i = 1, 7 do
+				local previous_time = mock_time
+				local entered, attempts, retryTime = simulateRetry(requests, mock_limiter, policy, mock_time)
+				assert.is_true(entered)
+				assert.are.equal(attempts, i)
+				local expected_backoff = math.min(math.pow(2, i), 60)
+				assert.are.equal(retryTime, previous_time + expected_backoff)
+				mock_time = retryTime
+			end
+
+			-- Validate skip when time < retryTime
+			mock_time = requests.requestQueue.search[1].retryTime - 1
+			local function mock_next_time(self, policy, time)
+				return time - 1
+			end
+			mock_limiter.NextRequestTime = mock_next_time
+			requests:ProcessQueue()
+			assert.are.equal(#requests.requestQueue.search, 1)
+
+			os.time = orig_os_time
+		end)
+	end)
+
+	describe("SearchWithQueryWeightAdjusted", function()
+		-- Pass: Caps at 5 calls on large results
+		-- Fail: Exceeds 5, indicating loop without bound, risking stack overflow or endless API calls
+		it("respects recursion limit", function()
+			local call_count = 0
+			local orig_perform = requests.PerformSearch
+			local orig_fetchBlock = requests.FetchResultBlock
+			local valid_query = [[{"query":{"stats":[{"value":{"min":0}}]}}]]
+			local test_ids = {}
+			for i = 1, 11 do
+				table.insert(test_ids, "item" .. i)
+			end
+			requests.PerformSearch = function(self, realm, league, query, callback)
+				call_count = call_count + 1
+				local response
+				if call_count >= 5 then
+					response = { total = 11, result = test_ids, id = "id" }
+				else
+					response = { total = 10000, result = { "item1" }, id = "id" }
+				end
+				callback(response, nil)
+			end
+			requests.FetchResultBlock = function(self, url, callback)
+				local param_item_hashes = url:match("fetch/([^?]+)")
+				local hashes = {}
+				if param_item_hashes then
+					for hash in param_item_hashes:gmatch("[^,]+") do
+						table.insert(hashes, hash)
+					end
+				end
+				local processedItems = {}
+				for _, hash in ipairs(hashes) do
+					table.insert(processedItems, {
+						amount = 1,
+						currency = "chaos",
+						item_string = "Test Item",
+						whisper = "hi",
+						weight = "100",
+						id = hash
+					})
+				end
+				callback(processedItems)
+			end
+			requests:SearchWithQueryWeightAdjusted("pc", "league", valid_query, function(items)
+				assert.are.equal(call_count, 5)
+			end, {})
+			requests.PerformSearch = orig_perform
+			requests.FetchResultBlock = orig_fetchBlock
+		end)
+	end)
+
+	describe("FetchResultBlock", function()
+		it("preserves item influences in reconstructed item strings", function()
+			local response = dkjson.encode({
+				result = {
+					{
+						id = "influenced",
+						listing = {
+							price = { amount = 1, currency = "chaos", type = "~price" },
+							whisper = "hi",
+							account = { name = "seller" },
+						},
+						item = {
+							rarity = "Rare",
+							name = "Test Subject",
+							typeLine = "Astral Plate",
+							influences = {
+								shaper = true,
+								elder = true,
+								warlord = true,
+								hunter = true,
+								crusader = true,
+								redeemer = true,
+							},
+							searing = true,
+							tangled = true,
+						},
+					},
+				},
+			})
+			local fetchedItems
+			requests.requestQueue.fetch = { }
+			requests:FetchResultBlock("test", function(items)
+				fetchedItems = items
+			end)
+
+			local request = table.remove(requests.requestQueue.fetch, 1)
+			request.callback(response)
+
+			local item = new("Item"):Item(fetchedItems[1].item_string)
+			for _, influenceInfo in ipairs(itemLib.influenceInfo.all) do
+				assert.is_true(item[influenceInfo.key], influenceInfo.display)
+			end
+		end)
+
+		it("reads weighted sums from current and legacy pseudo mods", function()
+			local function makeTradeEntry(id, pseudoMods)
+				return {
+					id = id,
+					listing = {
+						price = { amount = 1, currency = "chaos", type = "~price" },
+						whisper = "hi",
+						account = { name = "seller" },
+					},
+					item = {
+						pseudoMods = pseudoMods,
+						rarity = "Rare",
+						name = "Test Subject",
+						typeLine = "Astral Plate",
+					},
+				}
+			end
+			local response = dkjson.encode({
+				result = {
+					makeTradeEntry("current", { { description = "Sum: 178", domain = "pseudo", hash = "stat.statgroup.0" } }),
+					makeTradeEntry("legacy", { "Sum: 42" }),
+					makeTradeEntry("empty", { }),
+				},
+			})
+			local fetchedItems
+			local callbackError
+			requests.requestQueue.fetch = { }
+			requests:FetchResultBlock("test", function(items, errMsg)
+				fetchedItems = items
+				callbackError = errMsg
+			end)
+
+			local request = table.remove(requests.requestQueue.fetch, 1)
+			request.callback(response)
+
+			local itemsById = { }
+			for _, item in ipairs(fetchedItems) do
+				itemsById[item.id] = item
+			end
+			assert.is_nil(callbackError)
+			assert.are.equal("178", itemsById.current.weight)
+			assert.are.equal("42", itemsById.legacy.weight)
+			assert.are.equal("0", itemsById.empty.weight)
+		end)
+	end)
+
+	describe("SearchWithURL", function()
+		local dkjson = require "dkjson"
+		local tradeHelpers = require "Classes.TradeHelpers"
+		local originalDecode, urlRequests, decodedQuery
+		local url = "https://www.pathofexile.com/trade/search/Standard/encoded"
+
+		before_each(function()
+			urlRequests = new("TradeQueryRequests"):TradeQueryRequests(mock_limiter)
+			originalDecode = tradeHelpers.B64GzipDecode
+			-- Compression is provided by SimpleGraphic, which the headless wrapper stubs.
+			tradeHelpers.B64GzipDecode = function() return decodedQuery end
+		end)
+
+		after_each(function()
+			tradeHelpers.B64GzipDecode = originalDecode
+		end)
+
+		for _, realmPath in ipairs({ "", "sony/", "xbox/" }) do
+			it("preserves the realm and league in " .. realmPath .. "Hardcore%20Test", function()
+				tradeHelpers.B64GzipDecode = function(encoded)
+					assert.are.equal("encoded", encoded)
+					return [[{"stats":[{"type":"and","filters":[]}]}]]
+				end
+				urlRequests:SearchWithURL("https://pathofexile.com/trade/search/" .. realmPath .. "Hardcore%20Test/encoded", function() end)
+				assert.are.equal("https://www.pathofexile.com/api/trade/search/" .. realmPath .. "Hardcore%20Test",
+					urlRequests.requestQueue.search[1].url)
+			end)
+		end
+
+		it("fetches ordinary searches by price and returns their query", function()
+			decodedQuery = [[{"stats":[{"type":"and","filters":[{"id":"explicit.stat_3299347043","value":{"min":1}}]}]}]]
+			local expectedQuery = dkjson.decode(decodedQuery)
+			local fetchedItems = { { id = "item1" } }
+			urlRequests.FetchResults = function(_, ids, queryId, callback)
+				assert.same({ "item1" }, ids)
+				assert.are.equal("searchId", queryId)
+				callback(fetchedItems)
+			end
+			local calls = 0
+			urlRequests:SearchWithURL(url, function(items, err, query)
+				calls = calls + 1
+				assert.is_nil(err)
+				assert.same(fetchedItems, items)
+				assert.same({ query = expectedQuery, sort = { price = "asc" }, engine = "new" }, dkjson.decode(query))
+			end)
+			local search = table.remove(urlRequests.requestQueue.search, 1)
+			assert.are.equal("https://www.pathofexile.com/api/trade/search/Standard", search.url)
+			search.callback([[{"total":1,"result":["item1"],"id":"searchId"}]])
+			assert.are.equal(1, calls)
+			assert.are.equal(0, #urlRequests.requestQueue.search)
+		end)
+
+		it("relays ordinary search errors to the caller", function()
+			decodedQuery = [[{"stats":[{"type":"and","filters":[]}]}]]
+			local calls = 0
+			urlRequests:SearchWithURL(url, function(items, err, query)
+				calls = calls + 1
+				assert.is_nil(items)
+				assert.are.equal("Response code: 403", err)
+				assert.is_table(dkjson.decode(query).query)
+			end)
+			table.remove(urlRequests.requestQueue.search, 1).callback(nil, "Response code: 403")
+			assert.are.equal(1, calls)
+		end)
+
+		it("moves a later weighted group first while retaining the other filters", function()
+			decodedQuery = [[{"stats":[{"type":"count","value":{"min":1},"filters":[]},{"type":"weight","value":{"min":10},"filters":[]}]}]]
+			urlRequests:SearchWithURL(url, function() end)
+			local query = dkjson.decode(urlRequests.requestQueue.search[1].body)
+			assert.same({ ["statgroup.0"] = "desc" }, query.sort)
+			assert.are.equal("weight", query.query.stats[1].type)
+			assert.are.equal(10, query.query.stats[1].value.min)
+			assert.are.equal("count", query.query.stats[2].type)
+			assert.are.equal(1, query.query.stats[2].value.min)
+		end)
+
+		for _, case in ipairs({
+			{ name = "an explicit minimum with only five matches", bounds = { min = 2000 }, weight = 2100, total = 5 },
+			{ name = "negative weights with a maximum-only bound", bounds = { max = -50 }, weight = -60, total = 10000 },
+			{ name = "negative weights without bounds", weight = -60, total = 10000 },
+			{ name = "both bounds with exactly the fetch limit", bounds = { min = 100, max = 200 }, weight = 150, total = 10 },
+		}) do
+			it("fetches pasted searches once, preserving " .. case.name, function()
+				local filters = { { id = "explicit.stat_3299347043", value = { weight = case.weight < 0 and -1 or 1 } } }
+				local suppliedQuery = { stats = { { type = "weight", filters = filters, value = case.bounds } } }
+				decodedQuery = dkjson.encode(suppliedQuery)
+				local fetchedItems = { { id = "item1", weight = tostring(case.weight) } }
+				local fetchCalls, callbackCalls = 0, 0
+				urlRequests.FetchResults = function(_, ids, queryId, callback)
+					fetchCalls = fetchCalls + 1
+					assert.same({ "item1" }, ids)
+					assert.are.equal("searchId", queryId)
+					callback(fetchedItems)
+				end
+				urlRequests:SearchWithURL(url, function(items, err, query)
+					callbackCalls = callbackCalls + 1
+					assert.is_nil(err)
+					assert.same(fetchedItems, items)
+					assert.same({ query = suppliedQuery, sort = { ["statgroup.0"] = "desc" }, engine = "new" }, dkjson.decode(query))
+				end)
+				assert.are.equal(1, #urlRequests.requestQueue.search)
+				local search = table.remove(urlRequests.requestQueue.search, 1)
+				assert.same(suppliedQuery, dkjson.decode(search.body).query)
+				search.callback(dkjson.encode({ total = case.total, result = { "item1" }, id = "searchId" }))
+				assert.are.equal(1, fetchCalls)
+				assert.are.equal(1, callbackCalls)
+				assert.are.equal(0, #urlRequests.requestQueue.search)
+			end)
+		end
+
+		it("reports no matches without relaxing a pasted minimum", function()
+			decodedQuery = [[{"stats":[{"type":"weight","value":{"min":2000},"filters":[]}]}]]
+			local calls = 0
+			urlRequests:SearchWithURL(url, function(items, err, query)
+				calls = calls + 1
+				assert.is_nil(items)
+				assert.are.equal("No Matching Results Found", err)
+				assert.are.equal(2000, dkjson.decode(query).query.stats[1].value.min)
+			end)
+			table.remove(urlRequests.requestQueue.search, 1).callback([[{"total":0,"result":[],"id":"emptySearch"}]])
+			assert.are.equal(1, calls)
+			assert.are.equal(0, #urlRequests.requestQueue.search)
+		end)
+
+		for _, malformed in ipairs({
+			[[{"stats":[]}]],
+			[[{"stats":[{"type":"and"},false]}]],
+			[[{"stats":[{}]}]],
+			[[42]],
+			[[not JSON]],
+		}) do
+			it("rejects malformed query " .. malformed .. " through the callback", function()
+				decodedQuery = malformed
+				local calls = 0
+				urlRequests:SearchWithURL(url, function(items, err)
+					calls = calls + 1
+					assert.is_nil(items)
+					assert.are.equal("URL is malformed", err)
+				end)
+				assert.are.equal(1, calls)
+				assert.are.equal(0, #urlRequests.requestQueue.search)
+			end)
+		end
+
+		it("rejects failed decompression through the callback", function()
+			decodedQuery = nil
+			local calls = 0
+			urlRequests:SearchWithURL(url, function(_, err)
+				calls = calls + 1
+				assert.are.equal("URL is malformed", err)
+			end)
+			assert.are.equal(1, calls)
+		end)
+
+		it("rejects an unrelated URL through the callback", function()
+			local calls = 0
+			urlRequests:SearchWithURL("https://example.com/", function(_, err)
+				calls = calls + 1
+				assert.are.equal("Invalid URL", err)
+			end)
+			assert.are.equal(1, calls)
+		end)
+	end)
+
+	describe("FetchResults", function()
+		-- Pass: Fetches exactly 10 from 11, in 1 block
+		-- Fail: Fetches wrong count/blocks, indicating batch limit violation, triggering rate limits
+		it("fetches up to maxFetchPerSearch items", function()
+			local itemHashes = { "id1", "id2", "id3", "id4", "id5", "id6", "id7", "id8", "id9", "id10", "id11" }
+			local block_count = 0
+			local orig_fetchBlock = requests.FetchResultBlock
+			requests.FetchResultBlock = function(self, url, callback)
+				block_count = block_count + 1
+				local param_item_hashes = url:match("fetch/([^?]+)")
+				local hashes = {}
+				if param_item_hashes then
+					for hash in param_item_hashes:gmatch("[^,]+") do
+						table.insert(hashes, hash)
+					end
+				end
+				local processedItems = {}
+				for _, hash in ipairs(hashes) do
+					table.insert(processedItems, {
+						amount = 1,
+						currency = "chaos",
+						item_string = "Test Item",
+						whisper = "hi",
+						weight = "100",
+						id = hash
+					})
+				end
+				callback(processedItems)
+			end
+			requests:FetchResults(itemHashes, "queryId", function(items)
+				assert.are.equal(#items, 10)
+				assert.are.equal(block_count, 1)
+			end)
+			requests.FetchResultBlock = orig_fetchBlock
+		end)
+	end)
+end)
