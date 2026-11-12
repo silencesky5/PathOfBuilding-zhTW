@@ -22,8 +22,9 @@ local realmList = {
 }
 
 -- zhTW: realms for account-name import only. The OAuth dropdown keeps using realmList.
+-- The label is "TW" (not "台服") because PoB's font has no CJK glyphs yet (UI localisation is stage 3).
 local siteRealmList = copyTable(realmList) -- zhTW
-t_insert(siteRealmList, { label = "台服", id = "TW", realmCode = "pc", hostName = "https://pathofexile.tw/", profileURL = "account/view-profile/", zhTW = true }) -- zhTW
+t_insert(siteRealmList, { label = "TW", id = "TW", realmCode = "pc", hostName = "https://pathofexile.tw/", profileURL = "account/view-profile/", zhTW = true }) -- zhTW
 local ZhTW -- zhTW: Modules/ZhTWConverter, loaded on first Taiwan import
 local function getZhTW() -- zhTW
 	ZhTW = ZhTW or LoadModule("Modules/ZhTWConverter")
@@ -33,7 +34,8 @@ end
 local function zhTWReportStatus(label) -- zhTW
 	local failed = getZhTW().printReport(label)
 	if failed > 0 then
-		return colorCodes.WARNING .. " 有 " .. failed .. " 行詞綴無法轉換 (" .. failed .. " lines could not be converted, see console)"
+		-- English for now: PoB's font cannot draw Chinese (有 N 行詞綴無法轉換)
+		return colorCodes.WARNING .. " " .. failed .. " line(s) could not be converted from Chinese (see console: Ctrl+~)"
 	end
 	return ""
 end
