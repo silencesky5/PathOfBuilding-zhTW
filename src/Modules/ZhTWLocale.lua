@@ -19,7 +19,7 @@ local s_match = string.match
 local t_insert = table.insert
 local t_concat = table.concat
 
-local ZhTWLocale = { enabled = true }
+local ZhTWLocale = { enabled = true, suspend = 0 }
 
 local ui -- English -> Chinese interface strings
 local formats -- compiled printf-style strings, e.g. "x %.2f (MH chance to hit)"
@@ -474,7 +474,8 @@ local cacheSize = 0
 
 -- measure = true when the text is only measured, not drawn
 function ZhTWLocale.tr(text, measure)
-	if not ZhTWLocale.enabled or type(text) ~= "string" or text == "" then
+	-- suspend > 0 while an edit box draws: typed text is shown as typed
+	if not ZhTWLocale.enabled or ZhTWLocale.suspend > 0 or type(text) ~= "string" or text == "" then
 		return text
 	end
 	local c = cache[text]

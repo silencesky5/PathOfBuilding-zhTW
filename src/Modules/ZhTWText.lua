@@ -191,9 +191,42 @@ local function patchWrapString()
 	end
 end
 
+-- Edit boxes show what the user typed (search text, pasted item text that PoB parses):
+-- translation is suspended inside EditControl, except for its prompt and placeholder.
+local editPatched = false
+local function patchEditControl()
+	local class = common and common.classes and common.classes.EditControl
+	if not class then
+		return
+	end
+	editPatched = true
+	for name, func in pairs(class) do
+		if type(func) == "function" and name ~= "EditControl" and not name:find("^_") then
+			class[name] = function(self, ...)
+				local prompt, placeholder = self.prompt, self.placeholder
+				if name == "Draw" and ZhTWLocale.enabled and ZhTWLocale.suspend == 0 then
+					self.prompt = prompt and tr(prompt)
+					self.placeholder = placeholder and tr(placeholder)
+				end
+				ZhTWLocale.suspend = ZhTWLocale.suspend + 1
+				local ok, a1, a2, a3 = pcall(func, self, ...)
+				ZhTWLocale.suspend = ZhTWLocale.suspend - 1
+				self.prompt, self.placeholder = prompt, placeholder
+				if not ok then
+					error(a1, 0)
+				end
+				return a1, a2, a3
+			end
+		end
+	end
+end
+
 function DrawString(left, top, align, height, font, text)
 	if not wrapPatched and main and main.WrapString then
 		patchWrapString()
+	end
+	if not editPatched then
+		patchEditControl()
 	end
 	text = tr(text)
 	if not hasWide(text) then
