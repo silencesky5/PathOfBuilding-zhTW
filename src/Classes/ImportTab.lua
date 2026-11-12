@@ -21,6 +21,23 @@ local realmList = {
 	{ label = "Sony",    id = "SONY", realmCode = "sony", hostName = "https://www.pathofexile.com/", profileURL = "account/view-profile/" },
 }
 
+-- zhTW: realms for account-name import only. The OAuth dropdown keeps using realmList.
+local siteRealmList = copyTable(realmList) -- zhTW
+t_insert(siteRealmList, { label = "台服", id = "TW", realmCode = "pc", hostName = "https://pathofexile.tw/", profileURL = "account/view-profile/", zhTW = true }) -- zhTW
+local ZhTW -- zhTW: Modules/ZhTWConverter, loaded on first Taiwan import
+local function getZhTW() -- zhTW
+	ZhTW = ZhTW or LoadModule("Modules/ZhTWConverter")
+	return ZhTW
+end
+-- zhTW: prints the conversion report and returns a status suffix
+local function zhTWReportStatus(label) -- zhTW
+	local failed = getZhTW().printReport(label)
+	if failed > 0 then
+		return colorCodes.WARNING .. " 有 " .. failed .. " 行詞綴無法轉換 (" .. failed .. " lines could not be converted, see console)"
+	end
+	return ""
+end
+
 local function addOAuthControls(self)
 	self.usingOauth = true
 	self.isAuthorized = function() return main.api.authToken ~= nil end
@@ -335,7 +352,7 @@ local function addAccountNameControls(self)
 	end
 
 	self.controls.siteAccountRealm = new("DropDownControl"):DropDownControl({ "TOPLEFT", self.controls.siteAccountNameHeader, "BOTTOMLEFT" },
-		{ 0, 4, 60, 20 }, realmList)
+		{ 0, 4, 60, 20 }, siteRealmList) -- zhTW: was realmList
 	self.controls.siteAccountRealm:SelByValue(main.lastRealm or "PC", "id")
 	self.controls.siteAccountName = new("EditControl"):EditControl({ "LEFT", self.controls.siteAccountRealm, "RIGHT" }, { 8, 0, 200, 20 },
 		main.lastAccountName or "", nil, "%c", nil, nil, nil, nil, true)
@@ -836,6 +853,9 @@ function ImportTabClass:DownloadPassiveTree(realm)
 				self.lastLeague = self.controls.siteCharSelectLeague:GetSelValueByKey("league")
 			end
 			local responseLua = dkjson.decode(response.body)
+			if realm.zhTW then -- zhTW
+				getZhTW().convertPassiveResponse(responseLua)
+			end
 			-- Account-name imports omit quest choices, so keep the build's current values.
 			responseLua.bandit_choice = responseLua.bandit_choice or self.build.configTab.input.bandit
 			responseLua.pantheon_major = responseLua.pantheon_major or self.build.configTab.input.pantheonMajorGod
@@ -845,7 +865,10 @@ function ImportTabClass:DownloadPassiveTree(realm)
 			charData.passives = responseLua
 			charData.jewels = responseLua.items
 			local deleteJewels = self.controls.siteCharImportTreeClearJewels.state
-			self:ImportPassiveTreeAndJewels(charData, deleteJewels)
+			local status = self:ImportPassiveTreeAndJewels(charData, deleteJewels)
+			if realm.zhTW then -- zhTW
+				self.charImportStatus = status .. zhTWReportStatus("Passive tree")
+			end
 		end)
 end
 
@@ -874,6 +897,9 @@ function ImportTabClass:DownloadItems(realm)
 				self.lastLeague = self.controls.siteCharSelectLeague:GetSelValueByKey("league")
 			end
 			local responseLua = dkjson.decode(response.body)
+			if realm.zhTW then -- zhTW
+				getZhTW().convertItemsResponse(responseLua)
+			end
 			-- modify response to be like the oauth API response
 			local charData = copyTable(charListData)
 			charData.equipment = responseLua.items
@@ -881,7 +907,10 @@ function ImportTabClass:DownloadItems(realm)
 			local clearItems = self.controls.siteCharImportItemsClearItems.state
 			local clearSkills = self.controls.siteCharImportItemsClearSkills.state
 			local ignoreWeaponSwap = self.controls.siteCharImportItemsIgnoreWeaponSwap.state
-			self:ImportItemsAndSkills(charData, clearItems, clearSkills, ignoreWeaponSwap)
+			local _, status = self:ImportItemsAndSkills(charData, clearItems, clearSkills, ignoreWeaponSwap)
+			if realm.zhTW then -- zhTW
+				self.charImportStatus = status .. zhTWReportStatus("Items and skills")
+			end
 		end)
 end
 function ImportTabClass:DownloadSiteCharacterList(realm)
@@ -935,6 +964,10 @@ function ImportTabClass:DownloadSiteCharacterList(realm)
 				self.charImportStatus = colorCodes.NEGATIVE .. "Error processing character list, try again later"
 				self.charImportMode = "GETACCOUNTNAME"
 				return
+			end
+			if realm.zhTW then -- zhTW: league names are Chinese
+				getZhTW().convertCharacterList(charList)
+				getZhTW().printReport("Character list")
 			end
 			--ConPrintTable(charList)
 			if #charList == 0 then
