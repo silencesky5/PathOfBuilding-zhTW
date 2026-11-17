@@ -168,19 +168,23 @@ local groupByFirstLabel = {
 }
 
 ---------------------------------------------------------------------------
--- Icons: one sprite sheet (Assets/zhTW/icons.png, 6 x 5 cells of 32 px, row by row in
+-- Icons: one sprite sheet (Assets/zhTW/icons.png, 6 x 8 cells of 32 px, row by row in
 -- the order below). Set SHOW_ICONS to false to turn every icon off; without the file
 -- nothing is drawn either.
 ---------------------------------------------------------------------------
 
 local SHOW_ICONS = true
-local ICON_CELL, ICON_COLS, ICON_ROWS = 32, 6, 5
+local ICON_CELL, ICON_COLS, ICON_ROWS = 32, 6, 8
 local iconIndex = {
 	["攻擊"] = 1, ["屬性"] = 2, ["奉獻"] = 3, ["承受能力"] = 4, ["命中與生命"] = 5, ["生命"] = 6,
 	["魔力"] = 7, ["能量護盾"] = 8, ["保護"] = 9, ["盛怒"] = 10, ["回復與流失"] = 11, ["閃避"] = 12,
 	["護甲"] = 13, ["格擋與抑制"] = 14, ["抗性"] = 15, ["其他"] = 16, ["完整 DPS"] = 17, ["技能 DPS"] = 18,
 	["裝備"] = 19, ["技能"] = 20, ["天賦"] = 21, ["計算"] = 22, ["匯入/匯出"] = 23, ["角色配置"] = 24,
 	["設定"] = 25, ["儲存"] = 26, ["另存新檔"] = 27,
+	-- 28-30 spare (hourglass, book, moon); 31- item groups and slots
+	["武器"] = 31, ["防具"] = 32, ["飾品"] = 33, ["藥劑"] = 34, ["珠寶"] = 35,
+	["主手"] = 36, ["副手"] = 37, ["頭部"] = 38, ["胸甲"] = 39, ["手套"] = 40, ["鞋子"] = 41,
+	["項鍊"] = 42, ["戒指"] = 43, ["腰帶"] = 44, ["藥劑瓶"] = 45, ["珠寶插槽"] = 46,
 }
 local iconSheet
 local function loadIcons()
@@ -756,7 +760,15 @@ function ZhTWLayout.setupSlotGroupBoxes(itemsTab)
 		rect(x + 1, top + 1, w - 2, bottom - top - 2, 0.075, 0.072, 0.068)
 		rect(x + 1, top + GROUP_TITLE_H - 4, w - 2, 1, LINE[1], LINE[2], LINE[3]) -- line under the title
 		SetDrawColor(1, 1, 1)
-		DrawString(x + w / 2, top + 4, "CENTER_X", 18, "VAR BOLD", TITLE .. title)
+		-- icon left of the centred title
+		local textW = DrawStringWidth(18, "VAR BOLD", title)
+		local hasIcon = iconIndex[title] and ZhTWLayout.hasIcons()
+		local startX = m_floor(x + (w - textW - (hasIcon and 22 or 0)) / 2)
+		if hasIcon then
+			ZhTWLayout.drawIcon(title, startX, top + 4, 18)
+			startX = startX + 22
+		end
+		DrawString(startX, top + 4, "LEFT", 18, "VAR BOLD", TITLE .. title)
 	end
 	local boxes = new("Control"):Control(nil, { 0, 0, 0, 0 })
 	boxes.shown = enabled
