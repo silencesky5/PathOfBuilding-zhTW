@@ -432,6 +432,33 @@ local ok, err = xpcall(function()
 			frames(1)
 			build.viewMode = saved
 		end
+		-- Group cards: one per heading, with a value; clicking folds the group
+		do
+			local statBox = build.controls.statBox
+			local cards, firstCard = { }, nil
+			for _, line in ipairs(statBox.list) do
+				if line.zhTWHeading then
+					firstCard = firstCard or line
+					cards[#cards + 1] = line.zhTWHeading .. "=" .. tostring(line.value and StripEscapes(line.value) or "-")
+				end
+			end
+			log("== Group cards: " .. table.concat(cards, " "))
+			if firstCard then
+				local before = #statBox.list
+				statBox.onClick({ line = firstCard })
+				local folded = #statBox.list
+				local stillThere = false
+				for _, line in ipairs(statBox.list) do
+					if line.zhTWKey == firstCard.zhTWKey and line.collapsed then stillThere = true end
+				end
+				for _, line in ipairs(statBox.list) do
+					if line.zhTWKey == firstCard.zhTWKey then statBox.onClick({ line = line }) break end
+				end
+				log(string.format("== Group fold %s: lines %d -> %d (card kept folded=%s) -> %d after unfold, icons=%s",
+					firstCard.zhTWHeading, before, folded, tostring(stillThere), #statBox.list, tostring(ZhTWLayout.hasIcons())))
+			end
+			frames(1)
+		end
 		-- Side bar as the Chinese layout builds it
 		log("== Side bar (" .. idx .. ")")
 		for _, line in ipairs(build.controls.statBox.list) do

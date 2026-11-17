@@ -127,6 +127,7 @@ function ZhTWLayout.setupSidebar(build)
 	end
 	controls.zhTWSummary = cards
 	controls.statBox:SetAnchor("TOPLEFT", cards, "BOTTOMLEFT", 0, 2)
+	ZhTWLayout.setupGroupCards(build)
 	ZhTWLayout.setupTopBar(build)
 	ZhTWLayout.setupModeButtons(build)
 	-- Original sidebar columns, restored when the Chinese interface is off
@@ -157,12 +158,145 @@ local groupByFirstLabel = {
 	["Skill DPS"] = "技能 DPS",
 }
 
+---------------------------------------------------------------------------
+-- Icons: one sprite sheet (Assets/zhTW/icons.png, 6 x 5 cells of 32 px, row by row in
+-- the order below). Set SHOW_ICONS to false to turn every icon off; without the file
+-- nothing is drawn either.
+---------------------------------------------------------------------------
+
+local SHOW_ICONS = true
+local ICON_CELL, ICON_COLS, ICON_ROWS = 32, 6, 5
+local iconIndex = {
+	["攻擊"] = 1, ["屬性"] = 2, ["奉獻"] = 3, ["承受能力"] = 4, ["命中與生命"] = 5, ["生命"] = 6,
+	["魔力"] = 7, ["能量護盾"] = 8, ["保護"] = 9, ["盛怒"] = 10, ["回復與流失"] = 11, ["閃避"] = 12,
+	["護甲"] = 13, ["格擋與抑制"] = 14, ["抗性"] = 15, ["其他"] = 16, ["完整 DPS"] = 17, ["技能 DPS"] = 18,
+	["裝備"] = 19, ["技能"] = 20, ["天賦"] = 21, ["計算"] = 22, ["匯入/匯出"] = 23, ["角色配置"] = 24,
+	["設定"] = 25, ["儲存"] = 26, ["另存新檔"] = 27,
+}
+local iconSheet
+local function loadIcons()
+	if iconSheet ~= nil then
+		return iconSheet
+	end
+	iconSheet = false
+	if SHOW_ICONS then
+		local f = io.open("Assets/zhTW/icons.png", "rb")
+		if f then
+			f:close()
+			iconSheet = NewImageHandle()
+			iconSheet:Load("Assets/zhTW/icons.png", "CLAMP")
+		end
+	end
+	return iconSheet
+end
+
+-- Draws the icon for name at x, y (size px square); false when there is none
+function ZhTWLayout.drawIcon(name, x, y, size, alpha)
+	local index = iconIndex[name]
+	local sheet = enabled() and index and loadIcons()
+	if not sheet then
+		return false
+	end
+	local col, row = (index - 1) % ICON_COLS, m_floor((index - 1) / ICON_COLS)
+	local w, h = ICON_COLS * ICON_CELL, ICON_ROWS * ICON_CELL
+	SetDrawColor(1, 1, 1, alpha or 1)
+	DrawImage(sheet, x, y, size, size, col * ICON_CELL / w, row * ICON_CELL / h, (col + 1) * ICON_CELL / w, (row + 1) * ICON_CELL / h)
+	SetDrawColor(1, 1, 1)
+	return true
+end
+function ZhTWLayout.hasIcons()
+	return enabled() and loadIcons() and true or false
+end
+
+-- Group cards in the side bar: the value shown on the right of each heading
+local headingValueLabel = {
+	["攻擊"] = { "Combined DPS", "Hit DPS", "Total DPS", "Average Damage", "Average Hit" },
+	["奉獻"] = { "Devotion" },
+	["承受能力"] = { "Effective Hit Pool" },
+	["命中與生命"] = { "Total Life" },
+	["生命"] = { "Total Life" },
+	["魔力"] = { "Total Mana" },
+	["能量護盾"] = { "Energy Shield" },
+	["保護"] = { "Ward" },
+	["盛怒"] = { "Rage" },
+	["回復與流失"] = { "Total Net Recovery", "Net Life Recovery" },
+	["閃避"] = { "Evasion rating" },
+	["護甲"] = { "Armour" },
+	["格擋與抑制"] = { "Block Chance" },
+	["其他"] = { "Movement Speed Modifier" },
+	["完整 DPS"] = { "Full DPS" },
+	["技能 DPS"] = { },
+}
+local HEADING_H = 24
+ZhTWLayout.collapsedGroups = { }
+
 local function labelOf(line)
 	local text = line[1]
 	if type(text) ~= "string" or line.x or line.align then
 		return nil
 	end
 	return (StripEscapes(text):gsub(":%s*$", ""))
+end
+
+-- Group cards: framed heading rows with icon, name and key value; click to fold the group
+function ZhTWLayout.setupGroupCards(build)
+	local statBox = build.controls.statBox
+	local baseDraw = statBox.Draw
+	statBox.Draw = function(self, viewPort)
+		baseDraw(self, viewPort)
+		if not enabled() then
+			return
+		end
+		local x, y = self:GetPos()
+		local width, height = self:GetSize()
+		local hovered = self.hoveredLine and self.hoveredLine.line
+		SetViewport(x + 2, y + 2, width - 20, height - 4)
+		local w = width - 24
+		local lineY = -self.controls.scrollBar.offset
+		for _, line in ipairs(self.list) do
+			if line.zhTWHeading and lineY + line.height > 0 and lineY < height then
+				local cy, ch = lineY + 2, line.height - 3
+				rect(0, cy, w, ch, 0.42, 0.34, 0.2)
+				if line == hovered then
+					rect(1, cy + 1, w - 2, ch - 2, 0.2, 0.16, 0.1)
+				else
+					rect(1, cy + 1, w - 2, ch - 2, 0.12, 0.1, 0.07)
+				end
+				rect(1, cy + 1, 3, ch - 2, 0.78, 0.64, 0.35) -- gold edge on the left
+				-- fold arrow: right when folded, down when open
+				local ax, ay = w - 12, cy + ch / 2
+				SetDrawColor(0.78, 0.64, 0.35)
+				if line.collapsed then
+					DrawImageQuad(nil, ax - 2, ay - 4, ax + 3, ay, ax + 3, ay, ax - 2, ay + 4)
+				else
+					DrawImageQuad(nil, ax - 4, ay - 2, ax + 4, ay - 2, ax, ay + 3, ax, ay + 3)
+				end
+				SetDrawColor(1, 1, 1)
+				local tx = 10
+				if ZhTWLayout.drawIcon(line.zhTWHeading, 8, cy + (ch - 16) / 2, 16) then
+					tx = 30
+				end
+				DrawString(tx, cy + (ch - 16) / 2, "LEFT", 16, "VAR BOLD", GOLD .. line.zhTWHeading)
+				if line.value then
+					DrawString(w - 22, cy + (ch - 14) / 2, "RIGHT_X", 14, "VAR", "^7" .. line.value)
+				end
+			end
+			lineY = lineY + line.height
+		end
+		SetViewport()
+	end
+	local baseClick = statBox.onClick
+	statBox.onClick = function(hoveredLine)
+		local line = hoveredLine and hoveredLine.line
+		if enabled() and line and line.zhTWKey then
+			ZhTWLayout.collapsedGroups[line.zhTWKey] = not ZhTWLayout.collapsedGroups[line.zhTWKey] or nil
+			build:RefreshStatList()
+			return
+		end
+		if baseClick then
+			return baseClick(hoveredLine)
+		end
+	end
 end
 
 function ZhTWLayout.refreshSidebar(build)
@@ -177,30 +311,65 @@ function ZhTWLayout.refreshSidebar(build)
 	local out = { }
 	local needHeading = true
 	local first = true
+	local section = ""
+	local card, hidden -- current group card; true while its group is collapsed
+	-- the card shows the first wanted stat of its group on the right
+	local function takeValue(label, line)
+		if not card or card.value or not label or not line[2] then
+			return
+		end
+		local wanted = headingValueLabel[card.zhTWHeading]
+		if not wanted then
+			return
+		end
+		if #wanted == 0 then
+			card.value = line[2]
+			return
+		end
+		for _, name in ipairs(wanted) do
+			if name == label then
+				card.value = line[2]
+				return
+			end
+		end
+	end
 	for _, line in ipairs(list) do
 		local label = labelOf(line)
 		if label == "Minion" or label == "Player" or label == "Skill disabled" then
 			-- section titles of their own
 			needHeading = true
 			first = true
+			section = label
+			card, hidden = nil, false
 			t_insert(out, line)
 		elseif not line[1] and not line[2] then
 			-- separator between groups
 			needHeading = true
+			card, hidden = nil, false
 			t_insert(out, line)
 		elseif label and needHeading then
 			local heading = groupByFirstLabel[label] or (first and "攻擊") or nil
 			if heading then
-				t_insert(out, { height = 18, GOLD .. heading })
+				local key = section .. "/" .. heading
+				card = { height = HEADING_H, zhTWHeading = heading, zhTWKey = key }
+				hidden = ZhTWLayout.collapsedGroups[key] or false
+				card.collapsed = hidden
+				t_insert(out, card)
 			end
 			needHeading = false
 			first = false
-			t_insert(out, line)
+			takeValue(label, line)
+			if not hidden then
+				t_insert(out, line)
+			end
 		else
 			if label then
 				first = false
 			end
-			t_insert(out, line)
+			takeValue(label, line)
+			if not hidden then
+				t_insert(out, line)
+			end
 		end
 	end
 	wipeTable(list)
