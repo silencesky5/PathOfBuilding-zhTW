@@ -42,19 +42,46 @@ end
 ---------------------------------------------------------------------------
 
 local CARD_H = 40
+local CARD_H_TOP = 54 -- the top row has a second line: which skill the DPS is for
 local CARD_GAP = 4
+
+-- Name of the skill the side bar DPS is calculated for (chosen in the 技能 tab)
+local function mainSkillName(build)
+	local group = build.skillsTab and build.skillsTab.socketGroupList[build.mainSocketGroup]
+	local list = group and group.displaySkillList
+	local skill = list and list[group.mainActiveSkill or 1]
+	local effect = skill and skill.activeEffect
+	if not (effect and effect.grantedEffect) then
+		return "未選擇技能"
+	end
+	local name = effect.grantedEffect.name or "?"
+	return ZhTWLocale.tr and ZhTWLocale.tr(name) or name
+end
+
+-- Cuts a UTF-8 string until it fits in width pixels
+local function fitText(text, size, width)
+	if DrawStringWidth(size, "VAR", text) <= width then
+		return text
+	end
+	while #text > 0 and DrawStringWidth(size, "VAR", text .. "…") > width do
+		text = text:gsub("[%z\1-\127\194-\244][\128-\191]*$", "")
+	end
+	return text .. "…"
+end
 
 -- The four numbers people look for first
 local function summaryCards(build)
 	local output = build.calcsTab and build.calcsTab.mainOutput or { }
 	local dpsLabel, dps = "合計 DPS", output.CombinedDPS
+	local skillName = mainSkillName(build)
 	if output.FullDPS and output.FullDPS > 0 then
 		dpsLabel, dps = "完整 DPS", output.FullDPS
+		skillName = "所有納入的技能"
 	elseif not dps or dps == 0 then
 		dpsLabel, dps = "總 DPS", output.TotalDPS
 	end
 	return {
-		{ label = dpsLabel, value = formatValue(dps, dps and dps < 100 and 1 or 0), color = "^xE0D0A0" },
+		{ label = dpsLabel, value = formatValue(dps, dps and dps < 100 and 1 or 0), color = "^xE0D0A0", sub = skillName },
 		{ label = "有效生命池", value = formatValue(output.TotalEHP), color = "^7" },
 		{ label = "總生命", value = formatValue(output.Life), color = colorCodes.LIFE },
 		{ label = "能量護盾", value = formatValue(output.EnergyShield), color = colorCodes.ES },
@@ -65,22 +92,36 @@ function ZhTWLayout.setupSidebar(build)
 	local controls = build.controls
 	local cards = new("Control"):Control({ "TOPLEFT", controls.statBoxAnchor, "BOTTOMLEFT" }, { 0, 2, 300, 0 })
 	cards.height = function()
-		return enabled() and (CARD_H * 2 + CARD_GAP) or 0
+		return enabled() and (CARD_H_TOP + CARD_H + CARD_GAP) or 0
 	end
 	cards.shown = function()
 		return enabled()
+	end
+	-- The skill selection moved to the 技能 tab, so the cards start right under the buttons
+	local baseGetPos = cards.GetPos
+	cards.GetPos = function(self)
+		if enabled() then
+			local x, y = build.anchorSideBar:GetPos()
+			return x, y + 30
+		end
+		return baseGetPos(self)
 	end
 	cards.Draw = function(control)
 		local x, y = control:GetPos()
 		local width = control:GetSize()
 		local cardW = m_floor((width - CARD_GAP) / 2)
 		for i, card in ipairs(summaryCards(build)) do
+			local top = i <= 2
+			local cardH = top and CARD_H_TOP or CARD_H
 			local cx = x + ((i - 1) % 2) * (cardW + CARD_GAP)
-			local cy = y + m_floor((i - 1) / 2) * (CARD_H + CARD_GAP)
-			rect(cx, cy, cardW, CARD_H, 0.23, 0.2, 0.15)
-			rect(cx + 1, cy + 1, cardW - 2, CARD_H - 2, 0.11, 0.1, 0.08)
+			local cy = top and y or (y + CARD_H_TOP + CARD_GAP)
+			rect(cx, cy, cardW, cardH, 0.23, 0.2, 0.15)
+			rect(cx + 1, cy + 1, cardW - 2, cardH - 2, 0.11, 0.1, 0.08)
 			DrawString(cx + 8, cy + 3, "LEFT", 12, "VAR", card.color .. card.label)
-			DrawString(cx + 8, cy + 17, "LEFT", 20, "VAR BOLD", "^7" .. card.value)
+			if card.sub then
+				DrawString(cx + 8, cy + 17, "LEFT", 12, "VAR", "^x8C8478" .. fitText(card.sub, 12, cardW - 14))
+			end
+			DrawString(cx + 8, cy + cardH - 23, "LEFT", 20, "VAR BOLD", "^7" .. card.value)
 		end
 		SetDrawColor(1, 1, 1)
 	end
@@ -552,14 +593,22 @@ function ZhTWLayout.setupModeButtons(build)
 		return isSheet[build.viewMode]
 	end
 	controls.zhTWModeSheets = sheetButton
-	-- Skill selection moves up into the space of the two hidden button rows
-	local label = controls.mainSkillLabel
-	local origY = label.y
-	label.y = function(self)
-		if enabled() then
-			return 28
+	-- Main skill selection moves into the 技能 tab (setupSkillsTab); the side bar keeps only
+	-- the character sheet. mainSocketGroup / mainSkill hide with the label they hang from;
+	-- the others use collapsing anchors and get their shown flag rewritten every frame by
+	-- RefreshSkillSelectControls, so they are hidden through IsShown instead.
+	hideWhenEnabled(controls.mainSkillLabel)
+	for _, name in ipairs({ "mainSkillPart", "mainSkillStageCount", "mainSkillMineCount", "mainSkillMinion", "mainSkillMinionSkill" }) do
+		local control = controls[name]
+		if control then
+			local baseIsShown = control.IsShown
+			control.IsShown = function(self)
+				if enabled() then
+					return false
+				end
+				return baseIsShown(self)
+			end
 		end
-		return type(origY) == "function" and origY(self) or origY
 	end
 
 	-- Tabs across the top of the main view
@@ -703,10 +752,155 @@ function ZhTWLayout.drawPanelPoints(build, control)
 	return true
 end
 
+---------------------------------------------------------------------------
+-- 技能 tab: "主要技能（DPS 計算）" box between the usage tips and Gem Options.
+-- Its controls are copies of the side bar ones (same callbacks), filled every frame by
+-- PoB's own RefreshSkillSelectControls, so they live in the tab's own control list and
+-- open drop-downs get their clicks before the tab content below them.
+---------------------------------------------------------------------------
+
+local SKILL_BOX_Y = 95 -- where Gem Options starts in PoB's layout
+local SKILL_ROW = 24
+local skillRows = {
+	{ key = "mainSocketGroup", label = "技能群組:" },
+	{ key = "mainSkill", label = "主動技能:" },
+	{ key = "mainSkillPart", label = "技能部分:" },
+	{ key = "mainSkillStageCount", label = "階段:" },
+	{ key = "mainSkillMineCount", label = "啟動中地雷:" },
+	{ key = "mainSkillMinion", label = "召喚物:" },
+	{ key = "mainSkillMinionSkill", label = "召喚物技能:" },
+}
+
+function ZhTWLayout.setupSkillsTab(skillsTab)
+	local build = skillsTab.build
+	local src = build.controls
+	local controls = skillsTab.controls
+	local groupList = controls.groupList
+	if not (groupList and src.mainSocketGroup) then
+		return
+	end
+	local proxies = { }
+	skillsTab.zhTWSkillControls = proxies
+
+	local function rowShown(key)
+		local control = proxies[key]
+		return control:GetProperty("shown") and true or false
+	end
+	local function rowCount()
+		local n = 0
+		for _, row in ipairs(skillRows) do
+			if rowShown(row.key) then
+				n = n + 1
+			end
+		end
+		return n
+	end
+	local function boxHeight()
+		return 28 + rowCount() * SKILL_ROW
+	end
+
+	-- Gem Options and its inputs move down by the box height (only while the box is shown)
+	for _, control in pairs(controls) do
+		if control ~= controls.groupTip and control.anchor and control.anchor.other == groupList and control.anchor.otherPoint == "BOTTOMLEFT" then
+			local origY = control.y
+			control.y = function(self)
+				local y = type(origY) == "function" and origY(self) or origY
+				if enabled() then
+					return y + boxHeight() + 12
+				end
+				return y
+			end
+		end
+	end
+
+	local box = new("SectionControl"):SectionControl({ "TOPLEFT", groupList, "BOTTOMLEFT" }, { 0, SKILL_BOX_Y, 360, boxHeight }, "Main Skill (DPS calculation)")
+	box.shown = enabled
+	controls.zhTWSkillBox = box
+
+	local function rowY(key)
+		local n = 0
+		for _, row in ipairs(skillRows) do
+			if row.key == key then
+				break
+			end
+			if rowShown(row.key) then
+				n = n + 1
+			end
+		end
+		return 16 + n * SKILL_ROW
+	end
+	local function delegate(name, field)
+		return function(...)
+			local f = src[name][field]
+			if f then
+				return f(...)
+			end
+		end
+	end
+	local function place(key, control)
+		control.y = function()
+			return rowY(key)
+		end
+		proxies[key] = control
+		controls["zhTW_" .. key] = control
+	end
+	local INPUT_X, INPUT_W = 110, 240
+	local function dropDown(key, width)
+		local control = new("DropDownControl"):DropDownControl({ "TOPLEFT", box, "TOPLEFT" }, { INPUT_X, 0, width or INPUT_W, 20 }, nil, delegate(key, "selFunc"))
+		control.tooltipFunc = src[key].tooltipFunc
+		control.maxDroppedWidth = 500
+		place(key, control)
+		return control
+	end
+	local function edit(key)
+		local control = new("EditControl"):EditControl({ "TOPLEFT", box, "TOPLEFT" }, { INPUT_X, 0, 60, 20 }, nil, nil, "%D", nil, delegate(key, "changeFunc"))
+		place(key, control)
+		return control
+	end
+	dropDown("mainSocketGroup")
+	dropDown("mainSkill")
+	dropDown("mainSkillPart")
+	edit("mainSkillStageCount")
+	edit("mainSkillMineCount")
+	local minion = dropDown("mainSkillMinion", 150)
+	minion.CanReceiveDrag = src.mainSkillMinion.CanReceiveDrag
+	minion.ReceiveDrag = src.mainSkillMinion.ReceiveDrag
+	dropDown("mainSkillMinionSkill")
+	local library = new("ButtonControl"):ButtonControl({ "LEFT", minion, "RIGHT" }, { 4, 0, 86, 20 }, "Manage Spectres...", function()
+		build:OpenSpectreLibrary()
+	end)
+	proxies.mainSkillMinionLibrary = library
+	controls.zhTW_mainSkillMinionLibrary = library
+	for _, row in ipairs(skillRows) do
+		local control = proxies[row.key]
+		local label = new("LabelControl"):LabelControl({ "RIGHT", control, "LEFT" }, { -6, 0, 0, 16 }, "^7" .. row.label)
+		controls["zhTW_" .. row.key .. "Label"] = label
+	end
+end
+
+-- Fills the 技能 tab's main skill box (called before the tab is drawn)
+local function refreshSkillsTab(build)
+	local proxies = build.skillsTab and build.skillsTab.zhTWSkillControls
+	if not proxies then
+		return
+	end
+	build:RefreshSkillSelectControls(proxies, build.mainSocketGroup, "")
+	-- the second drop-down only when there is something to choose
+	if #proxies.mainSkill.list <= 1 then
+		proxies.mainSkill.shown = false
+	end
+	if not proxies.mainSkillMinion.shown then
+		proxies.mainSkillMinionLibrary.shown = false
+	end
+end
+
 -- Called by Build.lua before the current tab is drawn
 function ZhTWLayout.adjustTabViewPort(build, viewPort, inputEvents)
 	if not enabled() then
 		return
+	end
+	if build.viewMode == "SKILLS" then
+		refreshSkillsTab(build)
 	end
 	if hiddenModes[build.viewMode] then
 		build.viewMode = build.zhTWLastSheet or "ITEMS"

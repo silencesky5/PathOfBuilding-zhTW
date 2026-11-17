@@ -434,6 +434,9 @@ will automatically apply to the skill.]]
 	self.controls.gemQualityHeader = new("LabelControl"):LabelControl({"BOTTOMLEFT", self.gemSlots[1].quality, "TOPLEFT"}, {0, -2, 0, 16}, "^7Quality:")
 	self.controls.gemEnableHeader = new("LabelControl"):LabelControl({"BOTTOMLEFT", self.gemSlots[1].enabled, "TOPLEFT"}, {-16, -2, 0, 16}, "^7Enabled:")
 	self.controls.gemCountHeader = new("LabelControl"):LabelControl({"BOTTOMLEFT", self.gemSlots[1].count, "TOPLEFT"}, {8, -2, 0, 16}, "^7Count:")
+	if ZhTWLayout then -- zhTW: main skill selection moves here from the side bar
+		ZhTWLayout.setupSkillsTab(self)
+	end
 	return self
 end
 

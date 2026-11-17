@@ -395,6 +395,43 @@ local ok, err = xpcall(function()
 			sheetState("en")
 			ZhTWLocale.enabled = true
 		end
+		-- Main skill box in the 技能 tab (moved from the side bar)
+		do
+			local c, sc = build.controls, build.skillsTab.controls
+			local saved = build.viewMode
+			build.viewMode = "SKILLS"
+			for _, zh in ipairs({ true, false }) do
+				ZhTWLocale.enabled = zh
+				frames(1)
+				local p = build.skillsTab.zhTWSkillControls
+				local rows = { }
+				for _, key in ipairs({ "mainSocketGroup", "mainSkill", "mainSkillPart", "mainSkillStageCount", "mainSkillMineCount", "mainSkillMinion", "mainSkillMinionSkill" }) do
+					if p[key]:IsShown() then
+						local _, y = p[key]:GetPos()
+						rows[#rows + 1] = key .. "@" .. y
+					end
+				end
+				local _, boxY = sc.zhTWSkillBox:GetPos()
+				local _, optY = sc.optionSection:GetPos()
+				local _, levelY = sc.defaultLevel:GetPos()
+				local _, cardY = c.zhTWSummary:GetPos()
+				local _, statY = c.statBox:GetPos()
+				log(string.format("== Skills main skill box (%s): box shown=%s y=%d h=%d | gem options y=%d level y=%d | rows %s | side bar group shown=%s part shown=%s | cards y=%d stats y=%d",
+					zh and "zh" or "en", tostring(sc.zhTWSkillBox:IsShown()), boxY, sc.zhTWSkillBox:GetProperty("height"), optY, levelY, table.concat(rows, " "),
+					tostring(c.mainSocketGroup:IsShown()), tostring(c.mainSkillPart:IsShown()), cardY, statY))
+			end
+			ZhTWLocale.enabled = true
+			-- choosing through the tab's copy changes the build's main skill
+			local p = build.skillsTab.zhTWSkillControls
+			local before = build.mainSocketGroup
+			local target = #p.mainSocketGroup.list > 1 and (before == 1 and 2 or 1) or before
+			p.mainSocketGroup:SetSel(target)
+			frames(1)
+			log(string.format("== Skills main skill select: group %d -> %d (wanted %d), list %d", before, build.mainSocketGroup, target, #p.mainSocketGroup.list))
+			p.mainSocketGroup:SetSel(before)
+			frames(1)
+			build.viewMode = saved
+		end
 		-- Side bar as the Chinese layout builds it
 		log("== Side bar (" .. idx .. ")")
 		for _, line in ipairs(build.controls.statBox.list) do

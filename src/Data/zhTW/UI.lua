@@ -1976,6 +1976,7 @@ return {
 		["Main hand modifiers"] = "主手詞綴",
 		["Main Hand:"] = "主手:",
 		["Main Skill:"] = "主要技能:",
+		["Main Skill (DPS calculation)"] = "主要技能（DPS 計算）",
 		["Major God:"] = "主神之力:",
 		["Make sure the save folder exists and is writable."] = "請確認儲存資料夾存在且可寫入。",
 		["Malformed CX API response"] = "CX API 回應格式錯誤",
