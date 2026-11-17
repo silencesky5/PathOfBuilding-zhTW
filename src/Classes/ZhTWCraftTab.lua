@@ -17,6 +17,20 @@ local m_floor = math.floor
 
 local ZhTWCraftTabClass = newClass("ZhTWCraftTab", "ControlHost", "Control")
 
+-- list of the guild share shelf
+local ShareListClass = newClass("ZhTWShareListControl", "ListControl")
+function ShareListClass:ZhTWShareListControl(anchor, rect, tab)
+	self:ListControl(anchor, rect, 18, "VERTICAL", false, { })
+	self.tab = tab
+	return self
+end
+function ShareListClass:GetRowValue(column, index, share)
+	return share.label
+end
+function ShareListClass:OnSelect(index, share)
+	self.tab:SelectShare(share)
+end
+
 local LEFT_W = 300
 local CARD_X = 320
 local CARD_W = 440
@@ -228,7 +242,81 @@ function ZhTWCraftTabClass:Build()
 	end)
 	controls.addToBuild.tooltipText = "把這件物品加到裝備頁的「當前裝備」清單（標 [尚未使用]），可以再拖到欄位上比較。"
 
-	self.actY = actY
+	-- guild share shelf of the crafting site (Modules/ZhTWGuild.lua)
+	local gY = actY + 34
+	controls.shelf = new("ButtonControl"):ButtonControl({ "TOPLEFT", self, "TOPLEFT" }, { RIGHT_X, gY, 122, 24 }, function()
+		return self.shelfView and "回到物品卡" or "公會分享架"
+	end, function()
+		self.shelfView = not self.shelfView
+		if self.shelfView and not self.shares then
+			self:RefreshShelf()
+		end
+	end)
+	controls.shelf.tooltipText = "製裝網站的公會分享架：瀏覽、搜尋，複製到製作頁或 Build（不用登入）。"
+	controls.share = new("ButtonControl"):ButtonControl({ "TOPLEFT", self, "TOPLEFT" }, { RIGHT_X + 128, gY, 122, 24 }, "分享到公會", function()
+		self:ShareCurrent()
+	end)
+	controls.share.enabled = function()
+		return ZhTWGuild and ZhTWGuild.token and self.item and #self.item.mods > 0 and not self.busy or false
+	end
+	controls.share.tooltipFunc = function(tooltip)
+		tooltip:Clear()
+		tooltip:AddLine(14, "^7把目前製作的物品分享到公會分享架（網站和 POB 都看得到）。")
+		if not (ZhTWGuild and ZhTWGuild.token) then
+			tooltip:AddLine(14, colorCodes.NEGATIVE .. "要先登入公會（Discord）。")
+		elseif not (self.item and #self.item.mods > 0) then
+			tooltip:AddLine(14, colorCodes.NEGATIVE .. "沒有詞綴的物品不能分享。")
+		end
+	end
+	controls.noteLabel = new("LabelControl"):LabelControl({ "TOPLEFT", self, "TOPLEFT" }, { RIGHT_X, gY + 32, 0, 16 }, "^7備註:")
+	controls.shareNote = new("EditControl"):EditControl({ "TOPLEFT", self, "TOPLEFT" }, { RIGHT_X + 44, gY + 30, 206, 20 }, "", "分享時附上的說明（最多 50 字）", nil, 50)
+	controls.guildLogin = new("ButtonControl"):ButtonControl({ "TOPLEFT", self, "TOPLEFT" }, { RIGHT_X, gY + 56, 122, 22 }, function()
+		return (ZhTWGuild and ZhTWGuild.token) and "登出公會" or "登入公會"
+	end, function()
+		self:GuildLogin()
+	end)
+	controls.guildLogin.enabled = function()
+		return ZhTWGuild ~= nil and not self.busy
+	end
+	controls.guildLogin.tooltipText = "用 Discord 登入（限 RKSA 公會成員）才能分享；瀏覽和複製不用登入。\n登出只會清掉這台電腦 POB 裡的登入，網站不受影響。"
+
+	-- the shelf itself, in the middle panel instead of the item card
+	local shelfShown = function()
+		return self.shelfView
+	end
+	controls.shelfSearch = new("EditControl"):EditControl({ "TOPLEFT", self, "TOPLEFT" }, { CARD_X + 10, 34, 200, 20 }, "", "搜尋（底材／詞綴／分享者）", nil, 40, function()
+		self:FilterShelf()
+	end)
+	controls.shelfSearch.shown = shelfShown
+	controls.shelfMine = new("DropDownControl"):DropDownControl({ "TOPLEFT", self, "TOPLEFT" }, { CARD_X + 216, 34, 100, 20 }, { { label = "全部", mine = false }, { label = "我的分享", mine = true } }, function()
+		self:FilterShelf()
+	end)
+	controls.shelfMine.shown = shelfShown
+	controls.shelfRefresh = new("ButtonControl"):ButtonControl({ "TOPLEFT", self, "TOPLEFT" }, { CARD_X + 322, 34, 108, 20 }, "重新整理", function()
+		self:RefreshShelf()
+	end)
+	controls.shelfRefresh.shown = shelfShown
+	controls.shelfRefresh.enabled = function()
+		return not self.busy
+	end
+	controls.shelfList = new("ZhTWShareListControl"):ZhTWShareListControl({ "TOPLEFT", self, "TOPLEFT" }, { CARD_X + 10, 60, CARD_W - 20, 200 }, self)
+	controls.shelfList.shown = shelfShown
+	controls.copyToCraft = new("ButtonControl"):ButtonControl({ "TOPLEFT", self, "TOPLEFT" }, { CARD_X + 10, 266, 140, 22 }, "複製到製作頁", function()
+		self:CopyShare(false)
+	end)
+	controls.copyToCraft.shown = shelfShown
+	controls.copyToCraft.enabled = function()
+		return self.shareItem ~= nil
+	end
+	controls.copyToBuild = new("ButtonControl"):ButtonControl({ "TOPLEFT", self, "TOPLEFT" }, { CARD_X + 156, 266, 140, 22 }, "複製到 Build", function()
+		self:CopyShare(true)
+	end)
+	controls.copyToBuild.shown = shelfShown
+	controls.copyToBuild.enabled = function()
+		return self.shareItem ~= nil
+	end
+
+	self.actY = gY + 60
 	self:SelectClass(self:DefaultClass())
 end
 
@@ -416,6 +504,152 @@ function ZhTWCraftTabClass:AddLog(text)
 	end
 end
 
+-- ── guild share shelf ──
+
+function ZhTWCraftTabClass:GuildLogin()
+	if ZhTWGuild.token then
+		ZhTWGuild.logout()
+		self.message = "^7已登出公會（只有這台電腦的 POB）。"
+		return
+	end
+	self.busy = true
+	self.message = "^7已開啟瀏覽器，請在 Discord 頁面按「授權」（3 分鐘內）。"
+	ZhTWGuild.login(function(ok, text)
+		self.busy = false
+		self.message = (ok and "^7" or colorCodes.NEGATIVE) .. text
+		if ok and self.shelfView then
+			self:RefreshShelf()
+		end
+	end)
+end
+
+function ZhTWCraftTabClass:RefreshShelf()
+	self.busy = true
+	self.shelfStatus = "讀取中…"
+	ZhTWGuild.fetchShares(function(ok, data)
+		self.busy = false
+		if not ok or type(data) ~= "table" then
+			self.shelfStatus = colorCodes.NEGATIVE .. tostring(data)
+			return
+		end
+		local E = engine()
+		self.shares = { }
+		for _, sh in ipairs(data.shares or { }) do
+			local it = type(sh.item) == "table" and E.fromStored(sh.item) or nil
+			local base = it and E.baseName(it.b, "zh") or "（這個資料版本讀不到）"
+			local color = it and RARITY_COLOR[it.r] or "^x8C8478"
+			local search = { base, sh.sharerName or "", sh.note or "" }
+			if it then
+				t_insert(search, E.bases[it.b].n)
+				for _, x in ipairs(it.mods) do
+					for _, line in ipairs(E.render(x.m, x.v, "zh")) do
+						t_insert(search, line)
+					end
+				end
+			end
+			t_insert(self.shares, {
+				share = sh, item = it,
+				label = color .. base .. SUBTLE .. "　" .. tostring(sh.sharerName or "?") .. ((sh.note and sh.note ~= "") and ("　「" .. sh.note .. "」") or ""),
+				search = table.concat(search, "\n"):lower(),
+				mine = ZhTWGuild.me and sh.sharerId == ZhTWGuild.me.id,
+			})
+		end
+		local limits = data.limits or { }
+		self.shelfStatus = "共 " .. #self.shares .. " 件" .. (limits.total and (" / 上限 " .. limits.total) or "") ..
+			(ZhTWGuild.me and ("　已登入：" .. tostring(ZhTWGuild.me.name)) or "　（未登入：只能瀏覽、複製）")
+		self:FilterShelf()
+	end)
+end
+
+function ZhTWCraftTabClass:FilterShelf()
+	local list = { }
+	local text = (self.controls.shelfSearch.buf or ""):lower()
+	local v = self.controls.shelfMine:GetSelValue()
+	local mineOnly = v and v.mine
+	for _, sh in ipairs(self.shares or { }) do
+		if (not mineOnly or sh.mine) and (text == "" or sh.search:find(text, 1, true)) then
+			t_insert(list, sh)
+		end
+	end
+	self.controls.shelfList.list = list
+	self.controls.shelfList.selIndex = nil
+	self.controls.shelfList.selValue = nil
+	self.shareItem, self.sharePob, self.shareSel = nil, nil, nil
+end
+
+function ZhTWCraftTabClass:SelectShare(sh)
+	self.shareSel = sh
+	self.shareItem = sh and sh.item or nil
+	self.sharePob = nil
+	if self.shareItem then
+		local ok, item = pcall(function()
+			return new("Item"):Item(engine().toPobText(self.shareItem, "Crafted Item"))
+		end)
+		self.sharePob = ok and item and item.base and item or nil
+	end
+end
+
+function ZhTWCraftTabClass:CopyShare(toBuild)
+	local sh, it = self.shareSel, self.shareItem
+	if not it then
+		return
+	end
+	local E = engine()
+	if toBuild then
+		local raw = E.toPobText(it, "Crafted Item")
+		local item = new("Item"):Item(raw)
+		local itemsTab = self.build.itemsTab
+		itemsTab:AddItem(item, true)
+		itemsTab:PopulateSlots()
+		itemsTab:AddUndoState()
+		self.build.buildFlag = true
+		self.message = "^7已複製到裝備頁的「當前裝備」（[尚未使用]）。"
+	else
+		local copy = E.clone(it)
+		self.lv = copy.lv
+		self.controls.lv:SetText(tostring(copy.lv))
+		self:SelectClass(E.bases[copy.b].c, copy.b)
+		self.item = copy
+		self.used = { }
+		self:AddLog("^7從公會分享架複製：" .. E.baseName(copy.b, "zh"))
+		self:Changed()
+		self.shelfView = false
+		self.message = "^7已複製到製作頁，可以繼續製作。"
+	end
+	if sh and sh.share and sh.share.id then
+		ZhTWGuild.countCopy(sh.share.id)
+	end
+end
+
+function ZhTWCraftTabClass:ShareCurrent()
+	local E = engine()
+	local item = self.item
+	if not item then
+		return
+	end
+	local lines = { }
+	for _, x in ipairs(item.mods) do
+		for _, line in ipairs(E.render(x.m, x.v, "zh")) do
+			t_insert(lines, line)
+		end
+	end
+	self.busy = true
+	self.message = "^7分享中…"
+	ZhTWGuild.share(E.toStored(item), self.controls.shareNote.buf or "", E.data.version, { base = E.baseName(item.b, "zh"), lines = lines }, function(ok, data)
+		self.busy = false
+		if ok then
+			self.message = "^7已分享到公會分享架。"
+			self:AddLog("^7分享到公會")
+			self.controls.shareNote:SetText("")
+			if self.shares then
+				self:RefreshShelf()
+			end
+		else
+			self.message = colorCodes.NEGATIVE .. tostring(data)
+		end
+	end)
+end
+
 -- PoB item for the card and for 加入 Build
 function ZhTWCraftTabClass:PobItem()
 	if not self.pobItem and self.item then
@@ -524,10 +758,29 @@ function ZhTWCraftTabClass:Draw(viewPort, inputEvents)
 		end
 	end
 
-	-- middle: item card
+	-- middle: item card, or the guild share shelf
 	panel(x0 + CARD_X, y0 + 10, CARD_W, h - 20)
-	DrawString(x0 + CARD_X + 10, y0 + 16, "LEFT", 14, "VAR", TITLE .. "物品卡")
-	local pobItem = self:PobItem()
+	local pobItem
+	if self.shelfView then
+		DrawString(x0 + CARD_X + 10, y0 + 14, "LEFT", 14, "VAR", TITLE .. "公會分享架" .. SUBTLE .. "　" .. (self.shelfStatus or ""))
+		if self.sharePob then
+			self.shareTooltip = self.shareTooltip or new("Tooltip"):Tooltip()
+			local tooltip = self.shareTooltip
+			tooltip.maxWidth = CARD_W - 8
+			if tooltip:CheckForUpdate(self.sharePob, IsKeyDown("SHIFT"), self.build.outputRevision) then
+				self.build.itemsTab:AddItemTooltip(tooltip, self.sharePob, nil, true)
+			end
+			SetDrawColor(1, 1, 1)
+			tooltip:Draw(x0 + CARD_X + 4, y0 + 294, nil, nil, { x = x0 + CARD_X + 4, y = y0 + 294, width = CARD_W - 8, height = h - 304 })
+		elseif self.shareSel then
+			DrawString(x0 + CARD_X + 10, y0 + 298, "LEFT", 14, "VAR", colorCodes.NEGATIVE .. "這件分享的資料版本和 POB 不同，讀不到。")
+		else
+			DrawString(x0 + CARD_X + 10, y0 + 298, "LEFT", 14, "VAR", SUBTLE .. "點清單裡的一件，這裡會顯示物品卡。")
+		end
+	else
+		DrawString(x0 + CARD_X + 10, y0 + 16, "LEFT", 14, "VAR", TITLE .. "物品卡")
+		pobItem = self:PobItem()
+	end
 	if pobItem then
 		self.tooltip = self.tooltip or new("Tooltip"):Tooltip()
 		local tooltip = self.tooltip
@@ -537,8 +790,13 @@ function ZhTWCraftTabClass:Draw(viewPort, inputEvents)
 		end
 		SetDrawColor(1, 1, 1)
 		tooltip:Draw(x0 + CARD_X + 4, y0 + 36, nil, nil, { x = x0 + CARD_X + 4, y = y0 + 36, width = CARD_W - 8, height = h - 50 })
-	elseif item then
+	elseif item and not self.shelfView then
 		DrawString(x0 + CARD_X + 10, y0 + 40, "LEFT", 14, "VAR", colorCodes.NEGATIVE .. "PoB 讀不懂這件物品。")
+	end
+	-- login state next to the login button
+	if ZhTWGuild then
+		local who = ZhTWGuild.token and (ZhTWGuild.me and ("已登入：" .. tostring(ZhTWGuild.me.name)) or "已登入") or "未登入"
+		DrawString(x0 + RIGHT_X + 128, y0 + self.actY - 2, "LEFT", 14, "VAR", SUBTLE .. who)
 	end
 
 	-- right: headings, used currency, message and log

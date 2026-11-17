@@ -19,6 +19,7 @@ LoadModule("Modules/Common")
 LoadModule("Modules/ZhTWText") -- zhTW: draw Chinese characters (the engine fonts are ASCII only)
 ZhTWLayout = LoadModule("Modules/ZhTWLayout") -- zhTW: layout for the Chinese interface
 ZhTWTheme = LoadModule("Modules/ZhTWTheme") -- zhTW: optional light theme (after ZhTWText: wraps its DrawString)
+ZhTWGuild = LoadModule("Modules/ZhTWGuild") -- zhTW: guild share shelf of the crafting site (製作 tab)
 LoadModule("Modules/CalcFormat")
 LoadModule("Modules/Data")
 LoadModule("Modules/ModTools")
@@ -629,6 +630,9 @@ function main:LoadSettings(ignoreBuild)
 				if node.attrib.zhTWTheme and ZhTWTheme then -- zhTW
 					ZhTWTheme.setTheme(node.attrib.zhTWTheme)
 				end
+				if node.attrib.zhTWGuildToken and ZhTWGuild then -- zhTW: guild share login (this computer only)
+					ZhTWGuild.token = node.attrib.zhTWGuildToken ~= "" and node.attrib.zhTWGuildToken or nil
+				end
 				if node.attrib.betaTest then
 					self.betaTest = node.attrib.betaTest == "true"
 				end
@@ -802,6 +806,7 @@ function main:SaveSettings()
 		betaTest = tostring(self.betaTest),
 		zhTWLanguage = ZhTWLocale and (ZhTWLocale.enabled and "zh" or "en") or nil, -- zhTW
 		zhTWTheme = ZhTWTheme and ZhTWTheme.name or nil, -- zhTW
+		zhTWGuildToken = ZhTWGuild and ZhTWGuild.token or nil, -- zhTW
 		edgeSearchHighlight = tostring(self.edgeSearchHighlight),
 		defaultGemQuality = tostring(self.defaultGemQuality or 0),
 		defaultCharLevel = tostring(self.defaultCharLevel or 1),

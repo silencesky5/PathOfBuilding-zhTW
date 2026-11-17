@@ -503,6 +503,73 @@ local ok, err = xpcall(function()
 			c.fossil2:SetSel(3)
 			press("useFossils")
 			press("useFossils")
+			-- guild share shelf with the network calls replaced (no server in this test)
+			do
+				local E2 = LoadModule("Modules/ZhTWCraftEngine").create(LoadModule("Data/zhTW/CraftData"))
+				local helmet
+				for _, b in ipairs(E2.bases) do
+					if b.n == "Hubris Circlet" then helmet = b.i end
+				end
+				local sample = E2.apply(E2.make(helmet, 86), "alch").item
+				local realFetch, realShare, realCopy = ZhTWGuild.fetchShares, ZhTWGuild.share, ZhTWGuild.countCopy
+				local sent, copied = nil, { }
+				ZhTWGuild.fetchShares = function(cb)
+					ZhTWGuild.me = { id = "111", name = "KAI" }
+					cb(true, { shares = {
+						{ id = "aaaaaaaa1", sharerId = "111", sharerName = "KAI", item = E2.toStored(sample), note = "測試備註", sharedAt = 1, copies = 0, dataVersion = "3.29.3.3" },
+						{ id = "bbbbbbbb2", sharerId = "222", sharerName = "Amy", item = { base = "Metadata/Nope", lv = 80, r = 2, mods = { } }, note = "", sharedAt = 2, copies = 1, dataVersion = "9.9" },
+					}, me = ZhTWGuild.me, limits = { perUser = 10, total = 100 } })
+				end
+				ZhTWGuild.share = function(stored, note, ver, text, cb)
+					sent = { stored = stored, note = note, ver = ver, text = text }
+					cb(true, { share = { id = "new" } })
+				end
+				ZhTWGuild.countCopy = function(id) table.insert(copied, id) end
+				local savedToken = ZhTWGuild.token
+				ZhTWGuild.token = "test-token"
+				c.shelf.onClick()
+				frames(1)
+				local rows = #c.shelfList.list
+				c.shelfMine:SetSel(2)
+				local mine = #c.shelfList.list
+				c.shelfMine:SetSel(1)
+				c.shelfSearch:SetText("amy")
+				tab:FilterShelf()
+				local searched = #c.shelfList.list
+				c.shelfSearch:SetText("")
+				c.shelfList:SelectIndex(2)
+				frames(1)
+				local unreadable = tab.shareItem == nil
+				c.shelfList:SelectIndex(1)
+				frames(1)
+				local cardOk = tab.sharePob ~= nil
+				local itemsBefore = 0
+				for _ in pairs(build.itemsTab.items) do itemsBefore = itemsBefore + 1 end
+				c.copyToBuild.onClick()
+				local itemsAfter = 0
+				for _ in pairs(build.itemsTab.items) do itemsAfter = itemsAfter + 1 end
+				c.copyToCraft.onClick()
+				frames(1)
+				local sameMods = #tab.item.mods == #sample.mods
+				c.shareNote:SetText("好裝備")
+				local shareOn = c.share:IsEnabled()
+				c.share.onClick()
+				-- the shape the server checks (worker validItem)
+				local st = sent and sent.stored
+				local valid = st and type(st.base) == "string" and st.lv >= 1 and st.lv <= 100 and st.r >= 0 and st.r <= 2 and #st.mods <= 12
+				if valid then
+					for _, m in ipairs(st.mods) do
+						if type(m.id) ~= "string" or #m.v > 8 then valid = false end
+					end
+				end
+				log(string.format("== Guild shelf: rows %d, mine %d, search amy %d, unknown version shown as unreadable=%s, card=%s, copy to Build %d -> %d, copy to craft same mods=%s, copies counted %d | share enabled=%s sent note=%s ver=%s base=%s lines=%d valid=%s | message=%s",
+					rows, mine, searched, tostring(unreadable), tostring(cardOk), itemsBefore, itemsAfter, tostring(sameMods), #copied,
+					tostring(shareOn), tostring(sent and sent.note), tostring(sent and sent.ver), tostring(sent and sent.text.base), sent and #sent.text.lines or 0, tostring(valid),
+					tab.message and StripEscapes(tab.message) or "-"))
+				ZhTWGuild.fetchShares, ZhTWGuild.share, ZhTWGuild.countCopy = realFetch, realShare, realCopy
+				ZhTWGuild.token = savedToken
+				tab.shelfView = false
+			end
 			local card = tab:PobItem()
 			log("== Craft names: card name=" .. tostring(card and card.name) .. " | drawn=" .. tostring(card and ZhTWLocale.tr(colorCodes.RARE .. card.name)) .. " | title=" .. tostring(card and ZhTWLocale.tr(colorCodes.RARE .. (card.title or ""))))
 			local before = 0
