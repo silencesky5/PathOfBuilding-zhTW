@@ -49,6 +49,9 @@ local TITLE = "^xE6DFD0"
 local SUBTLE = "^xA39B8C"
 local RARITY_COLOR = { [0] = "^xC8C8C8", "^x8888FF", "^xFFFF77" }
 local POOL_X = RIGHT_X + 270 -- 詞綴池 column, when the window is wide enough
+-- Guild share (公會分享架, 分享到公會, 登入公會): off until the site's Worker with the PoB login
+-- (Poe-tool branch pob-login) is deployed (KAI 11/18). true shows the buttons again.
+local SHOW_GUILD_SHARE = false
 local POOL_MIN_W = 320
 
 -- currency icons (Assets/zhTW/currency.png, made by Export/zhTWCraftIcons.py from the site's
@@ -407,7 +410,14 @@ function ZhTWCraftTabClass:Build()
 	end
 	controls.poolToggle.tooltipText = "視窗不夠寬時，詞綴池和物品卡共用中間這一格。"
 
-	self.actY = gY + 60
+	if not SHOW_GUILD_SHARE then
+		for _, name in ipairs({ "shelf", "share", "noteLabel", "shareNote", "guildLogin" }) do
+			controls[name].shown = false
+		end
+		self.actY = actY -- no gap where the guild buttons were
+	else
+		self.actY = gY + 60
+	end
 	self:SelectClass(self:DefaultClass())
 end
 
@@ -920,7 +930,7 @@ function ZhTWCraftTabClass:Draw(viewPort, inputEvents)
 		DrawString(x0 + CARD_X + 10, y0 + 40, "LEFT", 14, "VAR", colorCodes.NEGATIVE .. "PoB 讀不懂這件物品。")
 	end
 	-- login state next to the login button
-	if ZhTWGuild then
+	if ZhTWGuild and SHOW_GUILD_SHARE then
 		local who = ZhTWGuild.token and (ZhTWGuild.me and ("已登入：" .. tostring(ZhTWGuild.me.name)) or "已登入") or "未登入"
 		DrawString(x0 + RIGHT_X + 128, y0 + self.actY - 2, "LEFT", 14, "VAR", SUBTLE .. who)
 	end
