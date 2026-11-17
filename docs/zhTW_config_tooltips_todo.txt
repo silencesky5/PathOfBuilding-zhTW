@@ -1,0 +1,375 @@
+	+1 to Maximum Endurance Charges
+	+1 to Maximum Frenzy Charges
+	+1 to Maximum Power Charges
+	+10% to all maximum Resistances
+	+2% to all maximum Resistances
+	+23% to ^xD02090Chaos ^7Resistance
+	+25% to all Elemental Resistances
+	+25% to enemy ^xD02090Chaos Resistance
+	+30% to Damage over Time Multiplier
+	+30% to enemy ^xD02090Chaos Resistance
+	+40% to enemy Elemental Resistances
+	+50% to Chaos Resistance
+	+50% to all Elemental Resistances
+	+50% to enemy Elemental Resistances
+	1% increased Movement Speed per 20 Rampage
+	1% increased character size per stack.
+	10% additional Physical Damage Reduction
+	10% increased Action Speed
+	10% increased Character Size
+	10% increased Effect of Curses
+	10% increased Minion Attack and Cast Speed
+	10% increased Minion Movement Speed
+	10% more Minion Damage
+	10% of Elemental Damage taken as Chaos Damage
+	10% of Physical Damage taken as Chaos Damage
+	10% reduced Action Speed
+	10% reduced ^xE05030Life ^7and ^x88FFFFEnergy Shield ^7Recovery Rate per stack
+	100% increased Armour
+	100% increased Damage
+	100% increased Physical Damage
+	100% increased ^x33FF77Evasion Rating^7
+	100% increased ^x7070FFMana ^7Regeneration Rate
+	100% increased chance to be Critically Hit
+	100% increased maximum ^x88FFFFEnergy Shield
+	100% more Attack Speed
+	100% more Cast Speed
+	1000% of monster Damage total
+	116% of monster ^x33FF77Evasion
+	124% of monster ^x33FF77Evasion
+	15% Chance to Avoid all Damage from Hits
+	2% increased Damage per 20 Rampage
+	2% reduced Action Speed per stack
+	20% chance to gain a Power, Frenzy or Endurance Charge on Hit
+	20% increased Area of Effect
+	20% increased Damage
+	20% increased Stun Duration on Enemies
+	20% increased ^x3F6DB3Cold ^7Damage taken
+	20% increased ^xB97123Fire ^7Damage taken
+	20% increased maximum ^xE05030Life
+	20% less Movement Speed
+	200% increased ^x7070FFMana ^7Regeneration Rate
+	235% of monster Damage of each type
+	25% increased Attack, Cast and Movement Speed
+	25% less Elemental Damage taken
+	3% penetration
+	3.3% of ^xE05030Life ^7Regenerated per second
+	30% increased Character Size
+	30% increased Damage Taken
+	30% increased Movement Speed
+	30% increased Projectile Speed
+	30% increased Stun Duration on Enemies
+	30% increased ^x7070FFMana ^7Regeneration Rate
+	4% inc Damage Taken per stack
+	40% increased Area of Effect
+	40% increased maximum ^xE05030Life
+	400% of monster Damage total
+	5% increased Attack Speed
+	5% increased Cast Speed
+	50% increased Action Speed
+	50% increased Armour
+	50% increased Damage
+	50% increased ^x33FF77Evasion Rating^7
+	50% increased maximum ^x88FFFFEnergy Shield
+	50% less Critical Strike Chance
+	50% reduced Effect of Curses on you
+	6.7% of ^xE05030Life ^7Regenerated per second
+	60% chance to gain a Power, Frenzy or Endurance Charge on Kill
+	75% more Elemental Damage
+	8% penetration
+	80% increased Projectile Speed
+	800% of monster Damage total
+	All hits are Critical Strikes
+	Average: Damage Reduction from Defending with Double Armour is proportional to chance
+	Average: damage is based on the average application
+	Average: damage is based on the average application, including both crits and non-crits
+	Average: includes burst regen, averaged based on uptime
+	Average: includes chance gains, averaged based on uptime
+	Average: uses the Average of all typed damage types (except Damage Over Time and Untyped)
+	Avoidance Chance
+	Block/Spell Block Chance
+	Burst: includes full burst regen
+	Cannot be Damaged
+	Crits Only: damage is based solely on Ailments inflicted with crits
+	Curse Enemies with Enfeeble on Hit
+	Deal 10% less Damage
+	Deal 30% less Damage
+	Diluting Touch: 9% reduced Flask charges gained and 9% reduced Flask Effect per stack
+	Dodge/Spell Dodge Chance
+	Each Magic enemy grants 2 Power
+	Each Normal enemy grants 1 Power
+	Each Rare enemy grants 10 Power
+	Each Unique enemy grants 20 Power
+	Enemies you Kill have a 40% chance to Explode, dealing a quarter of their maximum ^xE05030Life ^7as ^xD02090Chaos ^7Damage
+	Eroding Touch: 6% inc Damage Taken per stack
+	Explosive Toad has an additional 25% chance to Trigger when you kill an Enemy
+	Gain 10% of Non-^xD02090Chaos ^7Damage as extra ^xD02090Chaos ^7Damage
+	Gain 15% of Physical Damage as Extra ^xADAA47Lightning ^7Damage
+	Gain 15% of Physical Damage as Extra ^xB97123Fire ^7Damage
+	Gain 30% of Elemental Damage as Extra Chaos Damage
+	Gain 30% of Physical Damage as Extra ^x3F6DB3Cold ^7Damage
+	Gain 30% of Physical Damage as Extra ^xADAA47Lightning ^7Damage
+	Gain 30% of Physical Damage as Extra ^xD02090Chaos ^7Damage
+	Hits ignore Enemy Physical Damage Reduction
+	Ice Novas happen around you
+	Knocks Enemies Back on Hit
+	Max Effect: always ignores if you have any chance
+	Max Effect: damage is based on maximum effect
+	Maximum: always Defend with Double Armour
+	Maximum: treats all chances as certain
+	Minimum: does not include burst regen
+	Minimum: does not include chances
+	Minimum: never Defend with Double Armour
+	Minimum: never ignores unless chance is at least 100%
+	Most monsters and the players' character are this size.
+	Paralysing Touch: 6% reduced Action Speed per stack
+	Regenerate 1.5% of ^xE05030Life ^7per second
+	Shock Novas happen around you
+	Skeletons are summoned to you
+	Skills Repeat an additional Time
+	This is the size of most humanoid bosses (i.e. The Maven; The Shaper; Izaro)
+	This is the size of some larger bosses (i.e. King Kaom; Vaal Oversoul)
+	This is the size of some of the largest bosses (i.e. Nucleus of the Maven; Tsoagoth, The Brine King)
+	Wasting Touch: 9% reduced ^xE05030Life ^7and ^x88FFFFEnergy Shield ^7recovery rate per stack
+	You can apply an additional Curse
+	^7125% of monster Armour
+	^7150% of monster Armour
+	^7181% of monster Damage of each type
+	^770% less to enemy Damage taken
+	^790% of monster Damage of each type
+	^xB97123Fire ^7/ ^x3F6DB3Cold ^7/ ^xADAA47Lightning^7: Modifiers will grant their full value as the specified element
+ -20% Accuracy 
+ -20% ^x33FF77Evasion
+ Blind applies the following effects.
+ eg at 100% the enemy deals its maximum damage
+(25% chance to apply Wither on Hit)
+(Grants 100% of Physical Damage converted to ^xD02090Chaos ^7Damage)
+(Grants 25% of the skill's mana cost as Physical Damage and causes you to take physical damage over time equal to a percentage of the skill's mana cost.)
+(Grants 30% of Physical Damage as Extra ^xD02090Chaos ^7Damage)
+(When you cast a Spell, Sacrifice all ^x7070FFMana ^7to gain Added Maximum ^xADAA47Lightning ^7Damage
+10% increased effect of Flasks
+30% increased effect of Lightning and Cold Ailments on them and 
+A debuff that applies:
+A more realistic value would be to match your Arcane Cloak spend %.
+Affects the DPS of Perforate in Blood Stance.
+Allows you to manually set the Stack Potential value for a skill.
+Amount of stacks of ^x3F6DB3Barnacle ^7applied to the enemy.
+At 100% effect:
+Base Maximum ^xFF9922Rage ^7is 30, and inherently grants 1% More Attack Damage per 1 ^xFF9922Rage^7
+Bosses' armour and evasion multiplier are calculated using the average of the boss type
+Bosses' damage is monster damage scaled to an average damage of their attacks
+Buff affects the player and allies
+Buff affects the player, allies and enemies in a small radius
+Buff has a base duration of 8s with a 10s Cooldown
+Buff has a base duration of 8s with a 20s Cooldown
+By default it multiplies both minion count and skill hit count which leads to incorrect
+Channelling Spells deal 5% more Damage and 
+Channelling Spells have 10% more Cost
+Configure the radius of an enemy hitbox which is used in calculating some area multi-hitting (shotgunning) effects.
+Consecrated Ground grants 5% ^xE05030Life ^7Regeneration to players and allies.
+Controls how Defending with Double Armour is calculated:
+Controls how Empowered spells from Pacts are calculated:
+Controls how ^xE05030life ^7regeneration is calculated:
+Controls how exerted attacks from Warcries are calculated:
+Controls how modifiers which choose a random element will function.
+Controls how resource on hit/kill is calculated:
+Controls how the base damage for applying Ailments is calculated:
+Controls how the chance on hit to ignore enemy physical damage reduction is calculated:
+Controls how the hit/ailment effect of Ruthless Support is calculated:
+Controls which types of damage the EHP calculation uses:
+Corpse must be the same type as the monster you're fighting.
+Corrosion has no stack limit
+Corrosion lasts 4 seconds and refreshes the duration of existing Corrosion stacks
+Covered in Ash applies the following to the enemy:
+Covered in Frost applies the following to the enemy:
+Cruelty is a buff provided by Cruelty Support which grants
+Default is 1; maximum is 5.
+Delirium scales enemy 'less Damage Taken' as well as enemy 'increased Damage dealt'
+Do not enable if you use Spell Totem support, Spell Cascade support or similar supports
+Each instance of Barnacles lasts 30 seconds and can be inflicted up to 10 times)
+Each stack of Corrosion applies -5000 to total Armour and -1000 to total ^x33FF77Evasion Rating ^7to the enemy.
+Each stack of Spirit Infusion grants:
+Enables additional damage given to Lingering Blades
+Enemies Deal 30% Increased Damage
+Enemies on Profane Ground receive the following modifiers:
+Enemies on your Brine Ground have 
+Enemies take 80% Less Damage
+Enemy Maximum resistance is increased by the resistance configurations 
+Ensnared enemies always count as moving, and have less movement speed while trying to break the snare.
+Feeding Frenzy grants:
+For reference, a level 70 monster has 6937 base ^xE05030life^7, and a level 80 monster has 12787.
+From Oshabi's Bloodline, grants:
+Glorious Madness Stacks grants:
+Grants your Sentinel Minion as Aura that grants
+Greater Harbinger of Time Slipstream buff grants:
+Guardian / Pinnacle Boss adds the following modifiers:
+Harbinger of Time Slipstream buff grants:
+Has a default cap of 20 stacks.
+Hits against ^x3F6DB3Brittle ^7enemies have up to +6% Critical Strike Chance.
+Huge sets the radius to 11.
+If a modifier chooses between just two elements, the full value can only be given as those two elements.
+If a specific damage type is selected, that will be the only type used.
+If you have a guaranteed source of Elusive, the strongest one will apply. 
+If you have a guaranteed source of ^xADAA47Sap^7,
+If you have a guaranteed source of ^xADAA47Shock^7,
+Ignores values outside the 0-100 range, defaults to 100% if not specified. 
+In addition to allowing 'against Blinded Enemies' modifiers to apply,
+In addition to allowing any 'against ^xADAA47Shocked ^7Enemies' modifiers to apply,
+In addition to allowing any 'while Elusive' modifiers to apply,
+In addition to allowing any 'while on Consecrated Ground' modifiers to apply,
+In addition to allowing any 'while you have Arcane Surge' modifiers to apply,
+In addition to allowing any 'while you have Onslaught' modifiers to apply,
+In addition to allowing any 'while you have Tailwind' modifiers to apply,
+In addition to allowing any 'while your minions have Onslaught' modifiers to apply,
+In high tier maps, 'of Elemental Weakness' applies level 15.
+In high tier maps, 'of Enfeeblement' applies level 15.
+In high tier maps, 'of Temporal Chains' applies level 15.
+In high tier maps, 'of Vulnerability' applies level 15.
+In mid tier maps, 'of Elemental Weakness' applies level 10.
+In mid tier maps, 'of Enfeeblement' applies level 10.
+In mid tier maps, 'of Temporal Chains' applies level 10.
+In mid tier maps, 'of Vulnerability' applies level 10.
+Large sets the radius to 5.
+Leave blank for default calculation.
+Mana Burn Applies a 1% of mana degen per stack
+Mania Stacks apply:
+Maximum 10 stacks
+Maximum is limited by the number of Spikes of Perforate.
+Medium sets the radius to 3.
+Misty Reflection debuff lasts 4 seconds and makes enemies have:
+Molten Shell reflects damage to the enemy,
+Power determines how strong your Warcry buffs will be, and is based on the total strength of nearby enemies.
+Power is assumed to be 20 if your target is a Boss, but you can override it here if necessary.
+Rampage grants the following, up to 1000 stacks:
+Sets current number of Bleeds on the enemy if using the Crimson Dance keystone.
+Sets the EHP calc to pretend its unlucky and reduce the effects of random events such as
+Sets the blade count for Blade Vortex skills used by spectres.
+Sets the level of Elemental Weakness to apply to the player.
+Sets the level of Enfeeble to apply to the player.
+Sets the level of Temporal Chains to apply to the player.
+Sets the level of Vulnerability to apply to the player.
+Sets the maximum ^xE05030life ^7of the target corpse for Detonate Dead and similar skills.
+Sets the number of active Spectral Tigers.
+Sets the number of active Spectral Wolves.
+Sets the number of active Spiders.
+Small sets the radius to 2.
+Soul Eater grants the following, up to a base of 45 stacks:
+Stack Potential equates to the number of times you are able to inflict a Bleed on an enemy before the duration of your first Bleed expires
+Stack Potential equates to the number of times you are able to inflict an Ignite on an enemy before the duration of your first Ignite expires
+Standard Boss adds the following modifiers:
+Steel Wards are gained from using Shattering Steel of Ammunition with at least 2 Steel Shards.
+The base maximum number of Spectral Tigers is 5.
+The base maximum number of Spectral Wolves is 10.
+The base maximum number of Spiders is 20.
+The default calculation assumes enabled gems in skill socket groups fill the item in socket order disregarding gem colour.
+The default is 1.5 times the enemy's base damage, which is the same value
+The default level for normal enemies and standard bosses is 83.
+The default level for pinnacle bosses is 84, and the default level for uber pinnacle bosses is 85.
+The effect of Elusive decays over time.
+The enemy will automatically be considered to be Cursed if you have at least one curse enabled,
+The enemy will automatically be considered to be Unique if they are a Boss,
+The exact weapon is unknown but should be similar to Glass Shank
+The percentage of the roll range the enemy hits for 
+Their default level is capped by your character level.
+Their default level is not capped by your character level.
+This also applies Weeping Wounds if the Keystone is Allocated
+This also implies that the enemy is Bleeding.
+This also implies that you have a Totem summoned.
+This is automatically enabled if you have a flask active,
+This is automatically enabled if you have a tincture active,
+This is divided by 4.40 to represent 4 damage types + some (40% as much) ^xD02090chaos
+This is for low tolerance, but will limit you to only applying poison a single time
+This locks it at the default value
+This option allows you to override the default calculation for the number of Empty White Sockets.
+This option allows you to override the default calculation for the number of Empty ^x7070FFBlue^7 Sockets.
+This option allows you to override the default calculation for the number of Empty ^x70FF70Green^7 Sockets.
+This option allows you to override the default calculation for the number of Empty ^xE05030Red^7 Sockets.
+This option enables Manastorm's ^xADAA47Lightning ^7Damage Buff.
+This option will also allow you to input the effect of ^x3F6DB3Brittle.
+This option will also allow you to input the effect of ^xB97123Scorched.
+This overrides the default damage amount used to estimate your damage reduction from armour.
+This overrides the default enemy level used to estimate your hit and ^x33FF77evade ^7chance.
+This setting has no effect if you have 100% chance to Defend with Double Armour.
+This will affect all 'per Summoned Totem' modifiers, even for non-Totem skills.
+This will enable the Acceleration Shrine buff.
+This will enable the Adrenaline buff, which grants:
+This will enable the Alchemist's Genius buff:
+This will enable the Blood Shrine of Bats buff.
+This will enable the Blood Shrine of Crows buff.
+This will enable the Blood Shrine of Locusts buff.
+This will enable the Blood Shrine of Rats buff.
+This will enable the Blood Shrine of Toads buff.
+This will enable the Brutal Shrine buff.
+This will enable the Chaotic Might buff on your minions.
+This will enable the Chaotic Might buff.
+This will enable the Diamond Shrine buff.
+This will enable the Divine Shrine buff.
+This will enable the Divinity buff, which grants:
+This will enable the Echoing Shrine buff.
+This will enable the Gloom Shrine buff.
+This will enable the Greater Freezing Shrine buff.
+This will enable the Greater Shocking Shrine buff.
+This will enable the Greater Skeletal Shrine buff.
+This will enable the Impenetrable Shrine buff.
+This will enable the Lesser Acceleration Shrine buff.
+This will enable the Lesser Brutal Shrine buff.
+This will enable the Lesser Impenetrable Shrine buff.
+This will enable the Lesser Massive Shrine buff.
+This will enable the Lesser Replenishing Shrine buff.
+This will enable the Lesser Resistance Shrine buff.
+This will enable the Massive Shrine buff.
+This will enable the Replenishing Shrine buff.
+This will enable the Resistance Shrine buff.
+This will enable the Resonating Shrine buff.
+This will enable the Sacrificial Zeal buff.
+This will enable the Unholy Might buff on your minions.
+This will enable the Unholy Might buff.
+Total DPS calculation since Absolution cannot inherently shotgun.
+Total DPS calculation since Dominating Blow cannot inherently shotgun.
+Total DPS calculation since Holy Strike cannot inherently shotgun.
+Uber Pinnacle Boss adds the following modifiers:
+Vaal Molten Shell reflects damage to the enemy,
+When enabled, the mana spent by Arcane Cloak used at full mana 
+While ensnared, enemies take increased Projectile Damage from Attack Hits
+You can be considered to be on Full ^xE05030Life ^7if you have at least 100% ^xE05030Life ^7left.
+You can be considered to be on Full ^xE05030Life ^7if you have at least 90% ^xE05030Life ^7left.
+You can change this to see various buff values
+You can have up to 6 Steel Wards, and each grants +8% chance to Block Projectile Attack Damage.
+You have 1% less damage taken from hits per stack of fortification:
+You lose 10 ^xFF9922Rage ^7every second if you have not been Hit or gained ^xFF9922Rage ^7in the last 2 seconds.
+You lose Rampage if you do not get a Kill within 5 seconds.
+You will automatically be considered to be Channeling if your main skill is a channelled skill,
+You will automatically be considered to be Leeching if you have '^xE05030Life ^7Leech effects are not removed at Full ^xE05030Life^7',
+You will automatically be considered to be on Low ^x7070FFMana ^7if you have at least 50% ^x7070FFmana ^7reserved,
+You will automatically be considered to be on Low ^x88FFFFEnergy Shield ^7if you have at least 50% ^x88FFFFES ^7reserved,
+You will automatically be considered to be on Low ^xE05030Life ^7if you have at least 45% ^xE05030Life ^7reserved
+You will automatically be considered to be on Low ^xE05030Life ^7if you have at least 50% ^xE05030Life ^7reserved
+You will automatically be considered to have Attacked Recently if your main skill is an attack,
+You will automatically be considered to have Cast a Spell Recently if your main skill is a spell,
+You will automatically be considered to have Hit Recently if your main skill Hits and is self-cast,
+You will automatically be considered to have Summoned a Totem Recently if your main skill is a Totem,
+You will automatically be considered to have a Totem if your main skill is a Totem,
+You will automatically be considered to have unbroken ^xFFFF77Ward ^7if you have ^xAF6025Olroth's Resolve ^7active or
+You will automatically be considered to have used a Minion skill Recently if your main skill is a Minion skill,
+You will automatically be considered to have used a Movement skill Recently if your main skill is a movement skill,
+You will automatically be considered to have used a Vaal skill Recently if your main skill is a Vaal skill,
+Your Absolution Skill Damage will not be scaled with Count setting.
+Your Dominating Blow Skill Damage will not be scaled with Count setting.
+Your Holy Strike Skill Damage will not be scaled with Count setting.
+^7Fill in the exact damage numbers if more precision is needed
+^8(Enemies affected by Barnacles Convert 5% of Physical Damage to Cold and have 5% increased duration of Chill and Freeze on them.
+^8(Note that you can still apply multiple stacks via 'inflict additional poison' mods)^7
+an Iron Flask with enough Flask Charges gained on ^xFFFF77Ward ^7Break.
+based on the amount of damage it has mitigated in the last second.
+based on the amount of damage it has mitigated.
+equal to 50% of Sacrificed ^x7070FFMana ^7for 4 seconds)
+have 25% reduced Armour and Evasion Rating.
+the strongest one will apply instead unless this option would apply a stronger ^xADAA47Sap.
+the strongest one will apply instead unless this option would apply a stronger ^xADAA47Shock.
+this will allow you to input the effect of the ^xADAA47Shock ^7applied to the enemy.
+this will enable the Arcane Surge buff itself. (Grants 20% increased cast speed and 30% increased Mana Regeneration rate)
+this will enable the Elusive buff itself:
+this will enable the Tailwind buff itself. (Grants 8% increased Action Speed)
+up to 40% more damage over time to the skills it supports.
+used in-game to calculate the estimate shown on the character sheet.
+will be added to the value provided in # of ^x7070FFMana ^7spent Recently.

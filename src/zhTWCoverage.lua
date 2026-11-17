@@ -165,6 +165,42 @@ local ok, err = xpcall(function()
 			end
 			log(string.format("== Edit boxes typed: %d, errors %d %s", tried, #failed, table.concat(failed, " | ")))
 		end
+		-- Config tab option tooltips (only shown on hover, so draw them here)
+		configDump = configDump or { }
+		do
+			currentArea = "config tooltip"
+			local n = 0
+			for var, control in pairs(build.configTab.varControls or { }) do
+				local ok, text = pcall(function() return control:GetProperty("tooltipText") end)
+				if ok and type(text) == "string" and text ~= "" then
+					n = n + 1
+					local tt = new("Tooltip"):Tooltip()
+					tt:AddLine(14, text)
+					for _, line in ipairs(tt.lines) do
+						if line.text then
+							local out = ZhTWLocale.tr(line.text)
+							if configDump and out == line.text and StripEscapes(out):find("%a%a") then
+								configDump[line.text] = true
+							end
+						end
+					end
+				end
+			end
+			for _, s in ipairs({ "^7Toggling this option will give you:", "^7Selecting this option will give you:",
+				"^7Enabling this group will give you:", "^7Disabling this group will give you:",
+				"^1This config option is conditional with missing source and is invalid." }) do
+				ZhTWLocale.tr(s)
+			end
+			log("== Config tooltips checked: " .. n)
+			if configDump and os.getenv("ZHTW_CONFIG_DUMP") then
+				local keys = { }
+				for k in pairs(configDump) do table.insert(keys, k) end
+				table.sort(keys)
+				local f = io.open(os.getenv("ZHTW_CONFIG_DUMP"), "w")
+				for _, k in ipairs(keys) do f:write(k, "\n") end
+				f:close()
+			end
+		end
 		-- Gem name boxes on the skills tab (edit controls) must show Chinese too
 		do
 			local seen = { }
