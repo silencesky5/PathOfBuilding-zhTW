@@ -132,6 +132,18 @@ local ok, err = pcall(function()
 		popup.controls.save.onClick()
 		local item = build.itemsTab.items[build.itemsTab.itemOrderList[#build.itemsTab.itemOrderList]]
 		log("   added item: " .. tostring(item and item.name) .. ", popups open: " .. #main.popups)
+		-- "另存一件": open the item like a double click in the list, change it, save as a copy
+		local tab = build.itemsTab
+		local before = #tab.itemOrderList
+		local copy = new("Item"):Item(item:BuildRaw())
+		copy.id = item.id
+		tab:SetDisplayItem(copy)
+		local shown = tab.controls.saveDisplayItemCopy:IsShown()
+		copy.title = "Copy Test"
+		tab.controls.saveDisplayItemCopy.onClick()
+		local newest = tab.items[tab.itemOrderList[#tab.itemOrderList]]
+		log(string.format("== save as copy: button shown=%s, items %d -> %d, original title=%s, copy title=%s, copy id=%s",
+			tostring(shown), before, #tab.itemOrderList, tostring(tab.items[item.id].title), tostring(newest.title), tostring(newest.id)))
 	end
 
 	-- Round trip over PoB's unique items: English item -> Chinese text written like the game's

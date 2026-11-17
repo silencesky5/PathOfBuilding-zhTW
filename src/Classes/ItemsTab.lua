@@ -354,7 +354,19 @@ holding Shift will put it in the second.]])
 		self:SetDisplayItem()
 	end)
 
-	self.controls.displayItemBuySimilar = new("ButtonControl"):ButtonControl({ "LEFT", self.controls.removeDisplayItem, "RIGHT", true },
+	-- zhTW: save an item opened from the list as a new, unequipped copy (the original stays as it was)
+	self.controls.saveDisplayItemCopy = new("ButtonControl"):ButtonControl({"LEFT",self.controls.removeDisplayItem,"RIGHT"}, {8, 0, 80, 20}, "", function()
+		self.displayItem.id = nil
+		self:AddDisplayItem(true)
+	end)
+	self.controls.saveDisplayItemCopy.label = function()
+		return ZhTWLocale and ZhTWLocale.enabled and "另存一件" or "Save as copy"
+	end
+	self.controls.saveDisplayItemCopy.shown = function()
+		return self.displayItem and self.displayItem.id and self.items[self.displayItem.id] and true or false
+	end
+	self.controls.saveDisplayItemCopy.tooltipText = "^7存成清單裡的新一件（不會自動裝備），原本那件不變。"
+	self.controls.displayItemBuySimilar = new("ButtonControl"):ButtonControl({ "LEFT", self.controls.saveDisplayItemCopy, "RIGHT", true },
 		{ 8, 0, 100, 20 }, "Buy similar", function()
 			local itemSlot = self:GetComparisonSlotNameForItem(self.displayItem)
 			buySimilar.openPopup(self.displayItem, itemSlot, self.build)
