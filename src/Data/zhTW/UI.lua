@@ -935,6 +935,7 @@ return {
 		["Craft Item"] = "製作物品",
 		["Craft item..."] = "製作物品...",
 		["Crafted mod"] = "工藝詞綴",
+		["Crafted Item"] = "製作物品",
 		["Crafting Bench"] = "工藝台",
 		["Create"] = "建立",
 		["Create Custom Item from Text"] = "從文字建立自訂物品",

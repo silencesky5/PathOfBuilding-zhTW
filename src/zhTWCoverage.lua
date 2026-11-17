@@ -504,6 +504,7 @@ local ok, err = xpcall(function()
 			press("useFossils")
 			press("useFossils")
 			local card = tab:PobItem()
+			log("== Craft names: card name=" .. tostring(card and card.name) .. " | drawn=" .. tostring(card and ZhTWLocale.tr(colorCodes.RARE .. card.name)) .. " | title=" .. tostring(card and ZhTWLocale.tr(colorCodes.RARE .. (card.title or ""))))
 			local before = 0
 			for _ in pairs(build.itemsTab.items) do before = before + 1 end
 			press("addToBuild")

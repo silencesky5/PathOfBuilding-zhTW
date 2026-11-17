@@ -419,7 +419,9 @@ end
 -- PoB item for the card and for 加入 Build
 function ZhTWCraftTabClass:PobItem()
 	if not self.pobItem and self.item then
-		local raw = engine().toPobText(self.item, "製作物品")
+		-- the name must be ASCII: PoB turns every other character of item text into "?"
+		-- ("Crafted Item" is shown as 製作物品 through Data/zhTW/UI.lua)
+		local raw = engine().toPobText(self.item, "Crafted Item")
 		local ok, item = pcall(function()
 			return new("Item"):Item(raw)
 		end)
