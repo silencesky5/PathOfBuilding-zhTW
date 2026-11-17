@@ -470,6 +470,61 @@ local ok, err = xpcall(function()
 				tostring(list:GetProperty("label") and StripEscapes(list:GetProperty("label"))), newTag))
 			build.viewMode = saved
 		end
+		-- 製作 tab: currencies through the buttons' own functions, the item card, 加入 Build
+		do
+			local saved = build.viewMode
+			build.viewMode = "CRAFT"
+			local t0 = os.clock()
+			frames(2)
+			local loadTime = os.clock() - t0
+			local tab = build.zhTWCraftTab
+			local c = tab.controls
+			local steps = { }
+			local function press(name)
+				local button = c[name]
+				local on = button:IsEnabled()
+				if on then button.onClick() end
+				frames(1)
+				table.insert(steps, name:gsub("^cur_", "") .. (on and "" or "(disabled)") .. "->" .. #tab.item.mods)
+			end
+			press("cur_chaos") -- normal item: disabled
+			press("cur_alch")
+			press("cur_chaos")
+			press("cur_exalt")
+			press("cur_divine")
+			press("cur_annul")
+			press("undo")
+			press("cur_scour")
+			press("cur_transmute")
+			press("cur_aug")
+			press("cur_regal")
+			local card = tab:PobItem()
+			local before = 0
+			for _ in pairs(build.itemsTab.items) do before = before + 1 end
+			press("addToBuild")
+			local after = 0
+			for _ in pairs(build.itemsTab.items) do after = after + 1 end
+			-- every class: first base through alch, PoB must read the item
+			local unread = { }
+			local E = LoadModule("Modules/ZhTWCraftEngine").create(LoadModule("Data/zhTW/CraftData"))
+			for code in pairs(E.data.classes) do
+				for _, b in ipairs(E.bases) do
+					if b.c == code then
+						local it = E.apply(E.make(b.i, 86), "alch").item
+						local ok, pobItem = pcall(function() return new("Item"):Item(E.toPobText(it, "x")) end)
+						if not (ok and pobItem and pobItem.base) then
+							table.insert(unread, code .. ":" .. b.n)
+						end
+						break
+					end
+				end
+			end
+			log(string.format("== Craft tab: first draw %.2fs | %s | card read by PoB=%s (%s) | build items %d -> %d | message=%s | classes PoB cannot read: %s",
+				loadTime, table.concat(steps, " "), tostring(card ~= nil), card and tostring(card.baseName) or "-", before, after,
+				tab.message and StripEscapes(tab.message) or "-", #unread > 0 and table.concat(unread, ", ") or "none"))
+			build.viewMode = saved
+			frames(1)
+		end
 		-- Main skill box in the 技能 tab (moved from the side bar)
 		do
 			local c, sc = build.controls, build.skillsTab.controls

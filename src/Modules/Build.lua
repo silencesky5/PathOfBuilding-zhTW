@@ -615,6 +615,9 @@ function buildMode:Init(dbFileName, buildName, buildXML, convertBuild, importLin
 	self.itemsTab = new("ItemsTab"):ItemsTab(self)
 	self.treeTab = new("TreeTab"):TreeTab(self)
 	self.skillsTab = new("SkillsTab"):SkillsTab(self)
+	if ZhTWLayout then -- zhTW: 製作 tab (crafting, Chinese interface only)
+		self.zhTWCraftTab = new("ZhTWCraftTab"):ZhTWCraftTab(self)
+	end
 	self.calcsTab = new("CalcsTab"):CalcsTab(self)
 	self.controls.breakdown = new("CalcBreakdownControl"):CalcBreakdownControl(self.calcsTab)
 	self.controls.breakdown.pinnedColour = hexToRGB(colorCodes.CUSTOM) or error("failed to set breakdown pin colour")
@@ -1020,7 +1023,7 @@ end
 function buildMode:Save(xml)
 	xml.attrib = {
 		targetVersion = self.targetVersion,
-		viewMode = self.viewMode,
+		viewMode = (self.viewMode == "CRAFT") and "ITEMS" or self.viewMode, -- zhTW: the 製作 tab only exists here
 		level = tostring(self.characterLevel),
 		className = self.spec.curClassName,
 		ascendClassName = self.spec.curAscendClassName,
@@ -1319,6 +1322,8 @@ function buildMode:OnFrame(inputEvents)
 		self.itemsTab:Draw(tabViewPort, inputEvents)
 	elseif self.viewMode == "CALCS" then
 		self.calcsTab:Draw(tabViewPort, inputEvents)
+	elseif self.viewMode == "CRAFT" and self.zhTWCraftTab then -- zhTW
+		self.zhTWCraftTab:Draw(tabViewPort, inputEvents)
 	elseif self.viewMode == "COMPARE" then
 		self.compareTab:Draw(tabViewPort, inputEvents)
 	end

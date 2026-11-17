@@ -180,7 +180,7 @@ local iconIndex = {
 	["魔力"] = 7, ["能量護盾"] = 8, ["保護"] = 9, ["盛怒"] = 10, ["回復與流失"] = 11, ["閃避"] = 12,
 	["護甲"] = 13, ["格擋與抑制"] = 14, ["抗性"] = 15, ["其他"] = 16, ["完整 DPS"] = 17, ["技能 DPS"] = 18,
 	["裝備"] = 19, ["技能"] = 20, ["天賦"] = 21, ["計算"] = 22, ["匯入/匯出"] = 23, ["角色配置"] = 24,
-	["設定"] = 25, ["儲存"] = 26, ["另存新檔"] = 27,
+	["設定"] = 25, ["儲存"] = 26, ["另存新檔"] = 27, ["製作"] = 27,
 	-- 28-30 spare (hourglass, book, moon); 31- item groups and slots
 	["武器"] = 31, ["防具"] = 32, ["飾品"] = 33, ["藥劑"] = 34, ["珠寶"] = 35,
 	["主手"] = 36, ["副手"] = 37, ["頭部"] = 38, ["胸甲"] = 39, ["手套"] = 40, ["鞋子"] = 41,
@@ -1126,8 +1126,9 @@ local sheetTabs = {
 	{ label = "技能", mode = "SKILLS" },
 	{ label = "天賦", mode = "TREE" },
 	{ label = "計算", mode = "CALCS" },
+	{ label = "製作", mode = "CRAFT" },
 }
-local isSheet = { ITEMS = true, SKILLS = true, TREE = true, CALCS = true }
+local isSheet = { ITEMS = true, SKILLS = true, TREE = true, CALCS = true, CRAFT = true }
 local hiddenModes = { NOTES = true, PARTY = true, COMPARE = true }
 
 local function hideWhenEnabled(control)
@@ -1516,6 +1517,9 @@ end
 -- Called by Build.lua before the current tab is drawn
 function ZhTWLayout.adjustTabViewPort(build, viewPort, inputEvents)
 	if not enabled() then
+		if build.viewMode == "CRAFT" then -- the 製作 tab is only in the Chinese interface
+			build.viewMode = "ITEMS"
+		end
 		return
 	end
 	if ZhTWTheme then
