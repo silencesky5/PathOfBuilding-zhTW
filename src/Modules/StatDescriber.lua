@@ -268,10 +268,10 @@ return function(stats, scopeName, quality)
 				else
 					return s_format("(%"..v.fmt.."-%"..v.fmt..")", v.min, v.max)
 				end
-			end):gsub("{:%+?d}", function() 
+			end):gsub("{:(%+?)d}", function(sign) -- zhTW: keep the sign ("{:+d}" in Taiwan client data)
 				local v = val[1]
 				if v.min == v.max then
-					return s_format("%"..v.fmt, v.min)
+					return s_format("%"..sign..v.fmt, v.min)
 				else
 					return s_format("(%"..v.fmt.."-%"..v.fmt..")", v.min, v.max)
 				end

@@ -1517,6 +1517,8 @@ function ItemsTabClass:Draw(viewPort, inputEvents)
 			if event.key == "v" and IsKeyDown("CTRL") then
 				local newItem = Paste()
 				if newItem then
+					ZhTWItemText = ZhTWItemText or LoadModule("Modules/ZhTWItemText") -- zhTW: Taiwan client item text
+					newItem = ZhTWItemText.paste(newItem)
 					self:CreateDisplayItemFromRaw(newItem, true)
 				end
 			elseif event.key == "e" then
@@ -2786,7 +2788,10 @@ function ItemsTabClass:EditDisplayItemText(alsoAddItem)
 		controls.rarity.selIndex = 3
 	end
 	controls.edit.font = "FIXED"
-	controls.edit.pasteFilter = sanitiseText
+	controls.edit.pasteFilter = function(text) -- zhTW: Taiwan client item text is converted to English
+		ZhTWItemText = ZhTWItemText or LoadModule("Modules/ZhTWItemText")
+		return sanitiseText(ZhTWItemText.paste(text))
+	end
 	controls.save = new("ButtonControl"):ButtonControl(nil, {-45, 470, 80, 20}, self.displayItem and "Save" or "Create", function()
 		local id = self.displayItem and self.displayItem.id
 		self:CreateDisplayItemFromRaw(buildRaw(), not self.displayItem)

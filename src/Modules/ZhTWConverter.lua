@@ -1356,6 +1356,23 @@ function ZhTW.getReport()
 	return report
 end
 
+-- Used by Modules/ZhTWItemText.lua (in-game Ctrl+C item text):
+-- converts base type and item name of an API-like item table without any modifier fields
+function ZhTW.convertItemHeader(itemData)
+	resetReport()
+	safeConvertItem(itemData)
+	return itemData
+end
+
+-- Sets the item the following convertModLine calls are for (mods that share a Chinese text)
+function ZhTW.setItemContext(baseEn)
+	itemContext = baseEn and makeItemContext(baseEn, { }) or nil
+end
+
+function ZhTW.getTables()
+	return loadTables()
+end
+
 -- Prints the report to the console; returns the number of failed lines
 function ZhTW.printReport(label)
 	local r = report
