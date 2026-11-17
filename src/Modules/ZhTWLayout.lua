@@ -781,6 +781,42 @@ function ZhTWLayout.setupImportTab(importTab)
 			end
 		end
 	end
+	-- One "import everything" button instead of "passive tree and jewels" + "items and skills"
+	-- (their check boxes keep POB's defaults: delete jewels / skills / equipment, keep weapon swap)
+	local treeButton, itemsButton, header = controls.siteCharImportTree, controls.siteCharImportItems, controls.siteCharImportHeader
+	if treeButton and itemsButton and header then
+		for _, button in ipairs({ treeButton, itemsButton }) do
+			local origShown = button.shown
+			button.shown = function(...)
+				if enabled() then
+					return false
+				end
+				if type(origShown) == "function" then
+					return origShown(...)
+				end
+				return origShown ~= false
+			end
+		end
+		local all = new("ButtonControl"):ButtonControl({ "LEFT", header, "RIGHT" }, { 8, 0, 260, 20 }, "全部匯入（天賦、珠寶、物品、技能）", function()
+			local realm = controls.siteAccountRealm:GetSelValue()
+			local function go()
+				importTab.zhTWImportAll = true
+				importTab.zhTWTreeResult = nil
+				importTab:DownloadPassiveTree(realm)
+			end
+			if importTab.build.spec:CountAllocNodes() > 0 then
+				main:OpenConfirmPopup("Character Import", "Importing the passive tree will overwrite your current tree.", "Import", go)
+			else
+				go()
+			end
+			importTab:SetPredefinedBuildName()
+		end)
+		all.shown = enabled
+		all.enabled = function()
+			return importTab.charImportMode == "SELECTCHAR"
+		end
+		controls.zhTWImportAll = all
+	end
 	-- The bandit tip pointed at the hidden login; Taiwan data has no bandit choice at all
 	local note = controls.siteCharBanditNote
 	if note then

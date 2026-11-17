@@ -123,6 +123,16 @@ local ok, err = xpcall(function()
 			ZhTWLocale.enabled = true
 		end
 		do
+			local c = build.importTab.controls
+			log(string.format("== Import buttons (zh): all shown=%s label=%s | tree shown=%s items shown=%s jewels box shown=%s",
+				tostring(c.zhTWImportAll:IsShown()), ZhTWLocale.tr(c.zhTWImportAll:GetProperty("label")),
+				tostring(c.siteCharImportTree:IsShown()), tostring(c.siteCharImportItems:IsShown()), tostring(c.siteCharImportTreeClearJewels:IsShown())))
+			ZhTWLocale.enabled = false
+			log(string.format("== Import buttons (en): all shown=%s | tree shown=%s items shown=%s",
+				tostring(c.zhTWImportAll:IsShown()), tostring(c.siteCharImportTree:IsShown()), tostring(c.siteCharImportItems:IsShown())))
+			ZhTWLocale.enabled = true
+		end
+		do
 			local r = build.importTab.controls.siteAccountRealm
 			r.selIndex = 1 -- even with PC picked earlier, the Chinese interface asks Taiwan
 			log(string.format("== Site realm: zh=%s enabled=%s", r:GetSelValue().id, tostring(r:IsEnabled())))

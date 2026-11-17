@@ -13,6 +13,19 @@ local t_insert = table.insert
 local s_format = string.format
 
 local LANG = "Traditional Chinese"
+
+-- Newer clients put keyword links into texts: "[PlayerItemRarity|物品稀有度]" shows "物品稀有度",
+-- "[Phasing]" shows "Phasing". Keep only what the game shows.
+local function stripLinks(s)
+	if type(s) ~= "string" or not s:find("[", 1, true) then
+		return s
+	end
+	return (s:gsub("%[([^%[%]|]+)|([^%[%]]+)%]", "%2"):gsub("%[([^%[%]|]+)%]", "%1"))
+end
+local escapeGGGStringRaw = escapeGGGString
+local function escapeGGGString(s)
+	return escapeGGGStringRaw(stripLinks(s))
+end
 local OUT_DIR = "../Data/zhTW/"
 
 local datNames = {
@@ -136,16 +149,29 @@ local function readFile(path)
 	return data
 end
 
+-- Newer clients ship stat descriptions as .csd (same text format) instead of .txt.
+-- Extract both names and prefer .csd, so an old cached .txt is never used by mistake.
+local function readStatFile(name)
+	return readFile("Metadata/StatDescriptions/" .. name .. ".csd") or readFile("Metadata/StatDescriptions/" .. name .. ".txt")
+end
+local function statFilePaths(name)
+	return { "Metadata/StatDescriptions/" .. name .. ".csd", "Metadata/StatDescriptions/" .. name .. ".txt" }
+end
+
 local extractList = { }
 for _, name in ipairs(datNames) do
 	t_insert(extractList, "Data/" .. name .. ".datc64")
 	t_insert(extractList, "Data/" .. LANG .. "/" .. name .. ".datc64")
 end
 for _, name in ipairs(statFiles) do
-	t_insert(extractList, "Metadata/StatDescriptions/" .. name .. ".txt")
+	for _, path in ipairs(statFilePaths(name)) do
+		t_insert(extractList, path)
+	end
 end
 for _, name in ipairs(displayStatFiles) do
-	t_insert(extractList, "Metadata/StatDescriptions/" .. name .. ".txt")
+	for _, path in ipairs(statFilePaths(name)) do
+		t_insert(extractList, path)
+	end
 end
 -- English only: used to rank stats that share one Chinese text
 local englishOnlyDats = { "Stats" }
@@ -660,7 +686,7 @@ do
 	local out = { files = statFiles }
 	local descCount, lineCount = 0, 0
 	for fileIndex, name in ipairs(statFiles) do
-		local raw = readFile("Metadata/StatDescriptions/" .. name .. ".txt")
+		local raw = readStatFile(name)
 		if not raw then
 			print("zhTW: missing stat description file " .. name)
 		else
@@ -790,7 +816,7 @@ end
 do
 	-- Same parsing as Export/Scripts/statdesc.lua, but keeps the requested language
 	local function parseFile(name, wantLang, dirName)
-		local raw = readFile("Metadata/StatDescriptions/" .. name .. ".txt")
+		local raw = readStatFile(name)
 		if not raw then
 			return nil
 		end
@@ -804,7 +830,7 @@ do
 				line = prepend .. line
 				prepend = nil
 			end
-			local parent = line:match('include "Metadata/StatDescriptions/(.+)%.txt"$')
+			local parent = line:match('include "Metadata/StatDescriptions/(.+)%.%a+"$')
 			if parent then
 				statDescriptor.parent = dirName .. "/" .. parent
 			else
@@ -915,7 +941,7 @@ do
 					local parentName = sd.parent:match("[^/]+$")
 					if not done[parentName] then
 						-- Parent files must be extracted too
-						extract({ "Metadata/StatDescriptions/" .. parentName .. ".txt" })
+						extract(statFilePaths(parentName))
 						t_insert(queue, parentName)
 					end
 				end

@@ -47,8 +47,22 @@ local function compileAll()
 	end
 	compiled = { }
 	local seen = { }
+	-- PoB's own English descriptions first: they are exactly what PoB displays, while the
+	-- client's English may already use newer wording ("+8% to Item Rarity").
+	local sources = { }
 	for fileIndex, file in ipairs(files) do
-		local scope = LoadModule("Data/StatDescriptions/zhTW/en/" .. file)
+		local f = io.open("Data/StatDescriptions/" .. file .. ".lua", "r")
+		if f then
+			f:close()
+			t_insert(sources, { "Data/StatDescriptions/" .. file, file, fileIndex })
+		end
+	end
+	for fileIndex, file in ipairs(files) do
+		t_insert(sources, { "Data/StatDescriptions/zhTW/en/" .. file, file, fileIndex })
+	end
+	for _, source in ipairs(sources) do
+		local file, fileIndex = source[2], source[3]
+		local scope = LoadModule(source[1])
 		for _, desc in ipairs(scope or { }) do
 			if desc.stats and desc[1] then
 				for _, variant in ipairs(desc[1]) do

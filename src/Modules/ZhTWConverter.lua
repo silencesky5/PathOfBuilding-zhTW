@@ -240,7 +240,16 @@ local nameSpecials = {
 	tree_expansion_jewel_passive = "passive",
 	affliction_notable = "passive",
 	passive_hash_and_list = "passive",
+	-- Newer clients: the name stands for a stat value (ring size, Timeless jewel faction / general).
+	-- The value is looked up from the same description's other Chinese variants (see learnNameValues).
+	passive_jewel_radius = "value",
+	alternate_tree_version_name = "value",
+	alternate_tree_version_keystone = "value",
 }
+
+-- Ring sizes the Taiwan site writes that the client's variants don't all list
+-- ("巨大" is the older word for the Massive ring, "極大" the newer one)
+local radiusNames = { ["小"] = 1, ["中"] = 2, ["大"] = 3, ["非常大"] = 4, ["極大"] = 5, ["巨大"] = 5 }
 
 -- Reverse of the value transforms in Modules/StatDescriber.lua (displayed value -> stat value)
 local inverse = {
@@ -366,6 +375,87 @@ local function compileTemplate(text, nameIndex)
 end
 
 local compiled -- list of compiled templates by line count
+local limitOk, valueForLimit -- defined further down
+
+-- For descriptions with "value" names: which stat values each Chinese name stands for.
+-- A generic variant ("授銜{1}個硬幣以紀念{2} / 範圍內的天賦臣服於{0}") is lined up against the
+-- specific ones ("5 # 3 1|# 授銜 {1} 個硬幣以紀念卡斯皮羅 / …臣服於不朽帝國"); each name captured
+-- this way gets the specific variant's fixed stat values. Result: desc.zhNameValues[stat][name] = { [stat] = value }
+local function learnNameValues(desc)
+	local generics, specifics = { }, { }
+	for _, variant in ipairs(desc.v or { }) do
+		local names = { }
+		for _, sp in ipairs(variant.p or { }) do
+			if nameSpecials[sp[1]] == "value" then
+				names[sp[2]] = sp[1]
+			end
+		end
+		if next(names) then
+			t_insert(generics, { variant = variant, names = names })
+		else
+			t_insert(specifics, variant)
+		end
+	end
+	if #generics == 0 then
+		return
+	end
+	local map = { }
+	desc.zhNameValues = map
+	for _, g in ipairs(generics) do
+		-- names -> captures; numbers stay as "{n}" with optional spaces around them
+		local parts, nameOrder = { "^" }, { }
+		local pos, text = 1, g.variant.t
+		while true do
+			local a, b, inner = text:find("{([^}]*)}", pos)
+			if not a then
+				t_insert(parts, escapePattern(text:sub(pos)))
+				break
+			end
+			t_insert(parts, escapePattern(text:sub(pos, a - 1)))
+			local idx = (tonumber(inner:match("^(%d+)")) or 0) + 1
+			if g.names[idx] then
+				t_insert(parts, "(.-)")
+				t_insert(nameOrder, idx)
+			else
+				t_insert(parts, "%s*{" .. (idx - 1) .. "[^}]*}%s*")
+			end
+			pos = b + 1
+		end
+		t_insert(parts, "$")
+		local pattern = t_concat(parts)
+		for _, sv in ipairs(specifics) do
+			-- the specific variant must sit inside the generic one's fixed limits
+			local fits = true
+			for i, limit in ipairs(g.variant.l or { }) do
+				if limit[1] ~= "#" and type(limit[1]) == "number" and not limitOk(sv.l[i] or { "#", "#" }, limit[1]) then
+					fits = false
+				end
+			end
+			local caps = fits and { sv.t:match(pattern) }
+			if caps and caps[1] then
+				local assign = { }
+				for i, limit in ipairs(sv.l or { }) do
+					if not (limit[1] == "#" and limit[2] == "#") then
+						assign[i] = valueForLimit(limit, true)
+					end
+				end
+				for k, idx in ipairs(nameOrder) do
+					local name = trim(caps[k])
+					map[idx] = map[idx] or { }
+					map[idx][name] = map[idx][name] or assign
+				end
+			end
+		end
+		for idx, kind in pairs(g.names) do
+			if kind == "passive_jewel_radius" then
+				map[idx] = map[idx] or { }
+				for name, v in pairs(radiusNames) do
+					map[idx][name] = map[idx][name] or { [idx] = v }
+				end
+			end
+		end
+	end
+end
 
 local function compileAll()
 	if compiled then
@@ -374,6 +464,7 @@ local function compileAll()
 	local statDesc = loadTables().statDescriptions
 	compiled = { }
 	for _, desc in ipairs(statDesc) do
+		learnNameValues(desc)
 		for _, variant in ipairs(desc.v or { }) do
 			local nameIndex = { }
 			for _, sp in ipairs(variant.p or { }) do
@@ -394,7 +485,7 @@ local function compileAll()
 	return compiled
 end
 
-local function limitOk(limit, value)
+function limitOk(limit, value)
 	if limit[1] == "!" then
 		return value ~= limit[2]
 	end
@@ -410,7 +501,7 @@ end
 -- A value that satisfies a limit, for stats that are not shown in the text.
 -- `present` asks for a non-zero value: a description with no number in it is only
 -- shown when its stat is non-zero (e.g. "Has no Sockets" = 1).
-local function valueForLimit(limit, present)
+function valueForLimit(limit, present)
 	if limit[1] == "!" then
 		return limit[2] == 0 and 1 or 0
 	end
@@ -517,7 +608,22 @@ local function tryCandidate(c, captures, ignoreLimits)
 		local i = placeholder + 1
 		local raw = captures[capIndex]
 		shown[i] = true
-		if c.nameIndex[i] then
+		if c.nameIndex[i] and nameSpecials[c.nameIndex[i]] == "value" then
+			local byName = c.desc.zhNameValues and c.desc.zhNameValues[i]
+			local assign = byName and byName[trim(raw)]
+			if not assign then
+				return nil
+			end
+			for statIndex, v in pairs(assign) do
+				if not shown[statIndex] or statIndex == i then
+					values[statIndex] = values[statIndex] or v
+				end
+			end
+			values[i] = assign[i] or values[i]
+			if not values[i] then
+				return nil
+			end
+		elseif c.nameIndex[i] then
 			local en = translateNameValue(nameSpecials[c.nameIndex[i]], raw)
 			if not en then
 				return nil
@@ -801,7 +907,32 @@ local prefixRules = {
 local cache = { }
 
 -- Converts a (possibly multi-line) modifier. Returns English or nil.
+-- Newer Taiwan data has keyword links in mod texts: "+8%[PlayerItemRarity|物品稀有度]"
+local function stripLinks(s)
+	if type(s) ~= "string" or not s:find("[", 1, true) then
+		return s
+	end
+	return (s:gsub("%[([^%[%]|]+)|([^%[%]]+)%]", "%2"):gsub("%[([^%[%]|]+)%]", "%1"))
+end
+ZhTW.stripLinks = stripLinks
+
+-- The Taiwan site sends some lines half translated: a Chinese prefix and the rest in English
+-- ("附加的小型天賦給予：Minions have 12% increased maximum Life" on cluster jewels).
+local mixedPrefixes = {
+	{ zh = "附加的小型天賦給予：", en = "Added Small Passive Skills grant: " },
+	{ zh = "附加的小型天賦給予:", en = "Added Small Passive Skills grant: " },
+}
+
 local function convertModText(text, field)
+	text = stripLinks(text)
+	for _, prefix in ipairs(mixedPrefixes) do
+		if text:sub(1, #prefix.zh) == prefix.zh then
+			local rest = text:sub(#prefix.zh + 1)
+			if rest:find("%a") and not rest:find("[\128-\255]") then
+				return prefix.en .. rest
+			end
+		end
+	end
 	local cacheKey = text .. "|" .. tostring(field) .. "|" .. (itemContext and itemContext.sig or "")
 	if cache[cacheKey] ~= nil then
 		return cache[cacheKey] or nil
@@ -985,6 +1116,7 @@ local function convertGem(gem, itemName)
 	convertProperties(gem.properties, itemName)
 	convertProperties(gem.requirements, itemName)
 	if type(gem.builtInSupport) == "string" then
+		gem.builtInSupport = stripLinks(gem.builtInSupport)
 		local t = props.templates.ItemDisplayBuiltInSupport
 		local inner = t and stripTemplate(t.zh, gem.builtInSupport)
 		local en = inner and (gemName(inner .. "輔助") or gemName(inner))
@@ -1106,7 +1238,24 @@ local function convertLeague(zh)
 	if hc and zh == hc.zh then
 		return "Hardcore"
 	end
-	-- Seasonal league: find the short league name inside the full name
+	-- Seasonal league: find the short league name inside the full name.
+	-- LeagueNames.dat can lag behind a new league; its full names ("巫影密會聯盟「自力」" =
+	-- "SSF Coven") give the short name too.
+	if not t.shortFromNames then
+		t.shortFromNames = true
+		local known = { }
+		for _, s in ipairs(t.short) do
+			known[s.zh] = true
+		end
+		for zhName, enName in pairs(t.names) do
+			local zhShort = type(zhName) == "string" and zhName:match("^(.-)聯盟「自力」$")
+			local enShort = type(enName) == "string" and enName:match("^SSF (.+)$")
+			if zhShort and enShort and zhShort ~= "" and not enShort:match("^HC ") and not known[zhShort] then
+				known[zhShort] = true
+				t_insert(t.short, { zh = zhShort, en = enShort })
+			end
+		end
+	end
 	local best
 	for _, s in ipairs(t.short) do
 		if zh:find(s.zh, 1, true) and (not best or #s.zh > #best.zh) then
