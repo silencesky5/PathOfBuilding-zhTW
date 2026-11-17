@@ -21,6 +21,7 @@ Path of Building Community（PoE1）的非官方繁體中文版：
   1. 在 `zhTW` 提交好、測試通過。
   2. `python src/Export/zhTWRelease.py publish --version 2.67.2-zhTW.<n> --note "更新內容"`：在 changelog.txt 加一筆紀錄、依提交內容重算 manifest.xml，然後提交。版本號要和 changelog 的 `VERSION[...]` 一致，更新視窗才會只顯示新的紀錄。
   3. `git push origin zhTW` 和 `git push origin HEAD:release`。GitHub 的快取大約 5 分鐘後，朋友就會收到。
+- **上傳 Releases**（11/18 起這台電腦有 GitHub CLI，已登入 silencesky5）：`"C:\Program Files\GitHub CLI\gh.exe" release create v<版本> "<ASCII 檔名的 zip>#POB台服版_<版本>.zip" -R silencesky5/PathOfBuilding-zhTW --target release --title "POB台服版 <版本>" --notes ...`。檔名用中文會被 GitHub 改成 `POB._…`，所以上傳用 ASCII 檔名（可在暫存資料夾做硬連結）、中文放在 label；`--target` 要用分支名或完整 SHA。
 - **給新朋友的壓縮檔**：`powershell -ExecutionPolicy Bypass -File src\Export\zhTWPackage.ps1`，用最後一次提交產生 `Work_Space\POE相關\POB台服版\POB台服版_<版本>.zip`（repo 的上一層資料夾）。上傳到 GitHub 的 Releases。
 - **驗證更新流程**：`python src/Export/zhTWUpdateTest.py <空資料夾>`。它會在本機架一個假的 GitHub，用壓縮檔裡的 exe 跑 POB 自己的 UpdateCheck/UpdateApply 和 Update.exe，檢查只下載變更的檔案、刪除的檔案有刪掉、個人檔案沒被動到、更新來源還是我們的。全程不開視窗，大約 1 分鐘。
 - manifest 的 sha1 是對 git 裡的原始內容（GitHub raw 提供的就是原始內容）。上游有些檔案用 CRLF 存，所以不要用 `git archive` 或工作區的檔案來算。
