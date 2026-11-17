@@ -92,3 +92,7 @@ Path{space}of{space}Building.exe <src\zhTWCoverage.lua 的完整路徑>   → sr
    - 天賦點、等級、職業、昇華、血液昇華、天賦配置改成天賦頁左上角的直式面板。
    - 拿掉 Current build 名稱欄。
    - 筆記、隊伍、比較按鈕隱藏，但資料仍保留（存檔不受影響）。
+7. **介面改動紀錄（11/18 凌晨）**：
+   - 「主要技能」選單從左側欄移到技能頁（「使用提示」與「寶石選項」之間的「主要技能（DPS 計算）」框；`ZhTWLayout.setupSkillsTab`）。左側欄 DPS 卡片下方寫目前計算的技能。
+   - 左側欄各大項改成卡片標題列（金框、重點數字、點擊收合；`setupGroupCards`）。
+   - 圖示：`src/Assets/zhTW/icons.png`（6×5 格、每格 32px，順序見 `ZhTWLayout.lua` 的 `iconIndex`），用在左側欄卡片與頁籤／模式按鈕。關閉：把 `SHOW_ICONS` 改成 false。Scenario 原圖與預覽放在 repo 外的 `POB台服版\素材_圖示\`。

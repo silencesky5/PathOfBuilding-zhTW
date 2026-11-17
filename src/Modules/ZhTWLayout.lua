@@ -805,9 +805,46 @@ function ZhTWLayout.setupModeButtons(build)
 			return build.viewMode == tab.mode
 		end
 		controls["zhTWSheet" .. tab.mode] = button
+		ZhTWLayout.addButtonIcon(button, tab.label)
 	end
+	ZhTWLayout.addButtonIcon(import, "匯入/匯出")
+	ZhTWLayout.addButtonIcon(sheetButton, "角色配置")
+	ZhTWLayout.addButtonIcon(controls.modeConfig, "設定")
 
 	ZhTWLayout.setupTreePanel(build)
+end
+
+-- Icon before a button's text (Chinese interface with the icon sheet only)
+function ZhTWLayout.addButtonIcon(button, iconName)
+	if not button then
+		return
+	end
+	local baseDraw = button.Draw
+	button.Draw = function(self, viewPort, noTooltip)
+		if not ZhTWLayout.hasIcons() or not iconIndex[iconName] then
+			return baseDraw(self, viewPort, noTooltip)
+		end
+		local label = self:GetProperty("label")
+		local origLabel = self.label
+		self.label = "" -- frame and hover from PoB, icon and text drawn here
+		baseDraw(self, viewPort, noTooltip)
+		self.label = origLabel
+		local x, y = self:GetPos()
+		local width, height = self:GetSize()
+		local textH = height - 4
+		local size = height - 4
+		local textW = DrawStringWidth(textH, "VAR", label)
+		local startX = m_floor(x + (width - size - 4 - textW) / 2)
+		local on = self:IsEnabled()
+		ZhTWLayout.drawIcon(iconName, startX, y + 2, size, on and 1 or 0.4)
+		if on then
+			SetDrawColor(1, 1, 1)
+		else
+			SetDrawColor(0.33, 0.33, 0.33)
+		end
+		DrawString(startX + size + 4, y + 2, "LEFT", textH, "VAR", label)
+		SetDrawColor(1, 1, 1)
+	end
 end
 
 ---------------------------------------------------------------------------
