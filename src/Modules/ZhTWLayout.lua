@@ -41,6 +41,9 @@ end
 -- Sidebar: summary cards above the stat list
 ---------------------------------------------------------------------------
 
+-- The four summary cards above the stat list; off since the group cards show the same
+-- numbers (攻擊 DPS and skill, 承受能力 EHP, 生命, 能量護盾). true brings them back.
+local SHOW_SUMMARY = false
 local CARD_H = 40
 local CARD_H_TOP = 54 -- the top row has a second line: which skill the DPS is for
 local CARD_GAP = 4
@@ -92,7 +95,7 @@ function ZhTWLayout.setupSidebar(build)
 	local controls = build.controls
 	local cards = new("Control"):Control({ "TOPLEFT", controls.statBoxAnchor, "BOTTOMLEFT" }, { 0, 2, 300, 0 })
 	cards.height = function()
-		return enabled() and (CARD_H_TOP + CARD_H + CARD_GAP) or 0
+		return enabled() and SHOW_SUMMARY and (CARD_H_TOP + CARD_H + CARD_GAP) or 0
 	end
 	cards.shown = function()
 		return enabled()
@@ -107,6 +110,9 @@ function ZhTWLayout.setupSidebar(build)
 		return baseGetPos(self)
 	end
 	cards.Draw = function(control)
+		if not SHOW_SUMMARY then
+			return
+		end
 		local x, y = control:GetPos()
 		local width = control:GetSize()
 		local cardW = m_floor((width - CARD_GAP) / 2)
@@ -277,8 +283,17 @@ function ZhTWLayout.setupGroupCards(build)
 					tx = 30
 				end
 				DrawString(tx, cy + (ch - 16) / 2, "LEFT", 16, "VAR BOLD", GOLD .. line.zhTWHeading)
+				local valueW = 0
 				if line.value then
 					DrawString(w - 22, cy + (ch - 14) / 2, "RIGHT_X", 14, "VAR", "^7" .. line.value)
+					valueW = DrawStringWidth(14, "VAR", line.value)
+				end
+				if line.zhTWSkill then
+					local nx = tx + DrawStringWidth(16, "VAR BOLD", line.zhTWHeading) + 8
+					local room = w - 30 - valueW - nx
+					if room > 30 then
+						DrawString(nx, cy + (ch - 12) / 2, "LEFT", 12, "VAR", "^x8C8478" .. fitText(line.zhTWSkill, 12, room))
+					end
 				end
 			end
 			lineY = lineY + line.height
@@ -315,7 +330,7 @@ function ZhTWLayout.refreshSidebar(build)
 	local card, hidden -- current group card; true while its group is collapsed
 	-- the card shows the first wanted stat of its group on the right
 	local function takeValue(label, line)
-		if not card or card.value or not label or not line[2] then
+		if not card or not label or not line[2] then
 			return
 		end
 		local wanted = headingValueLabel[card.zhTWHeading]
@@ -323,12 +338,13 @@ function ZhTWLayout.refreshSidebar(build)
 			return
 		end
 		if #wanted == 0 then
-			card.value = line[2]
+			card.value = card.value or line[2]
 			return
 		end
-		for _, name in ipairs(wanted) do
-			if name == label then
-				card.value = line[2]
+		-- earlier names in the list win over later ones
+		for rank, name in ipairs(wanted) do
+			if name == label and rank < (card.valueRank or math.huge) then
+				card.value, card.valueRank = line[2], rank
 				return
 			end
 		end
@@ -352,6 +368,10 @@ function ZhTWLayout.refreshSidebar(build)
 			if heading then
 				local key = section .. "/" .. heading
 				card = { height = HEADING_H, zhTWHeading = heading, zhTWKey = key }
+				if heading == "攻擊" and section ~= "Minion" then
+					-- which skill the numbers are for (chosen in the 技能 tab)
+					card.zhTWSkill = mainSkillName(build)
+				end
 				hidden = ZhTWLayout.collapsedGroups[key] or false
 				card.collapsed = hidden
 				t_insert(out, card)
