@@ -279,7 +279,47 @@ local function buildItem(orig, kept, chosen, title)
 end
 
 -- 最佳化一個欄位。yield(progressText) 會在每次計算後被呼叫（可為 nil）
-function M.optimizeSlot(itemsTab, slot, keepRes, yield)
+-- 可以選來計算 DPS 的技能：技能頁有主動技能的每一組。回傳 { { index, label } ... }
+function M.listSkills(build)
+	local list = { }
+	for index, group in ipairs(build.skillsTab.socketGroupList or { }) do
+		if group.displaySkillList and #group.displaySkillList > 0 then
+			local label = group.displayLabel or group.label or ("#" .. index)
+			if ZhTWLocale and ZhTWLocale.tr then
+				label = ZhTWLocale.tr(label) or label
+			end
+			t_insert(list, { index = index, label = label })
+		end
+	end
+	return list
+end
+
+-- 以 groupIndex 那組技能當主要技能的計算函數（不動到 Build 本身的主要技能設定）
+local function makeCalculator(build, groupIndex)
+	if not groupIndex or groupIndex == build.mainSocketGroup then
+		local calcFunc = build.calcsTab:GetMiscCalculator()
+		return function(override)
+			return calcFunc(override, false)
+		end
+	end
+	local function withGroup(f, ...)
+		local saved = build.mainSocketGroup
+		build.mainSocketGroup = groupIndex
+		local ok, a, b = pcall(f, ...)
+		build.mainSocketGroup = saved
+		if not ok then
+			error(a, 0)
+		end
+		return a, b
+	end
+	local calcFunc = withGroup(build.calcsTab.calcs.getMiscCalculator, build)
+	return function(override)
+		return withGroup(calcFunc, override, false)
+	end
+end
+
+-- groupIndex：用哪一組技能算 DPS（nil = Build 的主要技能）
+function M.optimizeSlot(itemsTab, slot, keepRes, yield, groupIndex)
 	local orig = itemsTab.items[slot.selItemId]
 	local result = { slot = slot, label = slotLabel(slot), orig = orig }
 	if not orig then
@@ -288,7 +328,7 @@ function M.optimizeSlot(itemsTab, slot, keepRes, yield)
 	end
 	-- 已汙染／複製的物品不能再改，但結果是同底材的另一件新物品，所以照樣計算（結果不帶汙染）
 	result.wasLocked = orig.corrupted or orig.mirrored or orig.split
-	local calcFunc, calcBase = itemsTab.build.calcsTab:GetMiscCalculator()
+	local calcFunc = makeCalculator(itemsTab.build, groupIndex)
 	local slotName = slot.slotName
 	local count = 0
 	local function eval(item)
@@ -447,7 +487,6 @@ function M.optimizeSlot(itemsTab, slot, keepRes, yield)
 	result.item = newItem
 	result.chosen = chosen
 	result.evals = count
-	result.baseDPS = dpsOf(calcBase)
 	return result
 end
 
@@ -475,8 +514,17 @@ end
 function M.openPopup(itemsTab)
 	local slots = M.listSlots(itemsTab)
 	local controls = { }
-	local state = { lines = { }, running = false, keepRes = true, selIndex = 1 }
-	local width, height = 620, 420
+	local build = itemsTab.build
+	local skills = M.listSkills(build)
+	local state = { lines = { }, running = false, keepRes = true, selIndex = 1, skillIndex = 1 }
+	local skillChoices = { }
+	for i, skill in ipairs(skills) do
+		t_insert(skillChoices, skill.label .. (skill.index == build.mainSocketGroup and "  （主要技能）" or ""))
+		if skill.index == build.mainSocketGroup then
+			state.skillIndex = i
+		end
+	end
+	local width, height = 620, 450
 
 	local choices = { "全部稀有裝備" }
 	for _, slot in ipairs(slots) do
@@ -491,10 +539,15 @@ function M.openPopup(itemsTab)
 	controls.keepRes = new("CheckBoxControl"):CheckBoxControl({ "TOPLEFT", nil, "TOPLEFT" }, { 530, 30, 20 }, "^7保留抗性", function(checked)
 		state.keepRes = checked
 	end, "勾選時，火／冰／電／混沌抗性各自不低於目前，用最少的欄位湊到（可以換成全抗、雙抗），\n剩下的欄位放傷害詞綴。", true)
-	controls.info = new("LabelControl"):LabelControl({ "TOPLEFT", nil, "TOPLEFT" }, { 16, 60, 0, 14 },
+	controls.skillLabel = new("LabelControl"):LabelControl({ "TOPLEFT", nil, "TOPLEFT" }, { 16, 62, 0, 16 }, "^7計算技能：")
+	controls.skill = new("DropDownControl"):DropDownControl({ "TOPLEFT", nil, "TOPLEFT" }, { 100, 60, 330, 20 }, skillChoices, function(index)
+		state.skillIndex = index
+	end, "比較的是這個技能的 DPS（預設是主要技能）。\n主要技能如果是攻擊，結果會挑攻擊詞綴；法術流請改選你的法術。")
+	controls.skill.selIndex = state.skillIndex
+	controls.info = new("LabelControl"):LabelControl({ "TOPLEFT", nil, "TOPLEFT" }, { 16, 90, 0, 14 },
 		"^8依底材與物品等級，最多 3 前綴 3 後綴、同類詞綴不重複、數值取最高；比較主要技能的 DPS。")
 
-	local results = new("Control"):Control({ "TOPLEFT", nil, "TOPLEFT" }, { 16, 84, width - 32, height - 84 - 40 })
+	local results = new("Control"):Control({ "TOPLEFT", nil, "TOPLEFT" }, { 16, 114, width - 32, height - 114 - 40 })
 	results.Draw = function(control, viewPort)
 		if state.co then
 			local start = GetTime()
@@ -537,12 +590,14 @@ function M.openPopup(itemsTab)
 			targets = { slots[state.selIndex - 1] }
 		end
 		wipeTable(state.lines)
+		local skill = skills[state.skillIndex]
+		t_insert(state.lines, "^7用「" .. (skill and skill.label or "主要技能") .. "」的 DPS 比較")
 		local added = 0
 		for _, slot in ipairs(targets) do
 			local r = M.optimizeSlot(itemsTab, slot, state.keepRes, function(text)
 				state.progress = text
 				coroutine.yield()
-			end)
+			end, skill and skill.index)
 			state.progress = nil
 			if r.item and (r.after or 0) > (r.before or 0) * 1.001 then
 				itemsTab:AddItem(r.item, true)

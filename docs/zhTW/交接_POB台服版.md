@@ -128,7 +128,8 @@ Path{space}of{space}Building.exe <src\zhTWCoverage.lua 的完整路徑>   → sr
 
 12. **稀有裝備傷害最佳化（11/18）**：裝備頁「製作物品／自訂物品」右邊的按鈕（只在中文介面），程式在 `Modules/ZhTWOptimize.lua`，ItemsTab.lua 只加一行掛勾。
    - 選欄位（或全部稀有裝備）→ 用 POB 自己的詞綴表（`item.affixes`）找出該底材在遊戲規則內 DPS 最高的組合：最多 3 前綴 3 後綴、同 mod group 不重複、詞綴等級 ≤ 物品等級、權重 > 0（含物品本身的影響力），排除化石專屬與瑪文的 Elevated 詞綴；數值取最高。
-   - 計算用 `GetMiscCalculator`，比較主要技能的 `CombinedDPS`（召喚物技能用 Minion.CombinedDPS），DPS 相同時用生命＋能量護盾決定。搜尋：每個詞綴單獨算一次 → 前綴、後綴各取前 8 名 → 逐一加入最好的 → 兩輪逐一替換。每件約 100～170 次計算、約 1 秒；視窗用 coroutine 分散到每個畫面（每畫面 25ms）。
+   - 視窗可選「計算技能」（技能頁每一組，預設是 Build 的主要技能）。選別組時用 `calcs.getMiscCalculator` 在呼叫期間暫時把 `build.mainSocketGroup` 換成那組再換回來，Build 的主要技能不會被改。KAI 11/18 回報：主要技能是攻擊、看的是計算頁的電能釋放（Lightning Tendrils），結果挑了攻擊詞綴，裝上反而變低；`src/zhTWOptimizeRepro.lua` 驗證最佳化算的 DPS 和真的裝上後相同。
+   - 計算用 `GetMiscCalculator`（不算 FullDPS 以加快），比較所選技能的 `CombinedDPS`（召喚物技能用 Minion.CombinedDPS），DPS 相同時用生命＋能量護盾決定。搜尋：每個詞綴單獨算一次 → 前綴、後綴各取前 8 名 → 逐一加入最好的 → 兩輪逐一替換。每件約 100～170 次計算、約 1 秒；視窗用 coroutine 分散到每個畫面（每畫面 25ms）。
    - 「保留抗性」（預設勾選，KAI 11/18 同意改成總量制）：火／冰／電／混沌各自的抗性總量不低於目前（不含破裂），在可出現的抗性詞綴（含全抗、雙抗）中找欄位最少、多出抗性最多的組合固定下來，剩下欄位放傷害詞綴；最大抗性詞綴原樣保留。湊不到時（例如原本的抗性來自精髓或工藝台）才把原本的抗性詞綴原樣留著（判斷前綴／後綴用 `ZhTWAffixType.getType`）。破裂詞綴一律保留。
    - 結果以「最佳化 <原名>」加入裝備清單（[尚未使用]），提升不到 0.1% 不加入；身上的裝備不換。已汙染的物品照樣算，結果不帶汙染。
    - 測試：`Path{space}of{space}Building.exe <src\zhTWOptimizeTest.lua 完整路徑>` → `src\zhTWOptimizeTest.log`（用 spec/TestBuilds 的兩個 Build，檢查前後綴數量、group 不重複、等級，並模擬按鈕流程）。
