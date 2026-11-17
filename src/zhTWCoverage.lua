@@ -110,6 +110,7 @@ local ok, err = xpcall(function()
 			build.viewMode = mode
 			frames(3)
 		end
+		log("== Site realm default: " .. tostring(build.importTab.controls.siteAccountRealm:GetSelValue().id))
 		-- Typing in edit boxes (undo states go through the wrapped EditControl methods)
 		do
 			local tried, failed = 0, { }

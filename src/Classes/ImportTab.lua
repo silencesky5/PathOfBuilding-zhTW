@@ -354,7 +354,7 @@ local function addAccountNameControls(self)
 
 	self.controls.siteAccountRealm = new("DropDownControl"):DropDownControl({ "TOPLEFT", self.controls.siteAccountNameHeader, "BOTTOMLEFT" },
 		{ 0, 4, 60, 20 }, siteRealmList) -- zhTW: was realmList
-	self.controls.siteAccountRealm:SelByValue(main.lastRealm or "PC", "id")
+	self.controls.siteAccountRealm:SelByValue((ZhTWLocale and ZhTWLocale.enabled) and "TW" or main.lastRealm or "PC", "id") -- zhTW: Taiwan realm first for the Chinese interface
 	self.controls.siteAccountName = new("EditControl"):EditControl({ "LEFT", self.controls.siteAccountRealm, "RIGHT" }, { 8, 0, 200, 20 },
 		main.lastAccountName or "", nil, "%c", nil, nil, nil, nil, true)
 	self.controls.siteAccountName.pasteFilter = function(text)
