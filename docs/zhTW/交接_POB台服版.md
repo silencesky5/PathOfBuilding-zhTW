@@ -101,3 +101,8 @@ Path{space}of{space}Building.exe <src\zhTWCoverage.lua 的完整路徑>   → sr
    - 裝備頁：國際服交易按鈕全部隱藏；當前裝備清單（使用中＝綠色小方塊、[尚未使用]、[其他組]）；武器/防具/飾品/藥劑/珠寶分組框。
    - 顏色：我們加的框線、標題改暖灰／米白，金色只留強調。字形圖沒有任何圖形符號（● ■ ▲ ✓），要用就自己畫；測試會列出缺字。
    - 主題：選項（Options）→「Interface theme (介面主題)」可選 暗色／可愛（亮色），存在 Settings.xml 的 zhTWTheme。可愛版由 `Modules/ZhTWTheme.lua` 在繪圖時改色（無圖片的色塊變亮、文字顏色變深），圖示改用 `Assets/zhTW/icons_cute.png`；天賦樹畫面維持暗色。
+9. **貼上台服物品文字（11/18 凌晨）**：遊戲內 Ctrl+C／Ctrl+Alt+C 的繁中物品文字，可以在裝備頁直接 Ctrl+V，或貼進「從文字建立自訂物品」。
+   - 原本變 ??? 的原因：POB 貼上時把所有非 ASCII 位元組換成 `?`（`EditControl` 與 `sanitiseText`），不是剪貼簿編碼（`Paste()` 回傳的就是 UTF-8），也不是字形缺字。
+   - `Modules/ZhTWItemText.lua` 把繁中文字轉成英文遊戲複製格式再交給 POB：稀有度、名稱、基底、品質、需求、插槽、物品等級、`{ 前綴/後綴 }` 註解（含詞綴英文名、階層、大師工藝/破裂等旗標）、數值範圍 `40(33-43)`、已汙染等。轉不了的行會略過，並跳出視窗列出。
+   - `StatDescriber.lua` 的 `{:+d}` 改成保留正負號（台服資料用這種寫法，原本 `+850 最大生命…` 會變成 `850 …` 而無法解析；台服匯入也受益）。
+   - 測試：`Path{space}of{space}Building.exe <src\zhTWItemTextTest.lua 完整路徑>` → `src\zhTWItemTextTest.log`。範例在 `docs/zhTW/samples/`；另做傳奇物品往返測試（英文→中文→英文），目前 441 件中 434 件通過，失敗的是多行一組的特殊詞綴（深淵眼珠寶、Bound Fate 等）。
