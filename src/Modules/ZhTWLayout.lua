@@ -523,8 +523,18 @@ end
 
 function ZhTWLayout.setupModeButtons(build)
 	local controls = build.controls
-	for _, name in ipairs({ "modeNotes", "modeTree", "modeSkills", "modeItems", "modeCalcs", "modeParty", "modeCompare" }) do
+	-- buildName: "Current build:" box; Save on an unnamed build already asks for a name
+	for _, name in ipairs({ "modeNotes", "modeTree", "modeSkills", "modeItems", "modeCalcs", "modeParty", "modeCompare", "buildName" }) do
 		hideWhenEnabled(controls[name])
+	end
+	-- On narrow screens PoB moves the build name into the side bar and pushes the side bar down
+	local sideBar = build.anchorSideBar
+	local origSideY = sideBar.y
+	sideBar.y = function(self)
+		if enabled() then
+			return 36
+		end
+		return type(origSideY) == "function" and origSideY(self) or origSideY
 	end
 	local import = controls.modeImport
 	import.width = function()

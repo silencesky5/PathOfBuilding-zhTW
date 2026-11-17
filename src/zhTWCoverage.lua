@@ -350,7 +350,8 @@ local ok, err = xpcall(function()
 					table.insert(parts, btn(bc[n]))
 				end
 				local _, ly = bc.mainSkillLabel:GetPos()
-				log("== Mode buttons (" .. lang .. "): " .. table.concat(parts, " ") .. " | main skill label y=" .. ly)
+				log("== Mode buttons (" .. lang .. "): " .. table.concat(parts, " ") .. " | main skill label y=" .. ly
+					.. " | buildName shown=" .. tostring(bc.buildName:IsShown()) .. " side bar y=" .. select(2, build.anchorSideBar:GetPos()))
 				local saved = build.viewMode
 				for _, mode in ipairs({ "ITEMS", "SKILLS", "TREE", "CALCS", "IMPORT", "CONFIG", "PARTY", "NOTES" }) do
 					build.viewMode = mode
@@ -375,6 +376,17 @@ local ok, err = xpcall(function()
 				build.viewMode = saved
 			end
 			sheetState("zh")
+			-- Save on an unnamed build must still ask for a name (the build name box is hidden)
+			local savedName = build.dbFileName
+			build.dbFileName = nil
+			local before = #main.popups
+			build:SaveDBFile()
+			local popup = main.popups[1]
+			log("== Save unnamed build: popup opened=" .. tostring(#main.popups > before) .. " title=" .. tostring(popup and popup.title and ZhTWLocale.tr(popup.title)))
+			if #main.popups > before then
+				main:ClosePopup()
+			end
+			build.dbFileName = savedName
 			ZhTWLocale.enabled = false
 			sheetState("en")
 			ZhTWLocale.enabled = true
