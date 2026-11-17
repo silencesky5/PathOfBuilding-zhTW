@@ -8,7 +8,9 @@
 --   * 計算：POB 的 GetMiscCalculator（和物品提示的「裝上後的變化」同一套），
 --     比較的是主要技能的 DPS；DPS 相同時用生命＋能量護盾當次要依據。
 --   * 不能改的詞綴保留：破裂詞綴；瑪文的昇華（Elevated）詞綴不算（不會自然出現）；
---     已汙染的物品照樣計算，結果是不帶汙染的新物品；勾選「保留抗性」時，目前的抗性詞綴也保留（佔用原本的欄位）。
+--     已汙染的物品照樣計算，結果是不帶汙染的新物品。
+--   * 勾選「保留抗性」：火／冰／電／混沌各自的抗性總量不低於目前，用最少的欄位湊（可換成全抗、雙抗），
+--     剩下的欄位放傷害詞綴；最大抗性詞綴原樣保留；湊不到時才把原本的抗性詞綴原樣留著。
 --   * 結果以新物品加入裝備清單（[尚未使用]），不會換掉身上的裝備。
 --
 -- Public API:
@@ -46,6 +48,101 @@ end
 local function isResistLine(line)
 	local lower = line:lower()
 	return lower:match("^%+[%d%.]+%% to [%a ]*resistances?$") ~= nil
+end
+
+local ELEMENTS = { "fire", "cold", "lightning", "chaos" }
+
+-- 一行抗性加多少：{ fire = 40 } / 全抗 → 火冰電；最大抗性回傳 nil（另外保留）
+local function resistOf(line)
+	local value, target = line:lower():match("^%+([%d%.]+)%% to ([%a ]-) resistances?$")
+	if not value or target:match("maximum") then
+		return nil
+	end
+	value = tonumber(value)
+	local res = { }
+	if target == "all elemental" then
+		res.fire, res.cold, res.lightning = value, value, value
+	else
+		for name in (target .. " and "):gmatch("(%a+) and ") do
+			if name ~= "fire" and name ~= "cold" and name ~= "lightning" and name ~= "chaos" then
+				return nil
+			end
+			res[name] = value
+		end
+	end
+	return next(res) and res or nil
+end
+
+local function isMaxResistLine(line)
+	return isResistLine(line) and line:lower():match("maximum") ~= nil
+end
+
+-- 一個詞綴的抗性（每一行都要是抗性才算抗性詞綴）
+local function modResist(mod)
+	local total = { }
+	for _, line in ipairs(mod) do
+		local res = resistOf(itemLib.applyRange(line, 1))
+		if not res then
+			return nil
+		end
+		for k, v in pairs(res) do
+			total[k] = (total[k] or 0) + v
+		end
+	end
+	return next(total) and total or nil
+end
+
+-- 用最少的欄位湊到需要的抗性（同欄位數時，多出來的抗性越多越好）
+local function pickResistSet(cands, need, capacity)
+	local resCands = { }
+	for _, cand in ipairs(cands) do
+		cand.resist = modResist(cand.mod)
+		if cand.resist and capacity[cand.type] > 0 then
+			t_insert(resCands, cand)
+		end
+	end
+	local best, bestSize, bestSurplus
+	local function check(set)
+		local surplus = 0
+		for _, e in ipairs(ELEMENTS) do
+			local got = 0
+			for _, c in ipairs(set) do
+				got = got + (c.resist[e] or 0)
+			end
+			if got < (need[e] or 0) then
+				return
+			end
+			surplus = surplus + got - (need[e] or 0)
+		end
+		if not best or #set < bestSize or (#set == bestSize and surplus > bestSurplus) then
+			best, bestSize, bestSurplus = { unpack(set) }, #set, surplus
+		end
+	end
+	local set, used = { }, { Prefix = 0, Suffix = 0 }
+	local function walk(start)
+		check(set)
+		if #set >= 3 then
+			return
+		end
+		for i = start, #resCands do
+			local c = resCands[i]
+			local ok = used[c.type] < capacity[c.type]
+			for _, o in ipairs(set) do
+				if o.group == c.group then
+					ok = false
+				end
+			end
+			if ok then
+				t_insert(set, c)
+				used[c.type] = used[c.type] + 1
+				walk(i + 1)
+				set[#set] = nil
+				used[c.type] = used[c.type] - 1
+			end
+		end
+	end
+	walk(1)
+	return best
 end
 
 -- 同一組詞綴裡比較數值大小：最高數值的總和
@@ -98,7 +195,7 @@ function M.listSlots(itemsTab)
 	return list
 end
 
--- 不會變動的詞綴：破裂；保留抗性時的抗性詞綴。回傳 { modLine, type }
+-- 不會變動的詞綴：破裂；keepRes = "lines" 時原本的抗性詞綴，"max" 時最大抗性詞綴。回傳 { modLine, type }
 local function keptLines(item, keepRes)
 	ZhTWAffixType = ZhTWAffixType or LoadModule("Modules/ZhTWAffixType")
 	local present = { }
@@ -107,7 +204,8 @@ local function keptLines(item, keepRes)
 	end
 	local kept = { }
 	for _, modLine in ipairs(item.explicitModLines) do
-		local keep = modLine.fractured or (keepRes and isResistLine(modLine.line))
+		local keep = modLine.fractured or (keepRes == "lines" and isResistLine(modLine.line))
+			or (keepRes == "max" and isMaxResistLine(modLine.line))
 		if keep then
 			local t = ZhTWAffixType.getType(item, modLine, present)
 			if t ~= "Prefix" and t ~= "Suffix" then
@@ -202,26 +300,64 @@ function M.optimizeSlot(itemsTab, slot, keepRes, yield)
 		return output
 	end
 
-	local kept = keptLines(orig, keepRes)
-	local capacity = { Prefix = 3, Suffix = 3 }
-	local blockedKeys = { }
-	for _, k in ipairs(kept) do
-		capacity[k.type] = m_max(0, capacity[k.type] - 1)
-		blockedKeys[normalise(k.modLine.line)] = true
+	-- 保留抗性：目前（不含破裂）各元素的抗性總量要保住；用最少的欄位重新湊（可以換成全抗、雙抗），
+	-- 湊不到才把原本的抗性詞綴原樣留著
+	local need
+	if keepRes then
+		need = { }
+		for _, modLine in ipairs(orig.explicitModLines) do
+			local res = not modLine.fractured and resistOf(modLine.line)
+			if res then
+				for k, v in pairs(res) do
+					need[k] = (need[k] or 0) + v
+				end
+			end
+		end
 	end
-	local cands = candidateMods(orig, blockedKeys)
+	local function setup(mode)
+		local kept = keptLines(orig, mode)
+		local capacity = { Prefix = 3, Suffix = 3 }
+		local blockedKeys = { }
+		for _, k in ipairs(kept) do
+			capacity[k.type] = m_max(0, capacity[k.type] - 1)
+			blockedKeys[normalise(k.modLine.line)] = true
+		end
+		return kept, capacity, candidateMods(orig, blockedKeys)
+	end
+	local kept, capacity, cands = setup(keepRes and "max" or nil)
+	local fixed = { }
+	if keepRes then
+		local set = pickResistSet(cands, need, capacity)
+		if set then
+			fixed = set
+		else
+			kept, capacity, cands = setup("lines")
+			result.resistFallback = true
+		end
+	end
 	result.kept = kept
+	result.fixed = fixed
+	result.need = need
 	result.candidateCount = #cands
 
 	local beforeOutput = eval(orig)
 	result.before = dpsOf(beforeOutput)
 
 	-- 1. 每個候選詞綴單獨加上去的效果
-	local emptyScore = scoreOf(eval(buildItem(orig, kept, { })))
+	-- 固定的抗性詞綴佔用欄位，同 group 不能再選
+	local fixedCount = { Prefix = 0, Suffix = 0 }
+	local fixedGroup = { }
+	for _, c in ipairs(fixed) do
+		fixedCount[c.type] = fixedCount[c.type] + 1
+		fixedGroup[c.group] = true
+	end
+	local emptyScore = scoreOf(eval(buildItem(orig, kept, fixed)))
 	local pools = { Prefix = { }, Suffix = { } }
 	for _, cand in ipairs(cands) do
-		if capacity[cand.type] > 0 then
-			cand.single = scoreOf(eval(buildItem(orig, kept, { cand }))) - emptyScore
+		if capacity[cand.type] - fixedCount[cand.type] > 0 and not fixedGroup[cand.group] then
+			local test = { unpack(fixed) }
+			t_insert(test, cand)
+			cand.single = scoreOf(eval(buildItem(orig, kept, test))) - emptyScore
 			t_insert(pools[cand.type], cand)
 		end
 	end
@@ -254,7 +390,8 @@ function M.optimizeSlot(itemsTab, slot, keepRes, yield)
 	end
 
 	-- 2. 逐一加入讓分數最高的詞綴
-	local chosen = { }
+	local chosen = { unpack(fixed) }
+	local nFixed = #fixed
 	local curScore = emptyScore
 	while true do
 		local bestCand, bestScore
@@ -278,7 +415,7 @@ function M.optimizeSlot(itemsTab, slot, keepRes, yield)
 	-- 3. 逐一替換看看有沒有更好（處理詞綴之間的加乘，例如固定傷害＋百分比）
 	for _ = 1, SWAP_PASSES do
 		local improved = false
-		for i = 1, #chosen do
+		for i = nFixed + 1, #chosen do
 			for _, cand in ipairs(pool) do
 				if cand ~= chosen[i] and cand.type == chosen[i].type and fits(chosen, cand, i) then
 					local test = { unpack(chosen) }
@@ -353,7 +490,7 @@ function M.openPopup(itemsTab)
 	end)
 	controls.keepRes = new("CheckBoxControl"):CheckBoxControl({ "TOPLEFT", nil, "TOPLEFT" }, { 530, 30, 20 }, "^7保留抗性", function(checked)
 		state.keepRes = checked
-	end, "勾選時，目前的抗性詞綴（通常是後綴）原樣保留，只用剩下的欄位找傷害詞綴。", true)
+	end, "勾選時，火／冰／電／混沌抗性各自不低於目前，用最少的欄位湊到（可以換成全抗、雙抗），\n剩下的欄位放傷害詞綴。", true)
 	controls.info = new("LabelControl"):LabelControl({ "TOPLEFT", nil, "TOPLEFT" }, { 16, 60, 0, 14 },
 		"^8依底材與物品等級，最多 3 前綴 3 後綴、同類詞綴不重複、數值取最高；比較主要技能的 DPS。")
 

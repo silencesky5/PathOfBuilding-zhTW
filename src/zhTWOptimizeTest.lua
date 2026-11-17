@@ -47,6 +47,27 @@ local ok, err = pcall(function()
 					for _, k in ipairs(r.kept) do
 						log("   kept " .. k.type .. ": " .. k.modLine.line)
 					end
+					if r.need then
+						local got = { }
+						for _, ml in ipairs(r.item.explicitModLines) do
+							local v, target = ml.line:lower():match("^%+([%d%.]+)%% to ([%a ]-) resistances?$")
+							if v and not target:match("maximum") then
+								local names = target == "all elemental" and { "fire", "cold", "lightning" } or { }
+								if target ~= "all elemental" then
+									for n in (target .. " and "):gmatch("(%a+) and ") do names[#names + 1] = n end
+								end
+								for _, n in ipairs(names) do got[n] = (got[n] or 0) + tonumber(v) end
+							end
+						end
+						local parts = { }
+						for _, e in ipairs({ "fire", "cold", "lightning", "chaos" }) do
+							parts[#parts + 1] = string.format("%s %d/%d", e, got[e] or 0, r.need[e] or 0)
+							if not r.resistFallback then
+								assert((got[e] or 0) >= (r.need[e] or 0), "resistance below the original: " .. e)
+							end
+						end
+						log("   resist got/need: " .. table.concat(parts, ", ") .. (r.resistFallback and "  (fallback: kept lines)" or "") .. "  fixed=" .. #r.fixed)
+					end
 					for _, c in ipairs(r.chosen) do
 						log(string.format("   %s %s (lvl %d, group %s): %s", c.type, c.id, c.mod.level, c.group, table.concat(c.mod, " / ")))
 					end
