@@ -314,6 +314,66 @@ function ZhTWLayout.setupGroupCards(build)
 	end
 end
 
+-- Order of the group cards in the side bar (KAI 11/17); groups not listed keep PoB's order after them
+local groupOrder = {
+	"屬性", "攻擊", "完整 DPS", "技能 DPS", "生命", "回復與流失", "能量護盾", "魔力",
+	"抗性", "護甲", "閃避", "格擋與抑制", "其他", "承受能力",
+}
+local groupRank = { }
+for i, name in ipairs(groupOrder) do
+	groupRank[name] = i
+end
+
+local function isSectionTitle(line)
+	local label = labelOf(line)
+	return label == "Minion" or label == "Player" or label == "Skill disabled"
+end
+
+-- Moves whole groups (card, its stat lines and the gap after them) into groupOrder,
+-- separately inside the player and minion sections
+local function orderGroups(lines)
+	local result = { }
+	local blocks, pending = { }, nil
+	local function flush()
+		for i, block in ipairs(blocks) do
+			block.rank = groupRank[block[1].zhTWHeading] or (#groupOrder + i)
+			block.index = i
+		end
+		table.sort(blocks, function(a, b)
+			if a.rank ~= b.rank then
+				return a.rank < b.rank
+			end
+			return a.index < b.index
+		end)
+		for _, block in ipairs(blocks) do
+			local last = block[#block]
+			if last[1] or last[2] or last.zhTWHeading then
+				t_insert(block, { height = 6 }) -- keep a gap after a moved group
+			end
+			for _, line in ipairs(block) do
+				t_insert(result, line)
+			end
+		end
+		blocks = { }
+	end
+	for _, line in ipairs(lines) do
+		if isSectionTitle(line) then
+			flush()
+			pending = nil
+			t_insert(result, line)
+		elseif line.zhTWHeading then
+			pending = { line }
+			t_insert(blocks, pending)
+		elseif pending then
+			t_insert(pending, line)
+		else
+			t_insert(result, line) -- lines before the first card stay on top
+		end
+	end
+	flush()
+	return result
+end
+
 function ZhTWLayout.refreshSidebar(build)
 	local statBox = build.controls.statBox
 	if not enabled() then
@@ -392,6 +452,7 @@ function ZhTWLayout.refreshSidebar(build)
 			end
 		end
 	end
+	out = orderGroups(out)
 	wipeTable(list)
 	for i, line in ipairs(out) do
 		list[i] = line
