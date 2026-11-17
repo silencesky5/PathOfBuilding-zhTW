@@ -18,6 +18,7 @@ LoadModule("GameVersions")
 LoadModule("Modules/Common")
 LoadModule("Modules/ZhTWText") -- zhTW: draw Chinese characters (the engine fonts are ASCII only)
 ZhTWLayout = LoadModule("Modules/ZhTWLayout") -- zhTW: layout for the Chinese interface
+ZhTWTheme = LoadModule("Modules/ZhTWTheme") -- zhTW: optional light theme (after ZhTWText: wraps its DrawString)
 LoadModule("Modules/CalcFormat")
 LoadModule("Modules/Data")
 LoadModule("Modules/ModTools")
@@ -625,6 +626,9 @@ function main:LoadSettings(ignoreBuild)
 				if node.attrib.zhTWLanguage and ZhTWLocale then -- zhTW
 					ZhTWLocale.enabled = node.attrib.zhTWLanguage ~= "en"
 				end
+				if node.attrib.zhTWTheme and ZhTWTheme then -- zhTW
+					ZhTWTheme.setTheme(node.attrib.zhTWTheme)
+				end
 				if node.attrib.betaTest then
 					self.betaTest = node.attrib.betaTest == "true"
 				end
@@ -797,6 +801,7 @@ function main:SaveSettings()
 		showTitlebarName = tostring(self.showTitlebarName),
 		betaTest = tostring(self.betaTest),
 		zhTWLanguage = ZhTWLocale and (ZhTWLocale.enabled and "zh" or "en") or nil, -- zhTW
+		zhTWTheme = ZhTWTheme and ZhTWTheme.name or nil, -- zhTW
 		edgeSearchHighlight = tostring(self.edgeSearchHighlight),
 		defaultGemQuality = tostring(self.defaultGemQuality or 0),
 		defaultCharLevel = tostring(self.defaultCharLevel or 1),
@@ -885,6 +890,7 @@ function main:OpenOptionsPopup(savedState)
 		showTitlebarName = self.showTitlebarName,
 		betaTest = self.betaTest,
 		zhTWEnabled = ZhTWLocale and ZhTWLocale.enabled, -- zhTW
+		zhTWTheme = ZhTWTheme and ZhTWTheme.name, -- zhTW
 		edgeSearchHighlight = self.edgeSearchHighlight,
 		defaultGemQuality = self.defaultGemQuality or 0,
 		defaultCharLevel = self.defaultCharLevel or 1,
@@ -1059,6 +1065,18 @@ function main:OpenOptionsPopup(savedState)
 		end)
 		controls.zhTWLanguage.state = ZhTWLocale.enabled
 		controls.zhTWLanguage.tooltipText = "Show the interface, items and passive skills in Traditional Chinese (Taiwan client terms).\nCalculations are not affected."
+		if ZhTWTheme then -- zhTW: theme of the Chinese interface
+			nextRow()
+			controls.zhTWTheme = new("DropDownControl"):DropDownControl({ "TOPLEFT", controls.sectionAnchor, "TOPLEFT" }, { currentX + defaultLabelPlacementX, currentY, 120, 18 }, {
+				{ label = "暗色", theme = "dark" },
+				{ label = "可愛（亮色）", theme = "cute" },
+			}, function(index, value)
+				ZhTWTheme.setTheme(value.theme)
+			end)
+			controls.zhTWThemeLabel = new("LabelControl"):LabelControl({ "RIGHT", controls.zhTWTheme, "LEFT" }, { defaultLabelSpacingPx, 0, 0, 16 }, "^7Interface theme (介面主題):")
+			controls.zhTWTheme.tooltipText = "Only for the Chinese interface. 可愛 makes the whole window light;\nthe passive tree itself keeps the game's dark artwork."
+			controls.zhTWTheme:SelByValue(ZhTWTheme.name, "theme")
+		end
 	end
 
 	nextRow()
@@ -1259,6 +1277,9 @@ function main:OpenOptionsPopup(savedState)
 		if ZhTWLocale and savedState.zhTWEnabled ~= nil then -- zhTW
 			ZhTWLocale.enabled = savedState.zhTWEnabled
 			ZhTWLocale.clearCache()
+		end
+		if ZhTWTheme and savedState.zhTWTheme then -- zhTW
+			ZhTWTheme.setTheme(savedState.zhTWTheme)
 		end
 		self.edgeSearchHighlight = savedState.edgeSearchHighlight
 		self.defaultGemQuality = savedState.defaultGemQuality

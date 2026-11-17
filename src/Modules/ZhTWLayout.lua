@@ -186,21 +186,25 @@ local iconIndex = {
 	["主手"] = 36, ["副手"] = 37, ["頭部"] = 38, ["胸甲"] = 39, ["手套"] = 40, ["鞋子"] = 41,
 	["項鍊"] = 42, ["戒指"] = 43, ["腰帶"] = 44, ["藥劑瓶"] = 45, ["珠寶插槽"] = 46,
 }
-local iconSheet
+-- icons.png for the dark theme, icons_cute.png (same cells) for the 可愛 theme
+local iconSheets = { }
 local function loadIcons()
-	if iconSheet ~= nil then
-		return iconSheet
+	local file = (ZhTWTheme and ZhTWTheme.name == "cute") and "Assets/zhTW/icons_cute.png" or "Assets/zhTW/icons.png"
+	local sheet = iconSheets[file]
+	if sheet ~= nil then
+		return sheet
 	end
-	iconSheet = false
+	sheet = false
 	if SHOW_ICONS then
-		local f = io.open("Assets/zhTW/icons.png", "rb")
+		local f = io.open(file, "rb")
 		if f then
 			f:close()
-			iconSheet = NewImageHandle()
-			iconSheet:Load("Assets/zhTW/icons.png", "CLAMP")
+			sheet = NewImageHandle()
+			sheet:Load(file, "CLAMP")
 		end
 	end
-	return iconSheet
+	iconSheets[file] = sheet
+	return sheet
 end
 
 -- Draws the icon for name at x, y (size px square); false when there is none
@@ -1496,6 +1500,9 @@ end
 function ZhTWLayout.adjustTabViewPort(build, viewPort, inputEvents)
 	if not enabled() then
 		return
+	end
+	if ZhTWTheme then
+		ZhTWTheme.hookFrame(build)
 	end
 	if build.viewMode == "SKILLS" then
 		refreshSkillsTab(build)

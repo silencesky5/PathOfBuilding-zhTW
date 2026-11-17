@@ -256,6 +256,9 @@ function DrawString(left, top, align, height, font, text)
 	if ZhTWLocale.onDraw then -- test hook (zhTWCoverage.lua)
 		ZhTWLocale.onDraw(text)
 	end
+	if ZhTWTheme then -- light theme: darker text colours (Modules/ZhTWTheme.lua)
+		text = ZhTWTheme.prepareText(text)
+	end
 	if not hasWide(text) then
 		return origDrawString(left, top, align, height, font, text)
 	end

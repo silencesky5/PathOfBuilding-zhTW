@@ -570,6 +570,30 @@ local ok, err = xpcall(function()
 	end
 	ZhTWLocale.enabled = true
 
+	-- 可愛 (light) theme: frame time, colour mapping, the tree view left dark
+	if ZhTWTheme and not os.getenv("ZHTW_NO_THEME") then
+		local parts = { }
+		for _, mode in ipairs({ "ITEMS", "SKILLS", "TREE", "CALCS", "CONFIG" }) do
+			build.viewMode = mode
+			local row = { }
+			for _, theme in ipairs({ "dark", "cute" }) do
+				ZhTWTheme.setTheme(theme)
+				frames(3)
+				local t0 = os.clock()
+				frames(20)
+				table.insert(row, string.format("%s %.1f", theme, (os.clock() - t0) * 1000 / 20))
+			end
+			table.insert(parts, mode .. " " .. table.concat(row, "/"))
+		end
+		ZhTWTheme.setTheme("cute")
+		local sample = ZhTWTheme.darkenText("^7白字 ^xFFFF77稀有 ^xAF6025傳奇 ^8灰")
+		local treeHooked = build.treeTab.viewer.zhTWThemeHooked
+		local iconsCute = ZhTWLayout.hasIcons()
+		ZhTWTheme.setTheme("dark")
+		log(string.format("== Theme: ms/frame %s | text %s | tree view kept dark=%s | cute icons=%s",
+			table.concat(parts, ", "), sample, tostring(treeHooked), tostring(iconsCute)))
+	end
+
 	-- Report
 	local list = { }
 	for text, n in pairs(misses) do

@@ -96,3 +96,8 @@ Path{space}of{space}Building.exe <src\zhTWCoverage.lua 的完整路徑>   → sr
    - 「主要技能」選單從左側欄移到技能頁（「使用提示」與「寶石選項」之間的「主要技能（DPS 計算）」框；`ZhTWLayout.setupSkillsTab`）。左側欄 DPS 卡片下方寫目前計算的技能。
    - 左側欄各大項改成卡片標題列（金框、重點數字、點擊收合；`setupGroupCards`）。
    - 圖示：`src/Assets/zhTW/icons.png`（6×5 格、每格 32px，順序見 `ZhTWLayout.lua` 的 `iconIndex`），用在左側欄卡片與頁籤／模式按鈕。關閉：把 `SHOW_ICONS` 改成 false。Scenario 原圖與預覽放在 repo 外的 `POB台服版\素材_圖示\`。
+8. **介面改動紀錄（11/18 凌晨，續）**：
+   - 左側欄：拿掉 4 張摘要卡；11 張固定卡片（無數值寫 0），順序 屬性/攻擊/生命/能量護盾/魔力/抗性/護甲/閃避/格擋與抑制/其他/承受能力。
+   - 裝備頁：國際服交易按鈕全部隱藏；當前裝備清單（使用中＝綠色小方塊、[尚未使用]、[其他組]）；武器/防具/飾品/藥劑/珠寶分組框。
+   - 顏色：我們加的框線、標題改暖灰／米白，金色只留強調。字形圖沒有任何圖形符號（● ■ ▲ ✓），要用就自己畫；測試會列出缺字。
+   - 主題：選項（Options）→「Interface theme (介面主題)」可選 暗色／可愛（亮色），存在 Settings.xml 的 zhTWTheme。可愛版由 `Modules/ZhTWTheme.lua` 在繪圖時改色（無圖片的色塊變亮、文字顏色變深），圖示改用 `Assets/zhTW/icons_cute.png`；天賦樹畫面維持暗色。
