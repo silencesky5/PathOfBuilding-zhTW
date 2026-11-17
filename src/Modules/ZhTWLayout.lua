@@ -20,7 +20,10 @@ local function enabled()
 end
 ZhTWLayout.enabled = enabled
 
-local GOLD = "^xC8A45A"
+local GOLD = "^xC8A45A" -- only for emphasis: the selected source, unsaved Save
+local TITLE = "^xE6DFD0" -- titles of our cards and boxes (warm off-white)
+local SUBTLE = "^xA39B8C" -- secondary text
+local LINE = { 0.29, 0.27, 0.25 } -- frames and separators (#4A4540)
 
 local function rect(x, y, w, h, r, g, b, a)
 	SetDrawColor(r, g, b, a or 1)
@@ -263,16 +266,16 @@ function ZhTWLayout.setupGroupCards(build)
 		for _, line in ipairs(self.list) do
 			if line.zhTWHeading and lineY + line.height > 0 and lineY < height then
 				local cy, ch = lineY + 2, line.height - 3
-				rect(0, cy, w, ch, 0.42, 0.34, 0.2)
+				rect(0, cy, w, ch, LINE[1], LINE[2], LINE[3])
 				if line == hovered then
-					rect(1, cy + 1, w - 2, ch - 2, 0.2, 0.16, 0.1)
+					rect(1, cy + 1, w - 2, ch - 2, 0.19, 0.18, 0.16)
 				else
-					rect(1, cy + 1, w - 2, ch - 2, 0.12, 0.1, 0.07)
+					rect(1, cy + 1, w - 2, ch - 2, 0.12, 0.115, 0.105)
 				end
-				rect(1, cy + 1, 3, ch - 2, 0.78, 0.64, 0.35) -- gold edge on the left
+				rect(1, cy + 1, 3, ch - 2, 0.45, 0.42, 0.37) -- edge on the left
 				-- fold arrow: right when folded, down when open
 				local ax, ay = w - 12, cy + ch / 2
-				SetDrawColor(0.78, 0.64, 0.35)
+				SetDrawColor(0.64, 0.61, 0.55)
 				if line.empty then
 					-- nothing to fold
 				elseif line.collapsed then
@@ -285,7 +288,7 @@ function ZhTWLayout.setupGroupCards(build)
 				if ZhTWLayout.drawIcon(line.zhTWHeading, 8, cy + (ch - 16) / 2, 16) then
 					tx = 30
 				end
-				DrawString(tx, cy + (ch - 16) / 2, "LEFT", 16, "VAR BOLD", GOLD .. line.zhTWHeading)
+				DrawString(tx, cy + (ch - 16) / 2, "LEFT", 16, "VAR BOLD", TITLE .. line.zhTWHeading)
 				local valueW = 0
 				if line.value then
 					DrawString(w - 22, cy + (ch - 14) / 2, "RIGHT_X", 14, "VAR", "^7" .. line.value)
@@ -551,8 +554,8 @@ local function hideTradeButtons(itemsTab)
 end
 
 -- Item list (this build's items): "當前裝備" title, and a status tag before every item:
--- [使用中] in the active item set or tree, [其他組] only in another set or tree, else [尚未使用]
-local TAG_USED, TAG_OTHER, TAG_UNUSED = "^x7FD87F[使用中] ", "^x8C8C8C[其他組] ", "^x7FB0E8[尚未使用] "
+-- a green dot when used in the active item set or tree, [其他組] only in another set or tree, else [尚未使用]
+local TAG_USED, TAG_OTHER, TAG_UNUSED = "^x7FD87F● ", "^x8C8C8C[其他組] ", "^x7FB0E8[尚未使用] "
 local function setupItemList(itemsTab)
 	local list = itemsTab.controls.itemList
 	if not list then
@@ -567,7 +570,7 @@ local function setupItemList(itemsTab)
 	local origLabel = list.label
 	list.label = function(self)
 		if enabled() then
-			return GOLD .. "當前裝備"
+			return TITLE .. "當前裝備"
 		end
 		return type(origLabel) == "function" and origLabel(self) or origLabel
 	end
@@ -641,9 +644,68 @@ function ZhTWLayout.setupItemsTab(itemsTab)
 			self.zhTWTradeHidden = true
 			hideTradeButtons(self)
 			setupItemList(self)
+			ZhTWLayout.tidyItemsTab(self)
 		end
 		origDraw(self, viewPort, inputEvents)
 		ZhTWLayout.drawDetails(self, viewPort)
+	end
+end
+
+-- Items tab clean-up: no "已裝備物品" label (the group boxes say it), the long how-to text
+-- under 製作物品 becomes a "? 操作說明" line with the text on hover, shared items move up
+function ZhTWLayout.tidyItemsTab(itemsTab)
+	local controls = itemsTab.controls
+	local function hideIn(control)
+		if not control then
+			return
+		end
+		local orig = control.shown
+		control.shown = function(self)
+			if enabled() then
+				return false
+			end
+			if type(orig) == "function" then
+				return orig(self)
+			end
+			return orig ~= false
+		end
+	end
+	hideIn(controls.slotHeader)
+	local tip = controls.displayItemTip
+	if tip then
+		local fullText = tip.label
+		hideIn(tip)
+		local help = new("Control"):Control({ "TOPLEFT", controls.craftDisplayItem, "BOTTOMLEFT" }, { 0, 6, 120, 18 })
+		help.shown = function()
+			return enabled() and controls.craftDisplayItem:IsShown()
+		end
+		local tooltip = new("Tooltip"):Tooltip()
+		help.Draw = function(control, viewPort)
+			local x, y = control:GetPos()
+			DrawString(x, y + 1, "LEFT", 16, "VAR", SUBTLE .. "? 操作說明")
+			if control:IsMouseInBounds() then
+				tooltip:Clear()
+				local text = type(fullText) == "string" and fullText or ""
+				text = ZhTWLocale.tr and ZhTWLocale.tr(text) or text
+				for line in (text .. "\n"):gmatch("(.-)\n") do
+					tooltip:AddLine(16, "^7" .. line)
+				end
+				SetDrawLayer(nil, 100)
+				tooltip:Draw(x, y, 120, 18, viewPort)
+				SetDrawLayer(nil, 0)
+			end
+		end
+		controls.zhTWItemHelp = help
+	end
+	local shared = controls.sharedItemList
+	if shared then
+		local origY = shared.y
+		shared.y = function(self)
+			if enabled() then
+				return 48 -- under the help line, where the long text was
+			end
+			return type(origY) == "function" and origY(self) or origY
+		end
 	end
 end
 
@@ -664,11 +726,11 @@ function ZhTWLayout.setupSlotGroupBoxes(itemsTab)
 		end
 	end
 	local function frame(x, top, w, bottom, title)
-		rect(x, top, w, bottom - top, 0.42, 0.34, 0.2)
-		rect(x + 1, top + 1, w - 2, bottom - top - 2, 0.08, 0.07, 0.05)
-		rect(x + 1, top + GROUP_TITLE_H - 4, w - 2, 1, 0.3, 0.25, 0.15) -- line under the title
+		rect(x, top, w, bottom - top, LINE[1], LINE[2], LINE[3])
+		rect(x + 1, top + 1, w - 2, bottom - top - 2, 0.075, 0.072, 0.068)
+		rect(x + 1, top + GROUP_TITLE_H - 4, w - 2, 1, LINE[1], LINE[2], LINE[3]) -- line under the title
 		SetDrawColor(1, 1, 1)
-		DrawString(x + w / 2, top + 4, "CENTER_X", 18, "VAR BOLD", GOLD .. title)
+		DrawString(x + w / 2, top + 4, "CENTER_X", 18, "VAR BOLD", TITLE .. title)
 	end
 	local boxes = new("Control"):Control(nil, { 0, 0, 0, 0 })
 	boxes.shown = enabled
@@ -694,7 +756,8 @@ function ZhTWLayout.setupSlotGroupBoxes(itemsTab)
 		local toggle = controls.zhTWJewelToggle
 		if toggle and toggle:IsShown() then
 			local _, ty = toggle:GetPos()
-			local bottom = ty + 20
+			local top = ty - 3
+			local bottom = top + GROUP_TITLE_H
 			local chips = controls.zhTWJewelChips
 			if chips and chips:IsShown() then
 				local _, cy = chips:GetPos()
@@ -707,7 +770,7 @@ function ZhTWLayout.setupSlotGroupBoxes(itemsTab)
 					bottom = m_max(bottom, y + 20)
 				end
 			end
-			frame(left, ty - GROUP_TITLE_H, width, bottom + 6, "珠寶")
+			frame(left, top, width, bottom + 6, "珠寶")
 		end
 		SetDrawLayer(nil, 0)
 	end
@@ -719,7 +782,7 @@ end
 ---------------------------------------------------------------------------
 
 ZhTWLayout.jewelsExpanded = false
-local JEWEL_TOGGLE_SPACE = 30
+local JEWEL_TOGGLE_SPACE = 38 -- gap + the 珠寶 box title row above the first socket
 
 local function jewelsCollapsed()
 	return enabled() and not ZhTWLayout.jewelsExpanded
@@ -820,24 +883,22 @@ function ZhTWLayout.setupJewelSockets(itemsTab)
 	if not firstSocket or not specSelect then
 		return
 	end
-	local toggle = new("ButtonControl"):ButtonControl({ "TOPLEFT", specSelect, "BOTTOMLEFT" }, { 0, 8, 160, 20 }, function()
+	-- small button on the right of the 珠寶 box title row
+	local toggle = new("ButtonControl"):ButtonControl({ "TOPLEFT", specSelect, "BOTTOMLEFT" }, { 212, 11, 96, 22 }, function()
 		if ZhTWLayout.jewelsExpanded then
-			return "收合珠寶插槽"
+			return "收合"
 		end
-		return "展開珠寶插槽 (" .. activeSocketCount(itemsTab) .. ")"
+		return "展開 (" .. activeSocketCount(itemsTab) .. ")"
 	end, function()
 		ZhTWLayout.jewelsExpanded = not ZhTWLayout.jewelsExpanded
 	end)
 	toggle.shown = enabled
 	controls.zhTWJewelToggle = toggle
-	toggle.y = function()
-		return 8 + GROUP_TITLE_H -- the 珠寶 box title goes above the button
-	end
-	local chips = new("Control"):Control({ "TOPLEFT", toggle, "BOTTOMLEFT" }, { -88, 6, 398, 0 })
+	local chips = new("Control"):Control({ "TOPLEFT", specSelect, "BOTTOMLEFT" }, { -88, 8 + GROUP_TITLE_H + 2, 398, 0 })
 	chips.shown = jewelsCollapsed
 	chips.height = function()
-		local x, y = toggle:GetPos()
-		return layoutChips(itemsTab, x - 88, y, 398, false)
+		local x, y = chips:GetPos()
+		return layoutChips(itemsTab, x, y, 398, false)
 	end
 	chips.Draw = function(control)
 		local x, y = control:GetPos()
@@ -1085,7 +1146,7 @@ function ZhTWLayout.setupModeButtons(build)
 		local x, y = control:GetPos()
 		local width, height = control:GetSize()
 		SetDrawLayer(nil, -10) -- below the buttons and dropdowns drawn on top of it
-		rect(x, y + height - 2, width, 1, 0.47, 0.39, 0.22)
+		rect(x, y + height - 2, width, 1, LINE[1], LINE[2], LINE[3])
 		SetDrawColor(1, 1, 1)
 		SetDrawLayer(nil, 0)
 	end
@@ -1218,7 +1279,7 @@ function ZhTWLayout.setupTreePanel(build)
 	panel.shown = treePanel
 	panel.Draw = function(control)
 		SetDrawLayer(nil, -10)
-		rect(PANEL_X, PANEL_Y, PANEL_W, PANEL_H, 0.35, 0.29, 0.19)
+		rect(PANEL_X, PANEL_Y, PANEL_W, PANEL_H, LINE[1], LINE[2], LINE[3])
 		rect(PANEL_X + 1, PANEL_Y + 1, PANEL_W - 2, PANEL_H - 2, 0.06, 0.055, 0.045, 0.94)
 		SetDrawColor(1, 1, 1)
 		local lx = PANEL_X + PANEL_PAD
@@ -1516,7 +1577,7 @@ function ZhTWLayout.drawDetails(itemsTab, viewPort)
 		return
 	end
 	-- Frame and heading
-	rect(x, y, w, h, 0.35, 0.29, 0.19)
+	rect(x, y, w, h, LINE[1], LINE[2], LINE[3])
 	rect(x + 1, y + 1, w - 2, h - 2, 0.06, 0.05, 0.04)
 	local details = itemsTab.zhTWDetails or { }
 	local item = details.item
@@ -1526,7 +1587,7 @@ function ZhTWLayout.drawDetails(itemsTab, viewPort)
 		details.item = nil
 	end
 	local hovering = item and details.frame == ZhTWLayout.detailsFrame
-	DrawString(x + 10, y + 6, "LEFT", 14, "VAR", GOLD .. "物品詳細" .. (item and not hovering and "^x8C8478　（最近查看）" or ""))
+	DrawString(x + 10, y + 6, "LEFT", 14, "VAR", TITLE .. "物品詳細" .. (item and not hovering and "^x8C8478　（最近查看）" or ""))
 	if not item then
 		DrawString(x + 10, y + 32, "LEFT", 14, "VAR", "^x8C8478將滑鼠移到物品上，詳細內容會固定顯示在這裡，\n不會擋住清單。")
 		SetDrawColor(1, 1, 1)
