@@ -902,6 +902,9 @@ end
 -- Lines that are prefixed by fixed text and contain another modifier
 local prefixRules = {
 	{ zh = "附加的小型天賦給予：", en = "Added Small Passive Skills grant: " },
+	-- Eldritch implicits the client writes as "condition, modifier" (ClientStrings formats)
+	{ zh = "在傳奇頭目面前時，", en = "While a Unique Enemy is in your Presence, " },
+	{ zh = "在巔峰頭目面前時，", en = "While a Pinnacle Atlas Boss is in your Presence, " },
 }
 
 local cache = { }
