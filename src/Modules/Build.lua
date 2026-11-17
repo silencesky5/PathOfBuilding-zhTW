@@ -1300,6 +1300,9 @@ function buildMode:OnFrame(inputEvents)
 		width = main.screenW - sideBarWidth,
 		height = main.screenH - 32
 	}
+	if ZhTWLayout then -- zhTW: sheet tabs above the main view
+		ZhTWLayout.adjustTabViewPort(self, tabViewPort)
+	end
 	if self.viewMode == "IMPORT" then
 		self.importTab:Draw(tabViewPort, inputEvents)  
 	elseif self.viewMode == "NOTES" then

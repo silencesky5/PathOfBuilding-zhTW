@@ -337,6 +337,39 @@ local ok, err = xpcall(function()
 			log("   save label (unsaved): " .. ZhTWLocale.tr(build.controls.save:GetProperty("label")))
 			build.unsaved = false
 			log("   save label (saved): " .. ZhTWLocale.tr(build.controls.save:GetProperty("label")))
+			-- Side bar buttons and the sheet tabs above the main view
+			local bc = build.controls
+			local function btn(c)
+				local x, y = c:GetPos()
+				local w, h = c:GetSize()
+				return string.format("%s%s@%d,%d,%dx%d", c:IsShown() and "" or "-", ZhTWLocale.tr(c:GetProperty("label") or "?"), x, y, w, h)
+			end
+			local function sheetState(lang)
+				local parts = { }
+				for _, n in ipairs({ "modeImport", "zhTWModeSheets", "modeConfig", "modeNotes", "modeTree", "modeSkills", "modeItems", "modeCalcs", "modeParty", "modeCompare" }) do
+					table.insert(parts, btn(bc[n]))
+				end
+				local _, ly = bc.mainSkillLabel:GetPos()
+				log("== Mode buttons (" .. lang .. "): " .. table.concat(parts, " ") .. " | main skill label y=" .. ly)
+				local saved = build.viewMode
+				for _, mode in ipairs({ "ITEMS", "SKILLS", "TREE", "CALCS", "IMPORT", "CONFIG", "PARTY", "NOTES" }) do
+					build.viewMode = mode
+					local vp = { x = 312, y = 32, width = main.screenW - 312, height = main.screenH - 32 }
+					ZhTWLayout.adjustTabViewPort(build, vp)
+					local tabs = { }
+					for _, m in ipairs({ "ITEMS", "SKILLS", "TREE", "CALCS" }) do
+						local c = bc["zhTWSheet" .. m]
+						table.insert(tabs, (c:IsShown() and "" or "-") .. ZhTWLocale.tr(c.label) .. (c:GetProperty("locked") and "*" or "") .. "@" .. table.concat({ c:GetPos() }, ","))
+					end
+					log(string.format("   %s -> %s vp.y=%d h=%d strip=%s sheetBtnLocked=%s | %s", mode, build.viewMode, vp.y, vp.height,
+						tostring(bc.zhTWSheetStrip:IsShown()), tostring(bc.zhTWModeSheets:GetProperty("locked")), table.concat(tabs, " ")))
+				end
+				build.viewMode = saved
+			end
+			sheetState("zh")
+			ZhTWLocale.enabled = false
+			sheetState("en")
+			ZhTWLocale.enabled = true
 		end
 		-- Side bar as the Chinese layout builds it
 		log("== Side bar (" .. idx .. ")")

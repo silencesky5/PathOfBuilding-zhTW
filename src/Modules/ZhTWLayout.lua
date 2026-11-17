@@ -87,6 +87,7 @@ function ZhTWLayout.setupSidebar(build)
 	controls.zhTWSummary = cards
 	controls.statBox:SetAnchor("TOPLEFT", cards, "BOTTOMLEFT", 0, 2)
 	ZhTWLayout.setupTopBar(build)
+	ZhTWLayout.setupModeButtons(build)
 	-- Original sidebar columns, restored when the Chinese interface is off
 	ZhTWLayout.originalColumns = controls.statBox.columns
 end
@@ -484,6 +485,108 @@ function ZhTWLayout.setupTopBar(build)
 			end
 			return origLabel
 		end
+	end
+end
+
+---------------------------------------------------------------------------
+-- Side bar buttons: only Import/Export, Build and Configuration; the build
+-- sheets (Items / Skills / Tree / Calcs) become tabs above the main view.
+-- Notes, Party and Compare are hidden but their tabs and saved data stay.
+---------------------------------------------------------------------------
+
+local SHEET_STRIP = 30
+local sheetTabs = {
+	{ label = "裝備", mode = "ITEMS" },
+	{ label = "技能", mode = "SKILLS" },
+	{ label = "天賦", mode = "TREE" },
+	{ label = "計算", mode = "CALCS" },
+}
+local isSheet = { ITEMS = true, SKILLS = true, TREE = true, CALCS = true }
+local hiddenModes = { NOTES = true, PARTY = true, COMPARE = true }
+
+local function hideWhenEnabled(control)
+	if not control then
+		return
+	end
+	local orig = control.shown
+	control.shown = function(self)
+		if enabled() then
+			return false
+		end
+		if type(orig) == "function" then
+			return orig(self)
+		end
+		return orig ~= false
+	end
+end
+
+function ZhTWLayout.setupModeButtons(build)
+	local controls = build.controls
+	for _, name in ipairs({ "modeNotes", "modeTree", "modeSkills", "modeItems", "modeCalcs", "modeParty", "modeCompare" }) do
+		hideWhenEnabled(controls[name])
+	end
+	local import = controls.modeImport
+	import.width = function()
+		return enabled() and 96 or 134
+	end
+	local sheetButton = new("ButtonControl"):ButtonControl({ "LEFT", import, "RIGHT" }, { 4, 0, 96, 20 }, "角色配置", function()
+		build.viewMode = build.zhTWLastSheet or "ITEMS"
+	end)
+	sheetButton.shown = function()
+		return enabled()
+	end
+	sheetButton.locked = function()
+		return isSheet[build.viewMode]
+	end
+	controls.zhTWModeSheets = sheetButton
+	-- Skill selection moves up into the space of the two hidden button rows
+	local label = controls.mainSkillLabel
+	local origY = label.y
+	label.y = function(self)
+		if enabled() then
+			return 28
+		end
+		return type(origY) == "function" and origY(self) or origY
+	end
+
+	-- Tabs across the top of the main view
+	local strip = new("Control"):Control(nil, { 312, 32, 0, SHEET_STRIP })
+	strip.width = function()
+		return main.screenW - 312
+	end
+	strip.shown = function()
+		return enabled() and isSheet[build.viewMode]
+	end
+	strip.Draw = function(control)
+		local x, y = control:GetPos()
+		local width, height = control:GetSize()
+		rect(x, y + height - 2, width, 1, 0.47, 0.39, 0.22)
+		SetDrawColor(1, 1, 1)
+	end
+	controls.zhTWSheetStrip = strip
+	for i, tab in ipairs(sheetTabs) do
+		local button = new("ButtonControl"):ButtonControl({ "TOPLEFT", strip, "TOPLEFT" }, { 4 + (i - 1) * 94, 3, 90, 22 }, tab.label, function()
+			build.viewMode = tab.mode
+		end)
+		button.locked = function()
+			return build.viewMode == tab.mode
+		end
+		controls["zhTWSheet" .. tab.mode] = button
+	end
+end
+
+-- Called by Build.lua before the current tab is drawn
+function ZhTWLayout.adjustTabViewPort(build, viewPort)
+	if not enabled() then
+		return
+	end
+	if hiddenModes[build.viewMode] then
+		build.viewMode = build.zhTWLastSheet or "ITEMS"
+	end
+	if isSheet[build.viewMode] then
+		build.zhTWLastSheet = build.viewMode
+		viewPort.y = viewPort.y + SHEET_STRIP
+		viewPort.height = viewPort.height - SHEET_STRIP
 	end
 end
 
