@@ -368,10 +368,14 @@ local ok, err = xpcall(function()
 					for _, n in ipairs({ "pointDisplay", "levelScalingButton", "characterLevel", "classDrop", "ascendDrop", "secondaryAscendDrop", "buildLoadouts" }) do
 						local c = bc[n]
 						local x, y = c:GetPos()
-						local w = c:GetSize()
-						table.insert(row, string.format("%s%s@%d,%d,w%d", c:IsShown() and "" or "-", n, x, y, w))
+						local w, h = c:GetSize()
+						table.insert(row, string.format("%s%s@%d,%d,%dx%d", c:IsShown() and "" or "-", n, x, y, w, h))
 					end
-					log("      top row: " .. table.concat(row, " "))
+					log("      top row: " .. table.concat(row, " ") .. " | panel shown=" .. tostring(bc.zhTWTreePanel:IsShown()))
+					if mode == "TREE" and lang == "zh" then
+						-- points drawn as two rows inside the panel
+						log("      panel points: " .. tostring(ZhTWLayout.drawPanelPoints(build, bc.pointDisplay)) .. " str=" .. tostring(bc.pointDisplay.str))
+					end
 				end
 				build.viewMode = saved
 			end

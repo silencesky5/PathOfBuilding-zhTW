@@ -460,10 +460,13 @@ function ZhTWLayout.setupTopBar(build)
 			-- POB draws str with the fixed-width font; in Chinese draw the labelled text instead
 			local x, y = control:GetPos()
 			local width, height = control:GetSize()
-			rect(x, y, width + 2, height, 0.35, 0.29, 0.19)
-			rect(x + 1, y + 1, width, height - 2, 0.08, 0.07, 0.05)
 			SetDrawColor(1, 1, 1)
-			DrawString(x + 6, y + 2, "LEFT", 16, "VAR", pointsText(control.str))
+			if not ZhTWLayout.drawPanelPoints(build, control) then
+				rect(x, y, width + 2, height, 0.35, 0.29, 0.19)
+				rect(x + 1, y + 1, width, height - 2, 0.08, 0.07, 0.05)
+				SetDrawColor(1, 1, 1)
+				DrawString(x + 6, y + 2, "LEFT", 16, "VAR", pointsText(control.str))
+			end
 			if control:IsMouseInBounds() and control.req then
 				SetDrawLayer(nil, 10)
 				local tip = ZhTWLayout.pointsTooltip or new("Tooltip"):Tooltip()
@@ -495,7 +498,6 @@ end
 ---------------------------------------------------------------------------
 
 local SHEET_STRIP = 30
-local TREE_ROW = 28 -- points / level / class row under the tabs on the 天賦 tab
 local sheetTabs = {
 	{ label = "裝備", mode = "ITEMS" },
 	{ label = "技能", mode = "SKILLS" },
@@ -573,11 +575,6 @@ function ZhTWLayout.setupModeButtons(build)
 		local width, height = control:GetSize()
 		SetDrawLayer(nil, -10) -- below the buttons and dropdowns drawn on top of it
 		rect(x, y + height - 2, width, 1, 0.47, 0.39, 0.22)
-		if build.viewMode == "TREE" then
-			-- dark band behind the points / level / class row
-			rect(x, y + height, width, TREE_ROW, 0.06, 0.055, 0.045)
-			rect(x, y + height + TREE_ROW - 1, width, 1, 0.3, 0.25, 0.15)
-		end
 		SetDrawColor(1, 1, 1)
 		SetDrawLayer(nil, 0)
 	end
@@ -592,44 +589,122 @@ function ZhTWLayout.setupModeButtons(build)
 		controls["zhTWSheet" .. tab.mode] = button
 	end
 
-	-- Points / level / class / ascendancy / loadout row: only on the 天賦 tab, moved into
-	-- the tab row next to the tabs. Everything else in that row is anchored to pointDisplay,
-	-- so moving or hiding it moves or hides the whole row.
+	ZhTWLayout.setupTreePanel(build)
+end
+
+---------------------------------------------------------------------------
+-- 天賦 tab: the top bar's right half (level, points, class, ascendancies, loadout)
+-- becomes a vertical panel in the top-left corner of the tree view. Everything in
+-- that row is anchored to pointDisplay, so hiding pointDisplay hides all of it.
+---------------------------------------------------------------------------
+
+local PANEL_X, PANEL_Y = 318, 32 + SHEET_STRIP + 4
+local PANEL_PAD, PANEL_ROW, LABEL_W, FIELD_W = 8, 24, 64, 176
+local PANEL_W = PANEL_PAD * 2 + LABEL_W + FIELD_W
+-- rows top to bottom; points takes two rows (天賦 and 昇華)
+local panelRows = {
+	{ name = "characterLevel", row = 1, x = 0, w = FIELD_W + LABEL_W - 54 },
+	{ name = "levelScalingButton", row = 1, x = FIELD_W + LABEL_W - 50, w = 50 },
+	{ name = "pointDisplay", row = 2, x = LABEL_W, w = FIELD_W, rows = 2 },
+	{ name = "classDrop", row = 4, x = LABEL_W, w = FIELD_W, label = "職業" },
+	{ name = "ascendDrop", row = 5, x = LABEL_W, w = FIELD_W, label = "昇華職業" },
+	{ name = "secondaryAscendDrop", row = 6, x = LABEL_W, w = FIELD_W, label = "血液昇華" },
+	{ name = "buildLoadouts", row = 7, x = LABEL_W, w = FIELD_W, label = "天賦配置" },
+}
+local PANEL_H = PANEL_PAD * 2 + 7 * PANEL_ROW - 4
+
+local function rowTop(row)
+	return PANEL_Y + PANEL_PAD + (row - 1) * PANEL_ROW
+end
+
+function ZhTWLayout.inTreePanel(build)
+	if not (enabled() and build.viewMode == "TREE") then
+		return false
+	end
+	local cx, cy = GetCursorPos()
+	return cx >= PANEL_X and cy >= PANEL_Y and cx < PANEL_X + PANEL_W and cy < PANEL_Y + PANEL_H
+end
+
+function ZhTWLayout.setupTreePanel(build)
+	local controls = build.controls
 	local points = controls.pointDisplay
-	if points then
-		local origX, origY, origShown = points.x, points.y, points.shown
-		local function treeRow()
-			return enabled() and build.viewMode == "TREE"
-		end
-		points.x = function(self)
-			if treeRow() then
-				local ax = build.anchorTopBarRight:GetPos()
-				local aw = build.anchorTopBarRight:GetSize()
-				return 316 - ax - aw
+	if not points then
+		return
+	end
+	local function treePanel()
+		return enabled() and build.viewMode == "TREE"
+	end
+	for _, entry in ipairs(panelRows) do
+		local control = controls[entry.name]
+		if control then
+			local baseGetPos = control.GetPos
+			control.GetPos = function(self)
+				if treePanel() then
+					return PANEL_X + PANEL_PAD + entry.x, rowTop(entry.row)
+				end
+				return baseGetPos(self)
 			end
-			return type(origX) == "function" and origX(self) or origX
-		end
-		points.y = function(self)
-			if treeRow() then
-				-- anchor top is 4; row sits just below the tab strip
-				return 32 + SHEET_STRIP + 4 - 4
+			-- Size through GetSize: DropDownControl does arithmetic on its width/height fields
+			local baseGetSize = control.GetSize
+			control.GetSize = function(self)
+				if treePanel() then
+					return entry.w, (entry.rows or 1) * PANEL_ROW - 4
+				end
+				return baseGetSize(self)
 			end
-			return type(origY) == "function" and origY(self) or origY
-		end
-		points.shown = function(self)
-			if enabled() and build.viewMode ~= "TREE" then
-				return false
-			end
-			if type(origShown) == "function" then
-				return origShown(self)
-			end
-			return origShown ~= false
 		end
 	end
+	local origShown = points.shown
+	points.shown = function(self)
+		if enabled() and build.viewMode ~= "TREE" then
+			return false
+		end
+		if type(origShown) == "function" then
+			return origShown(self)
+		end
+		return origShown ~= false
+	end
+
+	-- Background and labels, drawn below the controls
+	local panel = new("Control"):Control(nil, { PANEL_X, PANEL_Y, PANEL_W, PANEL_H })
+	panel.shown = treePanel
+	panel.Draw = function(control)
+		SetDrawLayer(nil, -10)
+		rect(PANEL_X, PANEL_Y, PANEL_W, PANEL_H, 0.35, 0.29, 0.19)
+		rect(PANEL_X + 1, PANEL_Y + 1, PANEL_W - 2, PANEL_H - 2, 0.06, 0.055, 0.045, 0.94)
+		SetDrawColor(1, 1, 1)
+		local lx = PANEL_X + PANEL_PAD
+		DrawString(lx, rowTop(2) + 2, "LEFT", 16, "VAR", "^x8C8478天賦")
+		DrawString(lx, rowTop(3) + 2, "LEFT", 16, "VAR", "^x8C8478昇華")
+		for _, entry in ipairs(panelRows) do
+			if entry.label then
+				DrawString(lx, rowTop(entry.row) + 2, "LEFT", 16, "VAR", "^x8C8478" .. entry.label)
+			end
+		end
+		SetDrawLayer(nil, 0)
+	end
+	controls.zhTWTreePanel = panel
+end
+
+-- Points drawn as two rows (天賦 / 昇華) inside the tree panel; false when not in the panel
+function ZhTWLayout.drawPanelPoints(build, control)
+	if not (enabled() and build.viewMode == "TREE") then
+		return false
+	end
+	local parts = splitPoints(control.str)
+	if #parts < 2 then
+		return false
+	end
+	local x, y = control:GetPos()
+	for i = 1, 2 do
+		local p = parts[i]
+		DrawString(x + 4, y + (i - 1) * PANEL_ROW + 2, "LEFT", 16, "VAR", s_format("%s%s ^x8C8478/ ^7%s", p.color, p.used, p.max))
+	end
+	return true
 end
 
 -- Called by Build.lua before the current tab is drawn
-function ZhTWLayout.adjustTabViewPort(build, viewPort)
+function ZhTWLayout.adjustTabViewPort(build, viewPort, inputEvents)
 	if not enabled() then
 		return
 	end
@@ -638,9 +713,16 @@ function ZhTWLayout.adjustTabViewPort(build, viewPort)
 	end
 	if isSheet[build.viewMode] then
 		build.zhTWLastSheet = build.viewMode
-		local push = SHEET_STRIP + (build.viewMode == "TREE" and TREE_ROW or 0)
-		viewPort.y = viewPort.y + push
-		viewPort.height = viewPort.height - push
+		viewPort.y = viewPort.y + SHEET_STRIP
+		viewPort.height = viewPort.height - SHEET_STRIP
+	end
+	-- Mouse over the tree panel: clicks and wheel must not reach the tree under it
+	if inputEvents and ZhTWLayout.inTreePanel(build) then
+		for id, event in pairs(inputEvents) do
+			if (event.type == "KeyDown" or event.type == "KeyUp") and (event.key:match("BUTTON") or event.key:match("WHEEL")) then
+				inputEvents[id] = nil
+			end
+		end
 	end
 end
 

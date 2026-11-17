@@ -1301,7 +1301,7 @@ function buildMode:OnFrame(inputEvents)
 		height = main.screenH - 32
 	}
 	if ZhTWLayout then -- zhTW: sheet tabs above the main view
-		ZhTWLayout.adjustTabViewPort(self, tabViewPort)
+		ZhTWLayout.adjustTabViewPort(self, tabViewPort, inputEvents)
 	end
 	if self.viewMode == "IMPORT" then
 		self.importTab:Draw(tabViewPort, inputEvents)  
