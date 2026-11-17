@@ -498,6 +498,11 @@ local ok, err = xpcall(function()
 			press("cur_transmute")
 			press("cur_aug")
 			press("cur_regal")
+			press("cur_scour")
+			c.fossil1:SetSel(2)
+			c.fossil2:SetSel(3)
+			press("useFossils")
+			press("useFossils")
 			local card = tab:PobItem()
 			local before = 0
 			for _ in pairs(build.itemsTab.items) do before = before + 1 end

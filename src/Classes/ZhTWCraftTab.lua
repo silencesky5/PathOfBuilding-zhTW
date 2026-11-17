@@ -166,7 +166,57 @@ function ZhTWCraftTabClass:Build()
 		end
 	end
 
-	local actY = essY + 36
+	-- fossils in a resonator (1-4; the resonator size follows the number of fossils)
+	local fossY = essY + 30
+	local fossilList = { { label = "（無）" } }
+	for _, f in ipairs(E.fossils) do
+		if not f.why then
+			t_insert(fossilList, { label = f.nz or f.n, f = f })
+		end
+	end
+	controls.fossLabel = new("LabelControl"):LabelControl({ "TOPLEFT", self, "TOPLEFT" }, { RIGHT_X, fossY + 2, 0, 16 }, "^7化石:")
+	self.fossilControls = { }
+	for i = 1, m_min(4, E.MAX_FOSSILS) do
+		local col, row = (i - 1) % 2, m_floor((i - 1) / 2)
+		local dd = new("DropDownControl"):DropDownControl({ "TOPLEFT", self, "TOPLEFT" }, { RIGHT_X + 44 + col * 104, fossY + row * 24, 100, 20 }, fossilList, function()
+			self.checkCache = { }
+		end)
+		dd.enableDroppedWidth = true
+		dd.tooltipFunc = function(tooltip, mode, index, value)
+			tooltip:Clear()
+			if value and value.f then
+				tooltip:AddLine(16, "^7" .. (value.f.nz or value.f.n) .. "  " .. SUBTLE .. value.f.n)
+				for _, line in ipairs(value.f.desc or { }) do
+					tooltip:AddLine(14, "^x8888FF" .. line)
+				end
+			end
+		end
+		controls["fossil" .. i] = dd
+		self.fossilControls[i] = dd
+	end
+	controls.useFossils = new("ButtonControl"):ButtonControl({ "TOPLEFT", self, "TOPLEFT" }, { RIGHT_X + 44, fossY + 50, 206, 20 }, "使用鑄新儀", function()
+		local k = self:ResoKey()
+		if k then
+			self:Use(k)
+		end
+	end)
+	controls.useFossils.enabled = function()
+		local k = self:ResoKey()
+		return k and self:CanUse(k) or false
+	end
+	controls.useFossils.tooltipFunc = function(tooltip)
+		tooltip:Clear()
+		tooltip:AddLine(14, "^7普通物品：點金鑄新儀（變成稀有）；稀有物品：混沌鑄新儀（重鑄）。放幾顆化石就是幾孔的鑄新儀。")
+		local k = self:ResoKey()
+		local err = k and self:CheckError(k)
+		if err then
+			tooltip:AddLine(14, colorCodes.NEGATIVE .. err)
+		elseif not k then
+			tooltip:AddLine(14, SUBTLE .. "先選至少一顆化石。")
+		end
+	end
+
+	local actY = fossY + 82
 	controls.undo = new("ButtonControl"):ButtonControl({ "TOPLEFT", self, "TOPLEFT" }, { RIGHT_X, actY, 122, 24 }, "上一步", function()
 		self:Undo()
 	end)
@@ -316,8 +366,31 @@ function ZhTWCraftTabClass:Use(k)
 	self:Changed()
 end
 
+-- "reso:" key for the chosen fossils, nil when none
+function ZhTWCraftTabClass:ResoKey()
+	local ids = { }
+	for _, dd in ipairs(self.fossilControls or { }) do
+		local v = dd:GetSelValue()
+		if v and v.f then
+			t_insert(ids, v.f.id)
+		end
+	end
+	if #ids == 0 then
+		return nil
+	end
+	return engine().resoKey(ids)
+end
+
 function ZhTWCraftTabClass:CurrencyName(k)
 	local E = engine()
+	if k:sub(1, 5) == "reso:" then
+		local names = { }
+		for id in k:sub(6):gmatch("[^|]+") do
+			local f = E.fosById[id]
+			t_insert(names, f and (f.nz or f.n) or id)
+		end
+		return "鑄新儀（" .. table.concat(names, "＋") .. "）"
+	end
 	if CE.CUR[k] then
 		return CE.CUR[k].zh
 	end
