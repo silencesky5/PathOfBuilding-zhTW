@@ -395,6 +395,22 @@ local ok, err = xpcall(function()
 			sheetState("en")
 			ZhTWLocale.enabled = true
 		end
+		-- International trade buttons hidden in the Chinese interface
+		do
+			local it = build.itemsTab
+			local saved = build.viewMode
+			build.viewMode = "ITEMS"
+			for _, zh in ipairs({ true, false }) do
+				ZhTWLocale.enabled = zh
+				frames(1)
+				local _, slotY = it.slotAnchor:GetPos()
+				log(string.format("== Trade buttons (%s): trade shown=%s buy similar shown=%s slots y=%d",
+					zh and "zh" or "en", tostring(it.controls.priceDisplayItem:IsShown()),
+					tostring(it.controls.displayItemBuySimilar:GetProperty("shown") and true or false), slotY))
+			end
+			ZhTWLocale.enabled = true
+			build.viewMode = saved
+		end
 		-- Main skill box in the 技能 tab (moved from the side bar)
 		do
 			local c, sc = build.controls, build.skillsTab.controls

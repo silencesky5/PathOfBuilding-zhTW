@@ -506,6 +506,49 @@ local slotGroups = {
 	["Flask 1"] = "藥劑",
 }
 
+-- International trade site (pathofexile.com): Taiwan accounts, leagues and prices are not
+-- there, so the Chinese interface hides every button that opens it.
+local function hideTradeButtons(itemsTab)
+	local controls = itemsTab.controls
+	local function hide(control)
+		if not control then
+			return
+		end
+		local orig = control.shown
+		control.shown = function(self)
+			if enabled() then
+				return false
+			end
+			if type(orig) == "function" then
+				return orig(self)
+			end
+			return orig ~= false
+		end
+	end
+	hide(controls.priceDisplayItem) -- 交易這些物品
+	hide(controls.displayItemBuySimilar) -- 購買相似 (item being viewed)
+	-- the equipped item list moves up into the trade button's row
+	local anchor = itemsTab.slotAnchor
+	if anchor and controls.priceDisplayItem then
+		local origY = anchor.y
+		anchor.y = function(self)
+			local y = type(origY) == "function" and origY(self) or origY
+			return enabled() and (y - 24) or y
+		end
+	end
+	-- 尋找永恆珠寶 popup: its trade URL button (the league and trade type boxes hang from it)
+	if not ZhTWLayout.tradePopupHooked then
+		ZhTWLayout.tradePopupHooked = true
+		local origOpenPopup = main.OpenPopup
+		main.OpenPopup = function(self, width, height, title, popupControls, ...)
+			if popupControls and popupControls.searchTradeButton then
+				hide(popupControls.searchTradeButton)
+			end
+			return origOpenPopup(self, width, height, title, popupControls, ...)
+		end
+	end
+end
+
 function ZhTWLayout.setupItemsTab(itemsTab)
 	for _, slot in ipairs(itemsTab.orderedSlots or { }) do
 		local heading = slotGroups[slot.slotName]
@@ -532,6 +575,10 @@ function ZhTWLayout.setupItemsTab(itemsTab)
 		ZhTWLayout.detailsFrame = (ZhTWLayout.detailsFrame or 0) + 1
 		ZhTWLayout.detailsViewPort = viewPort
 		ZhTWLayout.hookItemLists(self)
+		if not self.zhTWTradeHidden then -- the buttons exist only once the constructor has finished
+			self.zhTWTradeHidden = true
+			hideTradeButtons(self)
+		end
 		origDraw(self, viewPort, inputEvents)
 		ZhTWLayout.drawDetails(self, viewPort)
 	end
