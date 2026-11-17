@@ -228,9 +228,11 @@ local ok, err = xpcall(function()
 				local x, y = slot:GetPos()
 				table.insert(parts, name .. "=" .. y)
 			end
-			local h = build.itemsTab.controls["zhTWHeading_Helmet"]
-			local hx, hy = h:GetPos()
-			log(string.format("== Item slots (%s): %s | heading 防具 at %d,%d shown=%s", enabled and "zh" or "en", table.concat(parts, " "), hx, hy, tostring(h:IsShown())))
+			local boxes = build.itemsTab.controls.zhTWSlotGroupBoxes
+			local toggle = build.itemsTab.controls.zhTWJewelToggle
+			local _, ty = toggle:GetPos()
+			local _, sy = build.itemsTab.controls.specSelect:GetPos()
+			log(string.format("== Item slots (%s): %s | group boxes shown=%s | tree select y=%d jewel toggle y=%d", enabled and "zh" or "en", table.concat(parts, " "), tostring(boxes:IsShown()), sy, ty))
 		end
 		ZhTWLocale.enabled = true
 		frames(1)

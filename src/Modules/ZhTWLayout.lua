@@ -498,7 +498,8 @@ end
 -- Items tab: group headings above the equipped item slots
 ---------------------------------------------------------------------------
 
-local HEADING_SPACE = 20
+local HEADING_SPACE = 36 -- room above a group's first slot: box gap + title row
+local GROUP_TITLE_H = 28 -- title row inside the group box
 local slotGroups = {
 	["Weapon 1"] = "武器",
 	["Helmet"] = "防具",
@@ -626,12 +627,10 @@ function ZhTWLayout.setupItemsTab(itemsTab)
 				end
 				return x, y
 			end
-			local label = new("LabelControl"):LabelControl({ "BOTTOMLEFT", slot, "TOPLEFT" }, { -88, -3, 0, 14 }, GOLD .. heading)
-			label.shown = enabled
-			itemsTab.controls["zhTWHeading_" .. slot.slotName] = label
 		end
 	end
 	ZhTWLayout.setupJewelSockets(itemsTab)
+	ZhTWLayout.setupSlotGroupBoxes(itemsTab)
 	-- Docked item details: drawn after the tab itself (instance override, the class stays as it is)
 	local origDraw = itemsTab.Draw
 	itemsTab.Draw = function(self, viewPort, inputEvents)
@@ -646,6 +645,73 @@ function ZhTWLayout.setupItemsTab(itemsTab)
 		origDraw(self, viewPort, inputEvents)
 		ZhTWLayout.drawDetails(self, viewPort)
 	end
+end
+
+-- Each slot group (武器 / 防具 / 飾品 / 藥劑 / 珠寶) in a framed box with its title centred on top
+function ZhTWLayout.setupSlotGroupBoxes(itemsTab)
+	local controls = itemsTab.controls
+	local slots = itemsTab.orderedSlots or { }
+	-- members of each group: from its first slot to the next group or the tree jewel sockets
+	local groups, current = { }, nil
+	for _, slot in ipairs(slots) do
+		if slot.nodeId then
+			current = nil
+		elseif slotGroups[slot.slotName] then
+			current = { title = slotGroups[slot.slotName], slots = { slot } }
+			t_insert(groups, current)
+		elseif current then
+			t_insert(current.slots, slot)
+		end
+	end
+	local function frame(x, top, w, bottom, title)
+		rect(x, top, w, bottom - top, 0.42, 0.34, 0.2)
+		rect(x + 1, top + 1, w - 2, bottom - top - 2, 0.08, 0.07, 0.05)
+		rect(x + 1, top + GROUP_TITLE_H - 4, w - 2, 1, 0.3, 0.25, 0.15) -- line under the title
+		SetDrawColor(1, 1, 1)
+		DrawString(x + w / 2, top + 4, "CENTER_X", 18, "VAR BOLD", GOLD .. title)
+	end
+	local boxes = new("Control"):Control(nil, { 0, 0, 0, 0 })
+	boxes.shown = enabled
+	boxes.Draw = function()
+		SetDrawLayer(nil, -10) -- under the slots
+		local anchorX = itemsTab.slotAnchor:GetPos()
+		local left, width = anchorX - 92, 310 + 96
+		for _, group in ipairs(groups) do
+			local top, bottom
+			for _, slot in ipairs(group.slots) do
+				if slot:IsShown() then
+					local _, y = slot:GetPos()
+					local _, h = slot:GetSize()
+					top = top or y
+					bottom = y + h
+				end
+			end
+			if top then
+				frame(left, top - GROUP_TITLE_H, width, bottom + 4, group.title)
+			end
+		end
+		-- 珠寶: the toggle button and the chips or the expanded sockets
+		local toggle = controls.zhTWJewelToggle
+		if toggle and toggle:IsShown() then
+			local _, ty = toggle:GetPos()
+			local bottom = ty + 20
+			local chips = controls.zhTWJewelChips
+			if chips and chips:IsShown() then
+				local _, cy = chips:GetPos()
+				local _, ch = chips:GetSize()
+				bottom = m_max(bottom, cy + ch)
+			end
+			for _, slot in ipairs(slots) do
+				if slot.nodeId and slot:IsShown() then
+					local _, y = slot:GetPos()
+					bottom = m_max(bottom, y + 20)
+				end
+			end
+			frame(left, ty - GROUP_TITLE_H, width, bottom + 6, "珠寶")
+		end
+		SetDrawLayer(nil, 0)
+	end
+	controls.zhTWSlotGroupBoxes = boxes
 end
 
 ---------------------------------------------------------------------------
@@ -764,9 +830,9 @@ function ZhTWLayout.setupJewelSockets(itemsTab)
 	end)
 	toggle.shown = enabled
 	controls.zhTWJewelToggle = toggle
-	local heading = new("LabelControl"):LabelControl({ "TOPLEFT", toggle, "TOPLEFT" }, { -88, 3, 0, 14 }, GOLD .. "天賦樹珠寶")
-	heading.shown = enabled
-	controls.zhTWJewelHeading = heading
+	toggle.y = function()
+		return 8 + GROUP_TITLE_H -- the 珠寶 box title goes above the button
+	end
 	local chips = new("Control"):Control({ "TOPLEFT", toggle, "BOTTOMLEFT" }, { -88, 6, 398, 0 })
 	chips.shown = jewelsCollapsed
 	chips.height = function()
