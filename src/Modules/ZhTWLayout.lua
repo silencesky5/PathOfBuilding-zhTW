@@ -234,7 +234,8 @@ local headingValueLabel = {
 	["技能 DPS"] = { },
 }
 local HEADING_H = 24
-ZhTWLayout.collapsedGroups = { }
+ZhTWLayout.collapsedGroups = { } -- key -> true (folded) / false (open); unset uses defaultCollapsed
+local defaultCollapsed = { ["奉獻"] = true, ["保護"] = true, ["盛怒"] = true, ["命中與生命"] = true }
 
 local function labelOf(line)
 	local text = line[1]
@@ -272,7 +273,9 @@ function ZhTWLayout.setupGroupCards(build)
 				-- fold arrow: right when folded, down when open
 				local ax, ay = w - 12, cy + ch / 2
 				SetDrawColor(0.78, 0.64, 0.35)
-				if line.collapsed then
+				if line.empty then
+					-- nothing to fold
+				elseif line.collapsed then
 					DrawImageQuad(nil, ax - 2, ay - 4, ax + 3, ay, ax + 3, ay, ax - 2, ay + 4)
 				else
 					DrawImageQuad(nil, ax - 4, ay - 2, ax + 4, ay - 2, ax, ay + 3, ax, ay + 3)
@@ -304,7 +307,10 @@ function ZhTWLayout.setupGroupCards(build)
 	statBox.onClick = function(hoveredLine)
 		local line = hoveredLine and hoveredLine.line
 		if enabled() and line and line.zhTWKey then
-			ZhTWLayout.collapsedGroups[line.zhTWKey] = not ZhTWLayout.collapsedGroups[line.zhTWKey] or nil
+			if line.empty then
+				return
+			end
+			ZhTWLayout.collapsedGroups[line.zhTWKey] = not line.collapsed
 			build:RefreshStatList()
 			return
 		end
@@ -324,17 +330,42 @@ for i, name in ipairs(groupOrder) do
 	groupRank[name] = i
 end
 
-local function isSectionTitle(line)
+-- Cards always shown for the player (KAI 11/17), with the value used when PoB hides the group
+local fixedGroups = {
+	{ "屬性" }, { "攻擊", "0" }, { "生命", "0" }, { "能量護盾", "0" }, { "魔力", "0" },
+	{ "抗性" }, { "護甲", "0" }, { "閃避", "0" }, { "格擋與抑制", "0%" }, { "其他", "+0%" }, { "承受能力", "0" },
+}
+
+local function sectionOf(line)
 	local label = labelOf(line)
-	return label == "Minion" or label == "Player" or label == "Skill disabled"
+	if label == "Minion" or label == "Player" then
+		return label
+	end
 end
 
 -- Moves whole groups (card, its stat lines and the gap after them) into groupOrder,
 -- separately inside the player and minion sections
-local function orderGroups(lines)
+local function orderGroups(lines, build)
 	local result = { }
 	local blocks, pending = { }, nil
+	local section = ""
 	local function flush()
+		if section ~= "Minion" and #blocks > 0 then
+			local have = { }
+			for _, block in ipairs(blocks) do
+				have[block[1].zhTWHeading] = true
+			end
+			for _, fixed in ipairs(fixedGroups) do
+				local heading = fixed[1]
+				if not have[heading] then
+					local card = { height = HEADING_H, zhTWHeading = heading, zhTWKey = section .. "/" .. heading, value = fixed[2], empty = true }
+					if heading == "攻擊" then
+						card.zhTWSkill = mainSkillName(build)
+					end
+					t_insert(blocks, { card })
+				end
+			end
+		end
 		for i, block in ipairs(blocks) do
 			block.rank = groupRank[block[1].zhTWHeading] or (#groupOrder + i)
 			block.index = i
@@ -357,8 +388,9 @@ local function orderGroups(lines)
 		blocks = { }
 	end
 	for _, line in ipairs(lines) do
-		if isSectionTitle(line) then
+		if sectionOf(line) then
 			flush()
+			section = sectionOf(line)
 			pending = nil
 			t_insert(result, line)
 		elseif line.zhTWHeading then
@@ -432,7 +464,10 @@ function ZhTWLayout.refreshSidebar(build)
 					-- which skill the numbers are for (chosen in the 技能 tab)
 					card.zhTWSkill = mainSkillName(build)
 				end
-				hidden = ZhTWLayout.collapsedGroups[key] or false
+				hidden = ZhTWLayout.collapsedGroups[key]
+				if hidden == nil then
+					hidden = defaultCollapsed[heading] or false
+				end
 				card.collapsed = hidden
 				t_insert(out, card)
 			end
@@ -452,7 +487,7 @@ function ZhTWLayout.refreshSidebar(build)
 			end
 		end
 	end
-	out = orderGroups(out)
+	out = orderGroups(out, build)
 	wipeTable(list)
 	for i, line in ipairs(out) do
 		list[i] = line
