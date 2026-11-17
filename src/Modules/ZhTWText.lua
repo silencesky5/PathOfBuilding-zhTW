@@ -107,7 +107,10 @@ local function segments(line)
 			end
 			t_insert(segs, { cp = cp, len = len })
 		else
-			-- Not in the atlas: let the engine draw its placeholder
+			-- Not in the atlas: let the engine draw its placeholder (tests can listen via onMissingGlyph)
+			if ZhTWLocale.onMissingGlyph then
+				ZhTWLocale.onMissingGlyph(cp, line)
+			end
 			t_insert(buf, s_sub(line, hi, hi + len - 1))
 		end
 		i = hi + len

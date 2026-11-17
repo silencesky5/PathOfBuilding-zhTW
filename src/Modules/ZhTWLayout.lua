@@ -554,8 +554,9 @@ local function hideTradeButtons(itemsTab)
 end
 
 -- Item list (this build's items): "當前裝備" title, and a status tag before every item:
--- a green dot when used in the active item set or tree, [其他組] only in another set or tree, else [尚未使用]
-local TAG_USED, TAG_OTHER, TAG_UNUSED = "^x7FD87F● ", "^x8C8C8C[其他組] ", "^x7FB0E8[尚未使用] "
+-- a green square when used in the active item set or tree, [其他組] only in another set or tree, else [尚未使用]
+-- used items get a drawn green square (the font has no shape glyphs); the spaces make room for it
+local TAG_USED, TAG_OTHER, TAG_UNUSED = "^7   ", "^x8C8C8C[其他組] ", "^x7FB0E8[尚未使用] "
 local function setupItemList(itemsTab)
 	local list = itemsTab.controls.itemList
 	if not list then
@@ -589,6 +590,7 @@ local function setupItemList(itemsTab)
 			return baseRow(self, column, index, itemId)
 		end
 		local tag, where
+		self.zhTWUsedRows = self.zhTWUsedRows or { }
 		local slot, itemSet = self.itemsTab:GetEquippedSlotForItem(item)
 		if slot and not itemSet then
 			tag = TAG_USED
@@ -608,6 +610,7 @@ local function setupItemList(itemsTab)
 		-- the name is translated here: with the tag in front the whole line no longer matches
 		local name = (colorCodes[item.rarity] or "^7") .. item.name
 		name = ZhTWLocale.tr and ZhTWLocale.tr(name) or name
+		self.zhTWUsedRows[index] = (tag == TAG_USED) or nil
 		local text = tag .. name
 		if where then
 			text = text .. "  ^9(Used in '" .. where .. "')"
@@ -647,8 +650,31 @@ function ZhTWLayout.setupItemsTab(itemsTab)
 			ZhTWLayout.tidyItemsTab(self)
 		end
 		origDraw(self, viewPort, inputEvents)
+		ZhTWLayout.drawUsedMarks(self)
 		ZhTWLayout.drawDetails(self, viewPort)
 	end
+end
+
+-- Green squares before the items in use (rows remembered by the list's GetRowValue)
+function ZhTWLayout.drawUsedMarks(itemsTab)
+	local list = itemsTab.controls.itemList
+	local rows = list and list.zhTWUsedRows
+	if not (enabled() and rows and list:IsShown()) then
+		return
+	end
+	local x, y = list:GetPos()
+	local _, height = list:GetSize()
+	local rowHeight = list.rowHeight or 16
+	local offset = list.controls.scrollBarV and list.controls.scrollBarV.offset or 0
+	SetDrawColor(0.5, 0.85, 0.5)
+	for index in pairs(rows) do
+		local rowY = y + 2 + rowHeight * (index - 1) - offset
+		if rowY >= y + 1 and rowY + rowHeight <= y + height - 1 then
+			DrawImage(nil, x + 4, rowY + 5, 6, 6)
+		end
+	end
+	SetDrawColor(1, 1, 1)
+	wipeTable(rows)
 end
 
 -- Items tab clean-up: no "已裝備物品" label (the group boxes say it), the long how-to text

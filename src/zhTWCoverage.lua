@@ -52,6 +52,14 @@ local ok, err = xpcall(function()
 	local dkjson = require "dkjson"
 	local ZhTW = LoadModule("Modules/ZhTWConverter")
 	ZhTWLocale.enabled = true
+	-- characters the glyph atlas does not have (drawn as "[U+xxxx]")
+	local missingGlyphs = { }
+	ZhTWLocale.onMissingGlyph = function(cp, line)
+		if not missingGlyphs[cp] then
+			missingGlyphs[cp] = StripEscapes(line):sub(1, 60)
+		end
+	end
+	ZhTWMissingGlyphs = missingGlyphs
 	ZhTWLocale.onMiss = function(line)
 		local core = StripEscapes(line):gsub("^%s+", ""):gsub("%s+$", "")
 		-- Only text with real words; skip numbers, single letters and user/build names
@@ -571,6 +579,14 @@ local ok, err = xpcall(function()
 		if where[a.text] ~= where[b.text] then return where[a.text] < where[b.text] end
 		return a.text < b.text
 	end)
+	do
+		local glyphList = { }
+		for cp, sample in pairs(ZhTWMissingGlyphs or { }) do
+			table.insert(glyphList, string.format("U+%04X in \"%s\"", cp, sample))
+		end
+		table.sort(glyphList)
+		log(string.format("== Missing glyphs: %d %s", #glyphList, table.concat(glyphList, " | ")))
+	end
 	log(string.format("== Untranslated lines: %d", #list))
 	for _, m in ipairs(list) do
 		log(string.format("[%s] %s", where[m.text], m.text))
