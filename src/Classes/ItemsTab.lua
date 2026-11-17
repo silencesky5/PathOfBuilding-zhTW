@@ -4539,7 +4539,18 @@ function ItemsTabClass:AddItemTooltip(tooltip, item, slot, dbMode, maxWidth)
 	-- Modifiers
 	for _, modList in ipairs{item.enchantModLines, item.scourgeModLines, item.implicitModLines, item.explicitModLines, item.crucibleModLines} do
 		if modList[1] then
-			for _, modLine in ipairs(modList) do
+			-- zhTW: explicit mods of rare/magic items in prefix and suffix groups (Modules/ZhTWAffixType.lua)
+			local groups
+			if modList == item.explicitModLines and ZhTWLocale and ZhTWLocale.enabled then
+				ZhTWAffixType = ZhTWAffixType or LoadModule("Modules/ZhTWAffixType")
+				groups = ZhTWAffixType.group(item)
+			end
+			groups = groups or { modList }
+			for _, group in ipairs(groups) do
+				if group.label then
+					tooltip:AddLine(fontSizeBig - 2, "^8" .. (group.label == "Prefix" and "前綴" or "後綴"), "VAR")
+				end
+			for _, modLine in ipairs(group) do
 				local variantCount = item:GetModLineVariantCount(modLine)
 				if variantCount > 0 then
 					local formattedModLine = itemLib.formatModLine(modLine, dbMode)
@@ -4549,6 +4560,7 @@ function ItemsTabClass:AddItemTooltip(tooltip, item, slot, dbMode, maxWidth)
 						end
 					end
 				end
+			end
 			end
 			tooltip:AddSeparator(10)
 		end

@@ -62,6 +62,61 @@ local ok, err = pcall(function()
 	end
 	log("== total failed lines: " .. totalFailed)
 
+	-- Prefix / suffix groups for the tooltip (Modules/ZhTWAffixType.lua)
+	do
+		local AffixType = LoadModule("Modules/ZhTWAffixType")
+		local function show(label, item)
+			local groups = AffixType.group(item)
+			log("== affix groups: " .. label)
+			for _, g in ipairs(groups or { }) do
+				for _, ml in ipairs(g) do
+					log("  " .. tostring(g.label or "?") .. "  " .. ml.line)
+				end
+			end
+		end
+		local f = io.open(dir .. "/item_staff_plain.txt", "rb")
+		local text = f:read("*a")
+		f:close()
+		local staff = new("Item"):Item((ItemText.convert(text)))
+		show("staff (plain copy, no affix info)", staff)
+		local wasEnabled = ZhTWLocale.enabled
+		ZhTWLocale.enabled = true
+		local tooltip = new("Tooltip"):Tooltip()
+		build.itemsTab:AddItemTooltip(tooltip, staff)
+		ZhTWLocale.enabled = wasEnabled
+		local labels = { }
+		for _, line in ipairs(tooltip.lines) do
+			if type(line.text) == "string" and (line.text:find("前綴", 1, true) or line.text:find("後綴", 1, true)) then
+				table.insert(labels, line.text)
+			end
+		end
+		log("== tooltip group titles: " .. table.concat(labels, ", "))
+		-- Rare templates: how many explicit lines get a type
+		local known, unknown, items = 0, 0, 0
+		local unknownLines = { }
+		for _, item in pairs(main.rareDB and main.rareDB.list or { }) do
+			items = items + 1
+			-- strip affix information so the lines are matched like an imported item
+			local plain = new("Item"):Item(item:BuildRaw():gsub("{prefix}", ""):gsub("{suffix}", ""):gsub("\nPrefix: [^\n]*", ""):gsub("\nSuffix: [^\n]*", ""))
+			local groups = AffixType.group(plain)
+			for _, g in ipairs(groups or { { } }) do
+				for _, ml in ipairs(g) do
+					if g.label then known = known + 1 else unknown = unknown + 1; unknownLines[ml.line] = true end
+				end
+			end
+			if not groups then
+				unknown = unknown + #plain.explicitModLines
+				for _, ml in ipairs(plain.explicitModLines) do unknownLines[ml.line] = true end
+			end
+		end
+		log(string.format("== rare templates: %d items, %d lines typed, %d unknown", items, known, unknown))
+		local n = 0
+		for l in pairs(unknownLines) do
+			n = n + 1
+			if n <= 25 then log("  unknown: " .. l) end
+		end
+	end
+
 	-- The "create custom item" dialog: its paste filter converts the text, the item can be saved
 	do
 		local f = io.open(dir .. "/item_staff.txt", "rb")
