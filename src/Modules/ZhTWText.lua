@@ -24,22 +24,29 @@ local origDrawString = DrawString
 local origDrawStringWidth = DrawStringWidth
 local origDrawStringCursorIndex = DrawStringCursorIndex
 
--- Two atlases with the same character order: 16px (drawn at native size, sharp for normal UI
--- text) and 32px (large text). Built by Export/zhTWFont.ps1.
+-- One atlas per common text size, all with the same characters (built by Export/zhTWFont.ps1).
+-- Text is drawn from the atlas of its own size, so it is not scaled (scaling makes it blurry).
 local atlases = { }
-for _, name in ipairs({ "Font16", "Font32" }) do
-	local data = LoadModule("Data/zhTW/" .. name)
-	local image = NewImageHandle()
-	image:Load("Data/zhTW/" .. name .. ".png", "MIPMAP")
-	t_insert(atlases, { data = data, image = image })
-end
-local glyphs = atlases[1].data.glyphs
-
-local function atlasFor(height)
-	if height <= 20 then
-		return atlases[1]
+for _, size in ipairs({ 12, 14, 16, 18, 20, 24, 32 }) do
+	local name = "Font" .. size
+	local ok, data = pcall(LoadModule, "Data/zhTW/" .. name)
+	if ok and data then
+		local image = NewImageHandle()
+		image:Load("Data/zhTW/" .. name .. ".png", "MIPMAP")
+		t_insert(atlases, { data = data, image = image, size = size })
 	end
-	return atlases[2]
+end
+local glyphs = (atlases[3] or atlases[1]).data.glyphs
+
+-- Exact size if there is one, otherwise the next larger (shrinking blurs less than enlarging)
+local function atlasFor(height)
+	local h = m_floor(height + 0.5)
+	for _, at in ipairs(atlases) do
+		if at.size >= h then
+			return at
+		end
+	end
+	return atlases[#atlases]
 end
 
 -- Decodes the UTF-8 character at byte i; returns codepoint and byte length
@@ -283,7 +290,8 @@ function DrawString(left, top, align, height, font, text)
 					SetDrawColor(r, g, b, a)
 				end
 				-- The glyph is centred in a square cell; centre the cell on the advance
-				DrawImage(at.image, x + (adv - height) / 2, y, height, height,
+				-- whole pixels: a half-pixel offset blurs the glyph
+				DrawImage(at.image, m_floor(x + (adv - height) / 2 + 0.5), m_floor(y + 0.5), height, height,
 					tx / texW, ty / texH, (tx + cell) / texW, (ty + cell) / texH)
 				x = x + adv
 			else

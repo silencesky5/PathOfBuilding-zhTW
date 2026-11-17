@@ -199,14 +199,12 @@ function ZhTWLayout.setupItemsTab(itemsTab)
 		end
 	end
 	ZhTWLayout.setupJewelSockets(itemsTab)
-	ZhTWLayout.setupFlaskRow(itemsTab)
 	-- Docked item details: drawn after the tab itself (instance override, the class stays as it is)
 	local origDraw = itemsTab.Draw
 	itemsTab.Draw = function(self, viewPort, inputEvents)
 		ZhTWLayout.detailsFrame = (ZhTWLayout.detailsFrame or 0) + 1
 		ZhTWLayout.detailsViewPort = viewPort
 		ZhTWLayout.hookItemLists(self)
-		ZhTWLayout.updateFlaskRow(self)
 		origDraw(self, viewPort, inputEvents)
 		ZhTWLayout.drawDetails(self, viewPort)
 	end
@@ -352,109 +350,6 @@ function ZhTWLayout.setupJewelSockets(itemsTab)
 			y = y + JEWEL_TOGGLE_SPACE
 		end
 		return x, y
-	end
-end
-
----------------------------------------------------------------------------
--- Items tab: the five flasks in one row (check box + short name)
----------------------------------------------------------------------------
-
-local FLASK_W = 56 -- drop-down width in the row (the dropped list keeps the full width)
-local FLASK_STEP = 80 -- check box 20 + gap 2 + drop-down 56 + gap 2
-
--- x offset of flask i from the normal slot column (the row starts where the slot labels start)
-local function flaskShift(i)
-	return -88 + 22 + (i - 1) * FLASK_STEP
-end
-
--- Short name shown in the small drop-down: unique name, or the base name without "藥劑"
-local function flaskShortName(item)
-	if not item then
-		return "^x8C8478無"
-	end
-	local color = colorCodes[item.rarity] or "^7"
-	if item.rarity == "UNIQUE" or item.rarity == "RELIC" then
-		return color .. ZhTWLocale.tr(item.title or item.name)
-	end
-	local base = ZhTWLocale.tr(item.baseName or item.name)
-	base = base:gsub("藥劑$", "")
-	return color .. base
-end
-
-function ZhTWLayout.setupFlaskRow(itemsTab)
-	local flasks = { }
-	for i = 1, 5 do
-		flasks[i] = itemsTab.slots["Flask " .. i]
-		if not flasks[i] then
-			return
-		end
-	end
-	itemsTab.zhTWFlasks = flasks
-	local first = flasks[1]
-	local firstGetPos = first.GetPos -- includes the "藥劑" heading space
-	for i, slot in ipairs(flasks) do
-		slot.zhTWFullWidth = slot.width
-		local origGetPos = slot.GetPos
-		slot.GetPos = function(self)
-			if not enabled() then
-				return origGetPos(self)
-			end
-			local x, y = firstGetPos(first)
-			return x + flaskShift(i), y
-		end
-		-- No "Flask N:" label in the row; the selected flask shows its short name
-		-- Note: never call ItemSlotControl's own Draw from here: it draws through the parent
-		-- proxy (self.DropDownControl:Draw), which finds this instance override again.
-		slot.Draw = function(self, viewPort)
-			if not enabled() then
-				-- same steps as ItemSlotClass:Draw (flasks have no tree socket viewer)
-				local x, y = self:GetPos()
-				local _, height = self:GetSize()
-				DrawString(x + self.labelOffset, y + 2, "RIGHT_X", height - 4, "VAR", "^7" .. self.label .. ":")
-				common.classes.DropDownControl.Draw(self, viewPort)
-				self:DrawControls(viewPort)
-				return
-			end
-			local index = self.selIndex
-			local saved = self.list[index]
-			if saved and not self.dropped then
-				self.list[index] = flaskShortName(itemsTab.items[self.selItemId])
-			end
-			-- not self.DropDownControl:Draw(): the parent proxy would find this instance override again
-			common.classes.DropDownControl.Draw(self, viewPort)
-			if saved then
-				self.list[index] = saved
-			end
-			self:DrawControls(viewPort)
-		end
-	end
-	-- Heading stays above the row's left edge
-	local heading = itemsTab.controls["zhTWHeading_Flask 1"]
-	if heading then
-		heading.x = -88 - flaskShift(1)
-	end
-	-- The passive tree selector below the flasks goes back to the slot column
-	local specSelect = itemsTab.controls.specSelect
-	if specSelect then
-		local origGetPos = specSelect.GetPos
-		specSelect.GetPos = function(self)
-			local x, y = origGetPos(self)
-			if enabled() then
-				x = x - flaskShift(5)
-			end
-			return x, y
-		end
-	end
-end
-
--- Width is a plain number in DropDownControl, so it is switched every frame
-function ZhTWLayout.updateFlaskRow(itemsTab)
-	for _, slot in ipairs(itemsTab.zhTWFlasks or { }) do
-		local width = enabled() and FLASK_W or slot.zhTWFullWidth
-		if slot.width ~= width then
-			slot.width = width
-			slot.droppedWidth = slot.zhTWFullWidth
-		end
 	end
 end
 

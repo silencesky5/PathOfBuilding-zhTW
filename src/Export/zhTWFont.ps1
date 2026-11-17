@@ -25,8 +25,14 @@ Add-Type -AssemblyName System.Drawing
 $root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $dataDir = Join-Path $root "src\Data\zhTW"
 
+# One atlas per common UI text size, so text is drawn at native size (scaled text looks blurry)
 $sizes = @(
+	@{ Cell = 12; EmSize = 11.25; Name = "Font12" },
+	@{ Cell = 14; EmSize = 13.125; Name = "Font14" },
 	@{ Cell = 16; EmSize = 15.0; Name = "Font16" },
+	@{ Cell = 18; EmSize = 16.875; Name = "Font18" },
+	@{ Cell = 20; EmSize = 18.75; Name = "Font20" },
+	@{ Cell = 24; EmSize = 22.5; Name = "Font24" },
 	@{ Cell = 32; EmSize = 30.0; Name = "Font32" }
 )
 
@@ -36,11 +42,18 @@ function Test-Wide([int]$cp) {
 
 # Collect characters
 $set = New-Object 'System.Collections.Generic.SortedSet[int]'
-Get-ChildItem -Path $dataDir -Filter *.lua | Where-Object { $_.Name -notlike "Font*.lua" } | ForEach-Object {
-	$text = [System.IO.File]::ReadAllText($_.FullName, [System.Text.Encoding]::UTF8)
+# Every non-ASCII character the Chinese interface can draw: translations, game data, and the
+# zhTW modules' own text (the engine shows any character missing here as "[U+xxxx]")
+$sources = @(Get-ChildItem -Path $dataDir -Filter *.lua | Where-Object { $_.Name -notlike "Font*.lua" })
+$sources += @(Get-ChildItem -Path (Join-Path $root "src\Data\StatDescriptions\zhTW\tc") -Filter *.lua)
+$sources += @(Get-ChildItem -Path (Join-Path $root "src\Modules") -Filter "ZhTW*.lua")
+$sources += @(Get-Item -Path (Join-Path $root "src\Classes\ImportTab.lua"))
+foreach ($file in $sources) {
+	$text = [System.IO.File]::ReadAllText($file.FullName, [System.Text.Encoding]::UTF8)
 	foreach ($ch in $text.ToCharArray()) {
 		$cp = [int]$ch
-		if (Test-Wide $cp) { [void]$set.Add($cp) }
+		# skip control characters and UTF-16 surrogate halves
+		if ($cp -ge 0xA1 -and -not ($cp -ge 0xD800 -and $cp -le 0xDFFF)) { [void]$set.Add($cp) }
 	}
 }
 $fromData = $set.Count
@@ -56,8 +69,9 @@ for ($lead = 0xA4; $lead -le 0xC6; $lead++) {
 		}
 	}
 }
-foreach ($s in "，。、；：？！「」『』（）《》〈〉…—．·～％＋－＝／") {
-	foreach ($ch in $s.ToCharArray()) { [void]$set.Add([int]$ch) }
+# Punctuation (as code points: Windows PowerShell reads this file in the system code page)
+foreach ($cp in @(0xFF0C, 0x3002, 0x3001, 0xFF1B, 0xFF1A, 0xFF1F, 0xFF01, 0x300C, 0x300D, 0x300E, 0x300F, 0xFF08, 0xFF09, 0x300A, 0x300B, 0x3008, 0x3009, 0x2026, 0x2014, 0xFF0E, 0x00B7, 0xFF5E, 0xFF05, 0xFF0B, 0xFF0D, 0xFF1D, 0xFF0F, 0x00D7, 0x221E, 0x2027)) {
+	[void]$set.Add([int]$cp)
 }
 $chars = @($set)
 Write-Host ("Characters: {0} ({1} from data files)" -f $chars.Count, $fromData)
