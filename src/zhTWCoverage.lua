@@ -110,7 +110,29 @@ local ok, err = xpcall(function()
 			build.viewMode = mode
 			frames(3)
 		end
-		log("== Site realm default: " .. tostring(build.importTab.controls.siteAccountRealm:GetSelValue().id))
+		do
+			local c = build.importTab.controls
+			for _, zh in ipairs({ true, false }) do
+				ZhTWLocale.enabled = zh
+				local sx, sy = c.sectionCharSiteImport:GetPos()
+				local bx, by = c.sectionBuild:GetPos()
+				log(string.format("== Import tab (%s): login section shown=%s, login button shown=%s, account-name section at %d,%d shown=%s, build sharing at %d, tip=%s",
+					zh and "zh" or "en", tostring(c.sectionOauthCharImport:IsShown()), tostring(c.authenticateButton:IsShown()), sx, sy,
+					tostring(c.sectionCharSiteImport:IsShown()), by, ZhTWLocale.tr(c.siteCharBanditNote:GetProperty("label")):sub(1, 60)))
+			end
+			ZhTWLocale.enabled = true
+		end
+		do
+			local r = build.importTab.controls.siteAccountRealm
+			r.selIndex = 1 -- even with PC picked earlier, the Chinese interface asks Taiwan
+			log(string.format("== Site realm: zh=%s enabled=%s", r:GetSelValue().id, tostring(r:IsEnabled())))
+			ZhTWLocale.enabled = false
+			log(string.format("== Site realm: en=%s enabled=%s", r:GetSelValue().id, tostring(r:IsEnabled())))
+			ZhTWLocale.enabled = true
+			r:SelByValue("TW", "id")
+			local ax = build.importTab.controls.siteAccountName:GetPos()
+			log("   account name box shown=" .. tostring(build.importTab.controls.siteAccountName:IsShown()) .. " x=" .. ax)
+		end
 		-- Typing in edit boxes (undo states go through the wrapped EditControl methods)
 		do
 			local tried, failed = 0, { }

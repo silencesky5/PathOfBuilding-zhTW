@@ -512,6 +512,9 @@ function ImportTabClass:ImportTab(build)
 		{ 0, 18, 650, 250 },
 		"Import By Account Name")
 	addAccountNameControls(self)
+	if ZhTWLayout then -- zhTW: hide the international-server login in the Chinese interface
+		ZhTWLayout.setupImportTab(self)
+	end
 
 
 	-- Build import/export

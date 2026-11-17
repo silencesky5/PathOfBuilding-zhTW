@@ -718,4 +718,80 @@ function ZhTWLayout.drawDetails(itemsTab, viewPort)
 	tooltip:Draw(x + 4, y + 26, nil, nil, { x = x + 4, y = y + 26, width = w - 8, height = h - 30 })
 end
 
+---------------------------------------------------------------------------
+-- Import tab: the international-server login is hidden (Taiwan accounts cannot use it)
+---------------------------------------------------------------------------
+
+function ZhTWLayout.setupImportTab(importTab)
+	local controls = importTab.controls
+	local oauth, site = controls.sectionOauthCharImport, controls.sectionCharSiteImport
+	if not oauth or not site then
+		return
+	end
+	local origShown = oauth.shown
+	oauth.shown = function(...)
+		if enabled() then
+			return false
+		end
+		if type(origShown) == "function" then
+			return origShown(...)
+		end
+		return origShown ~= false
+	end
+	-- Collapsing anchor: with the login section hidden, "import by account name" moves to the top
+	site:SetAnchor("TOPLEFT", oauth, "BOTTOMLEFT", 0, 18, true)
+	-- PC / Xbox / Sony are international-server platforms: the realm drop-down becomes a fixed
+	-- "台服" tag (still shown, since the account name box and others are anchored to it)
+	local realm = controls.siteAccountRealm
+	if realm then
+		local twIndex
+		for i, entry in ipairs(realm.list or { }) do
+			if type(entry) == "table" and entry.id == "TW" then
+				twIndex = i
+			end
+		end
+		if twIndex then
+			local origGetSelValue = realm.GetSelValue
+			realm.GetSelValue = function(self, ...)
+				if enabled() then
+					return self.list[twIndex]
+				end
+				return origGetSelValue(self, ...)
+			end
+			local origEnabled = realm.enabled
+			realm.enabled = function(...)
+				if enabled() then
+					return false
+				end
+				if type(origEnabled) == "function" then
+					return origEnabled(...)
+				end
+				return origEnabled ~= false
+			end
+			realm.Draw = function(self, viewPort, ...)
+				if not enabled() then
+					return common.classes.DropDownControl.Draw(self, viewPort, ...)
+				end
+				local x, y = self:GetPos()
+				local width, height = self:GetSize()
+				rect(x, y, width, height, 0.35, 0.29, 0.19)
+				rect(x + 1, y + 1, width - 2, height - 2, 0.08, 0.07, 0.05)
+				DrawString(x + width / 2, y + 2, "CENTER_X", height - 4, "VAR", GOLD .. "台服")
+				SetDrawColor(1, 1, 1)
+			end
+		end
+	end
+	-- The bandit tip pointed at the hidden login; Taiwan data has no bandit choice at all
+	local note = controls.siteCharBanditNote
+	if note then
+		local origLabel = note.label
+		note.label = function()
+			if enabled() then
+				return "^7提示：台服的角色資料不含盜賊任務的選擇，匯入後請到「設定」分頁手動選擇。"
+			end
+			return origLabel
+		end
+	end
+end
+
 return ZhTWLayout
