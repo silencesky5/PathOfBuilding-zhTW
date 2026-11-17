@@ -31,6 +31,16 @@ function ShareListClass:OnSelect(index, share)
 	self.tab:SelectShare(share)
 end
 
+-- mod pool of the base (詞綴池): read only
+local PoolListClass = newClass("ZhTWPoolListControl", "ListControl")
+function PoolListClass:ZhTWPoolListControl(anchor, rect)
+	self:ListControl(anchor, rect, 16, "VERTICAL", false, { })
+	return self
+end
+function PoolListClass:GetRowValue(column, index, row)
+	return row.label
+end
+
 local LEFT_W = 300
 local CARD_X = 320
 local CARD_W = 440
@@ -38,6 +48,57 @@ local RIGHT_X = CARD_X + CARD_W + 20
 local TITLE = "^xE6DFD0"
 local SUBTLE = "^xA39B8C"
 local RARITY_COLOR = { [0] = "^xC8C8C8", "^x8888FF", "^xFFFF77" }
+local POOL_X = RIGHT_X + 270 -- 詞綴池 column, when the window is wide enough
+local POOL_MIN_W = 320
+
+-- currency icons (Assets/zhTW/currency.png, made by Export/zhTWCraftIcons.py from the site's
+-- icons): the ten currencies, then essence (11) and resonator (12). Off with the other icons
+-- (SHOW_ICONS in Modules/ZhTWLayout.lua).
+local currencySheet
+local function currencyIcons()
+	if currencySheet == nil then
+		currencySheet = false
+		local f = io.open("Assets/zhTW/currency.png", "rb")
+		if f then
+			f:close()
+			currencySheet = NewImageHandle()
+			currencySheet:Load("Assets/zhTW/currency.png", "CLAMP")
+		end
+	end
+	if not (ZhTWLayout and ZhTWLayout.hasIcons()) then
+		return nil
+	end
+	return currencySheet or nil
+end
+local function iconButton(button, index)
+	local baseDraw = button.Draw
+	button.Draw = function(self, viewPort, noTooltip)
+		local sheet = currencyIcons()
+		if not sheet then
+			return baseDraw(self, viewPort, noTooltip)
+		end
+		local label = self:GetProperty("label")
+		local origLabel = self.label
+		self.label = ""
+		baseDraw(self, viewPort, noTooltip)
+		self.label = origLabel
+		local x, y = self:GetPos()
+		local width, height = self:GetSize()
+		local size = height - 2
+		local textW = DrawStringWidth(16, "VAR", label)
+		local startX = m_floor(x + (width - size - 4 - textW) / 2)
+		local col, row = (index - 1) % 6, m_floor((index - 1) / 6)
+		SetDrawColor(1, 1, 1, self:IsEnabled() and 1 or 0.35)
+		DrawImage(sheet, startX, y + 1, size, size, col / 6, row / 2, (col + 1) / 6, (row + 1) / 2)
+		if self:IsEnabled() then
+			SetDrawColor(1, 1, 1)
+		else
+			SetDrawColor(0.33, 0.33, 0.33)
+		end
+		DrawString(startX + size + 4, y + m_floor((height - 16) / 2), "LEFT", 16, "VAR", label)
+		SetDrawColor(1, 1, 1)
+	end
+end
 
 -- engine and data are shared by every build (loaded once, on first use)
 local CE, Engine
@@ -142,6 +203,7 @@ function ZhTWCraftTabClass:Build()
 			end
 		end
 		controls["cur_" .. c.k] = button
+		iconButton(button, i)
 	end
 	local essY = 44 + 5 * 28 + 10
 	controls.essLabel = new("LabelControl"):LabelControl({ "TOPLEFT", self, "TOPLEFT" }, { RIGHT_X, essY + 2, 0, 16 }, "^7精髓:")
@@ -214,6 +276,7 @@ function ZhTWCraftTabClass:Build()
 			self:Use(k)
 		end
 	end)
+	iconButton(controls.useFossils, 12)
 	controls.useFossils.enabled = function()
 		local k = self:ResoKey()
 		return k and self:CanUse(k) or false
@@ -315,6 +378,34 @@ function ZhTWCraftTabClass:Build()
 	controls.copyToBuild.enabled = function()
 		return self.shareItem ~= nil
 	end
+
+	-- 詞綴池: own column when wide enough, otherwise a view of the middle panel
+	local function poolWide()
+		return (self.width or 0) - POOL_X - 10 >= POOL_MIN_W
+	end
+	self.poolWide = poolWide
+	controls.poolList = new("ZhTWPoolListControl"):ZhTWPoolListControl({ "TOPLEFT", self, "TOPLEFT" }, { POOL_X, 34, 300, 300 })
+	controls.poolList.x = function()
+		return poolWide() and POOL_X or (CARD_X + 10)
+	end
+	controls.poolList.width = function()
+		return poolWide() and ((self.width or 0) - POOL_X - 10) or (CARD_W - 20)
+	end
+	controls.poolList.height = function()
+		return (self.height or 400) - 44
+	end
+	controls.poolList.shown = function()
+		return poolWide() or (self.poolView and not self.shelfView)
+	end
+	controls.poolToggle = new("ButtonControl"):ButtonControl({ "TOPLEFT", self, "TOPLEFT" }, { CARD_X + CARD_W - 96, 12, 90, 18 }, function()
+		return self.poolView and "物品卡" or "詞綴池"
+	end, function()
+		self.poolView = not self.poolView
+	end)
+	controls.poolToggle.shown = function()
+		return not poolWide() and not self.shelfView
+	end
+	controls.poolToggle.tooltipText = "視窗不夠寬時，詞綴池和物品卡共用中間這一格。"
 
 	self.actY = gY + 60
 	self:SelectClass(self:DefaultClass())
@@ -705,6 +796,38 @@ function ZhTWCraftTabClass:RefreshFromList()
 	self.controls.from:SetSel(1, true)
 end
 
+-- rows of the mod pool for the current base and item level (a blank item, like the site)
+function ZhTWCraftTabClass:RefreshPool()
+	if self.poolVersion == self.version then
+		return
+	end
+	self.poolVersion = self.version
+	local E = engine()
+	local list = { }
+	if self.item then
+		local view = E.poolView(self.item.b, self.item.lv)
+		local have = { }
+		for _, x in ipairs(self.item.mods) do
+			have[E.mods[x.m].ty] = true
+		end
+		for _, pre in ipairs({ true, false }) do
+			local n = 0
+			for _, r in ipairs(view.rows) do
+				if r.pre == pre then n = n + 1 end
+			end
+			t_insert(list, { label = TITLE .. (pre and "前綴" or "後綴") .. SUBTLE .. "（" .. n .. " 種，機率＝同一邊的權重比例）" })
+			for _, r in ipairs(view.rows) do
+				if r.pre == pre then
+					local text = E.modRange(r.m, "zh")[1] or ""
+					local mark = have[E.mods[r.m].ty] and "^x7FD87F" or "^x8888FF"
+					t_insert(list, { label = string.format("^7%5.1f%%  " .. SUBTLE .. "T%d/%d  ", r.pct, r.tier, r.tiers) .. mark .. text })
+				end
+			end
+		end
+	end
+	self.controls.poolList.list = list
+end
+
 function ZhTWCraftTabClass:Draw(viewPort, inputEvents)
 	self.x = viewPort.x
 	self.y = viewPort.y
@@ -713,6 +836,7 @@ function ZhTWCraftTabClass:Draw(viewPort, inputEvents)
 	self:Build()
 	self:RefreshFromList()
 
+	self:RefreshPool()
 	self:ProcessControlsInput(inputEvents, viewPort)
 	main:DrawBackground(viewPort)
 
@@ -777,6 +901,8 @@ function ZhTWCraftTabClass:Draw(viewPort, inputEvents)
 		else
 			DrawString(x0 + CARD_X + 10, y0 + 298, "LEFT", 14, "VAR", SUBTLE .. "點清單裡的一件，這裡會顯示物品卡。")
 		end
+	elseif self.poolView and not self.poolWide() then
+		DrawString(x0 + CARD_X + 10, y0 + 14, "LEFT", 14, "VAR", TITLE .. "詞綴池" .. SUBTLE .. "　綠色＝物品上已有同類詞綴")
 	else
 		DrawString(x0 + CARD_X + 10, y0 + 16, "LEFT", 14, "VAR", TITLE .. "物品卡")
 		pobItem = self:PobItem()
@@ -797,6 +923,13 @@ function ZhTWCraftTabClass:Draw(viewPort, inputEvents)
 	if ZhTWGuild then
 		local who = ZhTWGuild.token and (ZhTWGuild.me and ("已登入：" .. tostring(ZhTWGuild.me.name)) or "已登入") or "未登入"
 		DrawString(x0 + RIGHT_X + 128, y0 + self.actY - 2, "LEFT", 14, "VAR", SUBTLE .. who)
+	end
+
+	-- 詞綴池 column
+	if self.poolWide() then
+		local pw = self.width - POOL_X - 10
+		panel(x0 + POOL_X - 10, y0 + 10, pw + 20, h - 20)
+		DrawString(x0 + POOL_X, y0 + 14, "LEFT", 14, "VAR", TITLE .. "詞綴池" .. SUBTLE .. "　這個底材＋物品等級會出現的詞綴；綠色＝物品上已有同類")
 	end
 
 	-- right: headings, used currency, message and log

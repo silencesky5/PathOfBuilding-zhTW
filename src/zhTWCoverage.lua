@@ -537,6 +537,7 @@ local ok, err = xpcall(function()
 				tab:FilterShelf()
 				local searched = #c.shelfList.list
 				c.shelfSearch:SetText("")
+				tab:FilterShelf()
 				c.shelfList:SelectIndex(2)
 				frames(1)
 				local unreadable = tab.shareItem == nil
@@ -570,6 +571,7 @@ local ok, err = xpcall(function()
 				ZhTWGuild.token = savedToken
 				tab.shelfView = false
 			end
+			do local pl = tab.controls.poolList; local px = pl:GetPos(); local pw = pl:GetSize(); local first = pl.list[2] and StripEscapes(pl.list[2].label) or "-"; log(string.format("== Craft pool: rows %d, wide=%s, list x=%d w=%d, shown=%s, first row: %s", #pl.list, tostring(tab.poolWide()), px, pw, tostring(pl:IsShown()), first)) end
 			local card = tab:PobItem()
 			log("== Craft names: card name=" .. tostring(card and card.name) .. " | drawn=" .. tostring(card and ZhTWLocale.tr(colorCodes.RARE .. card.name)) .. " | title=" .. tostring(card and ZhTWLocale.tr(colorCodes.RARE .. (card.title or ""))))
 			local before = 0

@@ -180,7 +180,7 @@ local iconIndex = {
 	["魔力"] = 7, ["能量護盾"] = 8, ["保護"] = 9, ["盛怒"] = 10, ["回復與流失"] = 11, ["閃避"] = 12,
 	["護甲"] = 13, ["格擋與抑制"] = 14, ["抗性"] = 15, ["其他"] = 16, ["完整 DPS"] = 17, ["技能 DPS"] = 18,
 	["裝備"] = 19, ["技能"] = 20, ["天賦"] = 21, ["計算"] = 22, ["匯入/匯出"] = 23, ["角色配置"] = 24,
-	["設定"] = 25, ["儲存"] = 26, ["另存新檔"] = 27, ["製作"] = 27,
+	["設定"] = 25, ["儲存"] = 26, ["另存新檔"] = 27, ["製作"] = 27, ["比較"] = 29,
 	-- 28-30 spare (hourglass, book, moon); 31- item groups and slots
 	["武器"] = 31, ["防具"] = 32, ["飾品"] = 33, ["藥劑"] = 34, ["珠寶"] = 35,
 	["主手"] = 36, ["副手"] = 37, ["頭部"] = 38, ["胸甲"] = 39, ["手套"] = 40, ["鞋子"] = 41,
@@ -1129,7 +1129,7 @@ local sheetTabs = {
 	{ label = "製作", mode = "CRAFT" },
 }
 local isSheet = { ITEMS = true, SKILLS = true, TREE = true, CALCS = true, CRAFT = true }
-local hiddenModes = { NOTES = true, PARTY = true, COMPARE = true }
+local hiddenModes = { NOTES = true, PARTY = true }
 
 local function hideWhenEnabled(control)
 	if not control then
@@ -1150,7 +1150,7 @@ end
 function ZhTWLayout.setupModeButtons(build)
 	local controls = build.controls
 	-- buildName: "Current build:" box; Save on an unnamed build already asks for a name
-	for _, name in ipairs({ "modeNotes", "modeTree", "modeSkills", "modeItems", "modeCalcs", "modeParty", "modeCompare", "buildName" }) do
+	for _, name in ipairs({ "modeNotes", "modeTree", "modeSkills", "modeItems", "modeCalcs", "modeParty", "buildName" }) do
 		hideWhenEnabled(controls[name])
 	end
 	-- On narrow screens PoB moves the build name into the side bar and pushes the side bar down
@@ -1164,7 +1164,7 @@ function ZhTWLayout.setupModeButtons(build)
 	end
 	local import = controls.modeImport
 	import.width = function()
-		return enabled() and 96 or 134
+		return enabled() and 84 or 134
 	end
 	local sheetButton = new("ButtonControl"):ButtonControl({ "LEFT", import, "RIGHT" }, { 4, 0, 96, 20 }, "角色配置", function()
 		build.viewMode = build.zhTWLastSheet or "ITEMS"
@@ -1225,6 +1225,45 @@ function ZhTWLayout.setupModeButtons(build)
 	ZhTWLayout.addButtonIcon(sheetButton, "角色配置")
 	ZhTWLayout.addButtonIcon(controls.modeConfig, "設定")
 
+	-- top row (KAI 11/18): 匯入/匯出 | 角色配置 | 比較 | 設定, narrower so all four fit
+	sheetButton.width = function()
+		return enabled() and 80 or 96
+	end
+	local config = controls.modeConfig
+	local origConfigW = config.width
+	config.width = function(self)
+		if enabled() then
+			return 64
+		end
+		return type(origConfigW) == "function" and origConfigW(self) or origConfigW
+	end
+	local compare = controls.modeCompare
+	if compare then
+		-- PoB hangs it from the hidden Party button; place it between 角色配置 and 設定
+		local baseIsShown, baseGetPos = compare.IsShown, compare.GetPos
+		compare.IsShown = function(self)
+			if enabled() then
+				return true
+			end
+			return baseIsShown(self)
+		end
+		compare.GetPos = function(self)
+			if enabled() then
+				local x, y = build.anchorSideBar:GetPos()
+				return x + 172, y
+			end
+			return baseGetPos(self)
+		end
+		local origCompareW = compare.width
+		compare.width = function(self)
+			if enabled() then
+				return 60
+			end
+			return type(origCompareW) == "function" and origCompareW(self) or origCompareW
+		end
+		ZhTWLayout.addButtonIcon(compare, "比較")
+	end
+
 	ZhTWLayout.setupTreePanel(build)
 end
 
@@ -1248,15 +1287,20 @@ function ZhTWLayout.addButtonIcon(button, iconName)
 		local textH = height - 4
 		local size = height - 4
 		local textW = DrawStringWidth(textH, "VAR", label)
+		if size + 4 + textW > width - 4 and textH > 14 then
+			textH, size = 14, 14
+			textW = DrawStringWidth(textH, "VAR", label)
+		end
 		local startX = m_floor(x + (width - size - 4 - textW) / 2)
 		local on = self:IsEnabled()
-		ZhTWLayout.drawIcon(iconName, startX, y + 2, size, on and 1 or 0.4)
+		local iconY = y + m_floor((height - size) / 2)
+		ZhTWLayout.drawIcon(iconName, startX, iconY, size, on and 1 or 0.4)
 		if on then
 			SetDrawColor(1, 1, 1)
 		else
 			SetDrawColor(0.33, 0.33, 0.33)
 		end
-		DrawString(startX + size + 4, y + 2, "LEFT", textH, "VAR", label)
+		DrawString(startX + size + 4, y + m_floor((height - textH) / 2), "LEFT", textH, "VAR", label)
 		SetDrawColor(1, 1, 1)
 	end
 end
