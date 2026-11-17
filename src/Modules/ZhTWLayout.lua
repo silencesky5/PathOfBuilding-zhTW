@@ -495,6 +495,7 @@ end
 ---------------------------------------------------------------------------
 
 local SHEET_STRIP = 30
+local TREE_ROW = 28 -- points / level / class row under the tabs on the 天賦 tab
 local sheetTabs = {
 	{ label = "裝備", mode = "ITEMS" },
 	{ label = "技能", mode = "SKILLS" },
@@ -560,8 +561,15 @@ function ZhTWLayout.setupModeButtons(build)
 	strip.Draw = function(control)
 		local x, y = control:GetPos()
 		local width, height = control:GetSize()
+		SetDrawLayer(nil, -10) -- below the buttons and dropdowns drawn on top of it
 		rect(x, y + height - 2, width, 1, 0.47, 0.39, 0.22)
+		if build.viewMode == "TREE" then
+			-- dark band behind the points / level / class row
+			rect(x, y + height, width, TREE_ROW, 0.06, 0.055, 0.045)
+			rect(x, y + height + TREE_ROW - 1, width, 1, 0.3, 0.25, 0.15)
+		end
 		SetDrawColor(1, 1, 1)
+		SetDrawLayer(nil, 0)
 	end
 	controls.zhTWSheetStrip = strip
 	for i, tab in ipairs(sheetTabs) do
@@ -572,6 +580,41 @@ function ZhTWLayout.setupModeButtons(build)
 			return build.viewMode == tab.mode
 		end
 		controls["zhTWSheet" .. tab.mode] = button
+	end
+
+	-- Points / level / class / ascendancy / loadout row: only on the 天賦 tab, moved into
+	-- the tab row next to the tabs. Everything else in that row is anchored to pointDisplay,
+	-- so moving or hiding it moves or hides the whole row.
+	local points = controls.pointDisplay
+	if points then
+		local origX, origY, origShown = points.x, points.y, points.shown
+		local function treeRow()
+			return enabled() and build.viewMode == "TREE"
+		end
+		points.x = function(self)
+			if treeRow() then
+				local ax = build.anchorTopBarRight:GetPos()
+				local aw = build.anchorTopBarRight:GetSize()
+				return 316 - ax - aw
+			end
+			return type(origX) == "function" and origX(self) or origX
+		end
+		points.y = function(self)
+			if treeRow() then
+				-- anchor top is 4; row sits just below the tab strip
+				return 32 + SHEET_STRIP + 4 - 4
+			end
+			return type(origY) == "function" and origY(self) or origY
+		end
+		points.shown = function(self)
+			if enabled() and build.viewMode ~= "TREE" then
+				return false
+			end
+			if type(origShown) == "function" then
+				return origShown(self)
+			end
+			return origShown ~= false
+		end
 	end
 end
 
@@ -585,8 +628,9 @@ function ZhTWLayout.adjustTabViewPort(build, viewPort)
 	end
 	if isSheet[build.viewMode] then
 		build.zhTWLastSheet = build.viewMode
-		viewPort.y = viewPort.y + SHEET_STRIP
-		viewPort.height = viewPort.height - SHEET_STRIP
+		local push = SHEET_STRIP + (build.viewMode == "TREE" and TREE_ROW or 0)
+		viewPort.y = viewPort.y + push
+		viewPort.height = viewPort.height - push
 	end
 end
 

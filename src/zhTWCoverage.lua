@@ -363,6 +363,14 @@ local ok, err = xpcall(function()
 					end
 					log(string.format("   %s -> %s vp.y=%d h=%d strip=%s sheetBtnLocked=%s | %s", mode, build.viewMode, vp.y, vp.height,
 						tostring(bc.zhTWSheetStrip:IsShown()), tostring(bc.zhTWModeSheets:GetProperty("locked")), table.concat(tabs, " ")))
+					local row = { }
+					for _, n in ipairs({ "pointDisplay", "levelScalingButton", "characterLevel", "classDrop", "ascendDrop", "secondaryAscendDrop", "buildLoadouts" }) do
+						local c = bc[n]
+						local x, y = c:GetPos()
+						local w = c:GetSize()
+						table.insert(row, string.format("%s%s@%d,%d,w%d", c:IsShown() and "" or "-", n, x, y, w))
+					end
+					log("      top row: " .. table.concat(row, " "))
 				end
 				build.viewMode = saved
 			end
