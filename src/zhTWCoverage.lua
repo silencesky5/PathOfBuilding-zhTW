@@ -110,6 +110,28 @@ local ok, err = xpcall(function()
 			build.viewMode = mode
 			frames(3)
 		end
+		-- Typing in edit boxes (undo states go through the wrapped EditControl methods)
+		do
+			local tried, failed = 0, { }
+			for _, owner in ipairs({ build.importTab, build.itemsTab, build.configTab, build.notesTab }) do
+				for name, ctrl in pairs(owner.controls or { }) do
+					if type(ctrl) == "table" and ctrl.OnChar and ctrl.buf ~= nil and ctrl.CreateUndoState then
+						tried = tried + 1
+						local saved = ctrl.buf
+						local ok, err = pcall(function()
+							ctrl:OnChar("s")
+							ctrl:OnKeyDown("BACK")
+							ctrl:OnKeyDown("BACK")
+						end)
+						if not ok then
+							table.insert(failed, tostring(name) .. ": " .. tostring(err))
+						end
+						pcall(function() ctrl:SetText(saved) end)
+					end
+				end
+			end
+			log(string.format("== Edit boxes typed: %d, errors %d %s", tried, #failed, table.concat(failed, " | ")))
+		end
 		-- Gem name boxes on the skills tab (edit controls) must show Chinese too
 		do
 			local seen = { }

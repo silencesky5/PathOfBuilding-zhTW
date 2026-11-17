@@ -213,13 +213,23 @@ local function patchEditControl()
 				local keep = self.gemChangeFunc ~= nil and self.skillsTab ~= nil and not self.hasFocus
 				local inc = keep and 0 or 1
 				ZhTWLocale.suspend = ZhTWLocale.suspend + inc
-				local ok, a1, a2, a3 = pcall(func, self, ...)
+				-- keep the exact number of return values: callers such as
+				-- t_insert(self.undo, 1, self:CreateUndoState()) break on extra nils
+				local results = { n = 0 }
+				local function collect(ok, ...)
+					results.n = select("#", ...)
+					for i = 1, results.n do
+						results[i] = (select(i, ...))
+					end
+					return ok
+				end
+				local ok = collect(pcall(func, self, ...))
 				ZhTWLocale.suspend = ZhTWLocale.suspend - inc
 				self.prompt, self.placeholder = prompt, placeholder
 				if not ok then
-					error(a1, 0)
+					error(results[1], 0)
 				end
-				return a1, a2, a3
+				return unpack(results, 1, results.n)
 			end
 		end
 	end
