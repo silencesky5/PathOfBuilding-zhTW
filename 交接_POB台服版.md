@@ -1,7 +1,7 @@
 # POB 台服版：交接文件（2026-11-17）
 
 給接手的對話：這份文件說明目前狀態、做法、測試方式與待辦。細節見 `報告_階段3.md`。
-含個人資料的原始文件（帳號、角色、截圖、`報告_階段1-2.md`）不在 repo 裡，放在 `POE研究用\POB台服版_私人文件\`。**repo 是公開的，不要把帳號名稱、角色名稱、截圖提交進來。**
+含個人資料的原始文件（帳號、角色、截圖、`報告_階段1-2.md`）不在 repo 裡，放在 `C:\Users\User\Desktop\Work_Space\POE相關\POB台服版\POB台服版_私人文件\`。**repo 是公開的，不要把帳號名稱、角色名稱、截圖提交進來。**
 
 ## 1. 這是什麼
 
@@ -10,7 +10,7 @@ Path of Building Community（PoE1）的非官方繁體中文版：
 - **介面中文化**：畫字時翻譯，遊戲內容使用官方中文。
 - **中文介面版面改版**。
 
-- Repo：`C:\Users\User\Desktop\POE研究用\PathOfBuilding`。分支 `zhTW` 用來開發；`release` 是朋友的程式追蹤的分支。遠端 `origin` 是 KAI 的 GitHub（`src/Export/zhTWRelease.ini`），`upstream` 是官方 POB。**原始碼資料夾不能刪。**
+- Repo：`C:\Users\User\Desktop\Work_Space\POE相關\POB台服版\PathOfBuilding`（11/17 從 `Desktop\POE研究用` 搬過來）。分支 `zhTW` 用來開發；`release` 是朋友的程式追蹤的分支。遠端 `origin` 是 KAI 的 GitHub（`src/Export/zhTWRelease.ini`），`upstream` 是官方 POB。**原始碼資料夾不能刪。**
 - 從原始碼執行：`runtime\Path{space}of{space}Building.exe`。這是開發模式，不會自動更新，存檔也放在 `src\` 裡。
 
 ### 發佈與自動更新
@@ -19,7 +19,7 @@ Path of Building Community（PoE1）的非官方繁體中文版：
   1. 在 `zhTW` 提交好、測試通過。
   2. `python src/Export/zhTWRelease.py publish --version 2.67.2-zhTW.<n> --note "更新內容"`：在 changelog.txt 加一筆紀錄、依提交內容重算 manifest.xml，然後提交。版本號要和 changelog 的 `VERSION[...]` 一致，更新視窗才會只顯示新的紀錄。
   3. `git push origin zhTW` 和 `git push origin HEAD:release`。GitHub 的快取大約 5 分鐘後，朋友就會收到。
-- **給新朋友的壓縮檔**：`powershell -ExecutionPolicy Bypass -File src\Export\zhTWPackage.ps1`，用最後一次提交產生 `POE研究用\POB台服版_<版本>.zip`。上傳到 GitHub 的 Releases。
+- **給新朋友的壓縮檔**：`powershell -ExecutionPolicy Bypass -File src\Export\zhTWPackage.ps1`，用最後一次提交產生 `Work_Space\POE相關\POB台服版\POB台服版_<版本>.zip`（repo 的上一層資料夾）。上傳到 GitHub 的 Releases。
 - **驗證更新流程**：`python src/Export/zhTWUpdateTest.py <空資料夾>`。它會在本機架一個假的 GitHub，用壓縮檔裡的 exe 跑 POB 自己的 UpdateCheck/UpdateApply 和 Update.exe，檢查只下載變更的檔案、刪除的檔案有刪掉、個人檔案沒被動到、更新來源還是我們的。全程不開視窗，大約 1 分鐘。
 - manifest 的 sha1 是對 git 裡的原始內容（GitHub raw 提供的就是原始內容）。上游有些檔案用 CRLF 存，所以不要用 `git archive` 或工作區的檔案來算。
 - **跟上官方 POB 改版**：`git fetch upstream`，把 `upstream/master` 合併進 `zhTW`（manifest.xml 衝突時直接用 publish 重算），跑測試後再發佈。
@@ -83,4 +83,10 @@ Path{space}of{space}Building.exe <src\zhTWCoverage.lua 的完整路徑>   → sr
 2. **設定頁說明文字翻譯**：清單在 `docs/zhTW_config_tooltips_todo.txt`（375 行，保留顏色碼）。翻好後加進 `UI.lua` 的 strings。
 3. 其他未翻譯：新角色才會出現的介面數字（點燃 DPS 差異、圖騰放置時間）、風味文字。
 4. 已知限制：永恆珠寶第 1、2 種（瓦爾、卡魯）的將軍名稱，新版資料只有通用句，無法轉換。
-5. 桌面上的「POB台服版」捷徑被刪了，可以重建。
+5. 桌面上的「POB台服版」捷徑被刪了，可以重建（目標：`Work_Space\POE相關\POB台服版\PathOfBuilding\Path of Building.exe`）。
+6. **介面改動紀錄（11/17 晚，`ZhTWLayout.lua`，只在中文介面生效）**：
+   - 左上角只留「匯入/匯出」、「角色配置」、「設定」三個按鈕。
+   - 「角色配置」底下有「裝備／技能／天賦／計算」頁籤。
+   - 天賦點、等級、職業、昇華、血液昇華、天賦配置改成天賦頁左上角的直式面板。
+   - 拿掉 Current build 名稱欄。
+   - 筆記、隊伍、比較按鈕隱藏，但資料仍保留（存檔不受影響）。
