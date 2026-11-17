@@ -509,8 +509,8 @@ end
 -- Items tab: group headings above the equipped item slots
 ---------------------------------------------------------------------------
 
-local HEADING_SPACE = 36 -- room above a group's first slot: box gap + title row
-local GROUP_TITLE_H = 28 -- title row inside the group box
+local HEADING_SPACE = 48 -- room above a group's first slot: box gap + title row
+local GROUP_TITLE_H = 30 -- title row inside the group box
 local slotGroups = {
 	["Weapon 1"] = "武器",
 	["Helmet"] = "防具",
@@ -571,10 +571,14 @@ local function setupItemList(itemsTab)
 		return
 	end
 	-- room for the title above the filter row
-	local origY = list.y
-	list.y = function(self)
-		local y = type(origY) == "function" and origY(self) or origY
-		return enabled() and (y + 20) or y
+	-- through GetPos: ItemsTab re-anchors the list (resetting y) every frame
+	local baseGetPos = list.GetPos
+	list.GetPos = function(self)
+		local x, y = baseGetPos(self)
+		if enabled() then
+			y = y + 26
+		end
+		return x, y
 	end
 	local origLabel = list.label
 	list.label = function(self)
@@ -587,7 +591,7 @@ local function setupItemList(itemsTab)
 	-- find an instance Draw and call it again)
 	list.labelPositionOffset = setmetatable({ }, { __index = function(_, i)
 		if i == 2 and enabled() then
-			return -20
+			return -22
 		end
 		return 0
 	end })
@@ -705,6 +709,15 @@ function ZhTWLayout.tidyItemsTab(itemsTab)
 		end
 	end
 	hideIn(controls.slotHeader)
+	-- a gap between the 藥劑 box and the 天賦配置 row
+	local specSelect = controls.specSelect
+	if specSelect then
+		local origY = specSelect.y
+		specSelect.y = function(self)
+			local y = type(origY) == "function" and origY(self) or origY
+			return enabled() and (y + 10) or y
+		end
+	end
 	local tip = controls.displayItemTip
 	if tip then
 		local fullText = tip.label
@@ -759,7 +772,9 @@ function ZhTWLayout.setupSlotGroupBoxes(itemsTab)
 			t_insert(current.slots, slot)
 		end
 	end
+	local rects = { } -- this frame's boxes (read by the layout test)
 	local function frame(x, top, w, bottom, title)
+		rects[#rects + 1] = { title = title, top = top, bottom = bottom }
 		rect(x, top, w, bottom - top, LINE[1], LINE[2], LINE[3])
 		rect(x + 1, top + 1, w - 2, bottom - top - 2, 0.075, 0.072, 0.068)
 		rect(x + 1, top + GROUP_TITLE_H - 4, w - 2, 1, LINE[1], LINE[2], LINE[3]) -- line under the title
@@ -769,15 +784,17 @@ function ZhTWLayout.setupSlotGroupBoxes(itemsTab)
 		local hasIcon = iconIndex[title] and ZhTWLayout.hasIcons()
 		local startX = m_floor(x + (w - textW - (hasIcon and 22 or 0)) / 2)
 		if hasIcon then
-			ZhTWLayout.drawIcon(title, startX, top + 4, 18)
+			ZhTWLayout.drawIcon(title, startX, top + 5, 18)
 			startX = startX + 22
 		end
-		DrawString(startX, top + 4, "LEFT", 18, "VAR BOLD", TITLE .. title)
+		DrawString(startX, top + 5, "LEFT", 18, "VAR BOLD", TITLE .. title)
 	end
 	local boxes = new("Control"):Control(nil, { 0, 0, 0, 0 })
 	boxes.shown = enabled
 	boxes.Draw = function()
 		SetDrawLayer(nil, -10) -- under the slots
+		rects = { }
+		boxes.rects = rects
 		local anchorX = itemsTab.slotAnchor:GetPos()
 		local left, width = anchorX - 92, 310 + 96
 		for _, group in ipairs(groups) do
@@ -798,7 +815,7 @@ function ZhTWLayout.setupSlotGroupBoxes(itemsTab)
 		local toggle = controls.zhTWJewelToggle
 		if toggle and toggle:IsShown() then
 			local _, ty = toggle:GetPos()
-			local top = ty - 3
+			local top = ty - 4
 			local bottom = top + GROUP_TITLE_H
 			local chips = controls.zhTWJewelChips
 			if chips and chips:IsShown() then
@@ -824,7 +841,7 @@ end
 ---------------------------------------------------------------------------
 
 ZhTWLayout.jewelsExpanded = false
-local JEWEL_TOGGLE_SPACE = 38 -- gap + the 珠寶 box title row above the first socket
+local JEWEL_TOGGLE_SPACE = 48 -- gap + the 珠寶 box title row above the first socket
 
 local function jewelsCollapsed()
 	return enabled() and not ZhTWLayout.jewelsExpanded
@@ -926,7 +943,7 @@ function ZhTWLayout.setupJewelSockets(itemsTab)
 		return
 	end
 	-- small button on the right of the 珠寶 box title row
-	local toggle = new("ButtonControl"):ButtonControl({ "TOPLEFT", specSelect, "BOTTOMLEFT" }, { 212, 11, 96, 22 }, function()
+	local toggle = new("ButtonControl"):ButtonControl({ "TOPLEFT", specSelect, "BOTTOMLEFT" }, { 212, 20, 96, 22 }, function()
 		if ZhTWLayout.jewelsExpanded then
 			return "收合"
 		end
@@ -936,7 +953,7 @@ function ZhTWLayout.setupJewelSockets(itemsTab)
 	end)
 	toggle.shown = enabled
 	controls.zhTWJewelToggle = toggle
-	local chips = new("Control"):Control({ "TOPLEFT", specSelect, "BOTTOMLEFT" }, { -88, 8 + GROUP_TITLE_H + 2, 398, 0 })
+	local chips = new("Control"):Control({ "TOPLEFT", specSelect, "BOTTOMLEFT" }, { -88, 16 + GROUP_TITLE_H + 2, 398, 0 })
 	chips.shown = jewelsCollapsed
 	chips.height = function()
 		local x, y = chips:GetPos()

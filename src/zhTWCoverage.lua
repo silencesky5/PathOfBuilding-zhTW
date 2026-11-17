@@ -244,6 +244,28 @@ local ok, err = xpcall(function()
 		end
 		ZhTWLocale.enabled = true
 		frames(1)
+		-- Item group boxes: gaps between them; 當前裝備 title vs the sheet tabs and the filter row
+		do
+			local saved = build.viewMode
+			build.viewMode = "ITEMS"
+			frames(1)
+			local c = build.itemsTab.controls
+			local rects = c.zhTWSlotGroupBoxes.rects or { }
+			local gaps = { }
+			for i = 2, #rects do
+				table.insert(gaps, string.format("%s-%s %d", rects[i - 1].title, rects[i].title, rects[i].top - rects[i - 1].bottom))
+			end
+			local _, specY = c.specSelect:GetPos()
+			local list = c.itemList
+			local _, listY = list:GetPos()
+			local titleTop = listY - 20 + list.labelPositionOffset[2]
+			local strip = build.controls.zhTWSheetStrip
+			local _, stripY = strip:GetPos()
+			local _, stripH = strip:GetSize()
+			log(string.format("== Item boxes: %s | tree row y=%d | list title top=%d (tabs end %d, gap %d) filter row top=%d (gap %d)",
+				table.concat(gaps, ", "), specY, titleTop, stripY + stripH, titleTop - (stripY + stripH), listY - 20, listY - 20 - (titleTop + 16)))
+			build.viewMode = saved
+		end
 		-- Items tab areas (x, y, width, height)
 		do
 			local parts = { }
