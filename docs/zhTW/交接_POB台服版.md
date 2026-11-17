@@ -1,6 +1,8 @@
 # POB 台服版：交接文件（2026-11-17）
 
-給接手的對話：這份文件說明目前狀態、做法、測試方式與待辦。細節見 `報告_階段3.md`。
+給接手的對話：這份文件說明目前狀態、做法、測試方式與待辦。細節見同資料夾的 `報告_階段3.md`。
+
+**文件位置（11/17 起）**：`docs\zhTW\`（本檔、`報告_階段3.md`、`zhTW_config_tooltips_todo.txt`）。
 含個人資料的原始文件（帳號、角色、截圖、`報告_階段1-2.md`）不在 repo 裡，放在 `C:\Users\User\Desktop\Work_Space\POE相關\POB台服版\POB台服版_私人文件\`。**repo 是公開的，不要把帳號名稱、角色名稱、截圖提交進來。**
 
 ## 1. 這是什麼
@@ -80,10 +82,10 @@ Path{space}of{space}Building.exe <src\zhTWCoverage.lua 的完整路徑>   → sr
 0. **目前狀態（11/17 晚上）**：GitHub 公開 repo `silencesky5/PathOfBuilding-zhTW`（官方 POB 的 Fork）已推送 `zhTW`、`release`。已對真的 GitHub 驗證：發佈的壓縮檔檢查更新結果是「沒有可用的更新」，抽樣 33 個檔案 SHA1 都相符。KAI 還要自己做：(a) 到 Releases 上傳 `POB台服版_2.67.2-zhTW.1.zip`（tag `v2.67.2-zhTW.1`）；(b) 到 Settings 把預設分支改成 `zhTW`（Fork 預設是官方的 `dev`）；(c) 解壓縮後雙擊 `Path of Building.exe`，確認視窗能開（還沒人試過）。
 1. **全介面重新設計**（KAI 11/17 決定；還沒開始談目標和範圍）：先和 KAI 確認目標與範圍，做整體示意圖，確認後再逐頁改（`ZhTWLayout.lua`，只在中文介面生效）。之前的示意圖 artifact：https://claude.ai/artifact/1kUVnS1CmeLRLPqaMtyHrd
    - GitHub 公開 repo 與自動更新已完成（見上方「發佈與自動更新」）。
-2. **設定頁說明文字翻譯**：清單在 `docs/zhTW_config_tooltips_todo.txt`（375 行，保留顏色碼）。翻好後加進 `UI.lua` 的 strings。
+2. **設定頁說明文字翻譯**：清單在 `docs/zhTW/zhTW_config_tooltips_todo.txt`（375 行，保留顏色碼）。翻好後加進 `UI.lua` 的 strings。
 3. 其他未翻譯：新角色才會出現的介面數字（點燃 DPS 差異、圖騰放置時間）、風味文字。
 4. 已知限制：永恆珠寶第 1、2 種（瓦爾、卡魯）的將軍名稱，新版資料只有通用句，無法轉換。
-5. 桌面上的「POB台服版」捷徑被刪了，可以重建（目標：`Work_Space\POE相關\POB台服版\PathOfBuilding\Path of Building.exe`）。
+5. 桌面上的「POB台服版」捷徑被刪了，可以重建（已重建在 `Work_Space\POE相關\POB台服版\開啟 POB 台服版.lnk`，目標 `PathOfBuilding\runtime\Path{space}of{space}Building.exe`）。
 6. **介面改動紀錄（11/17 晚，`ZhTWLayout.lua`，只在中文介面生效）**：
    - 左上角只留「匯入/匯出」、「角色配置」、「設定」三個按鈕。
    - 「角色配置」底下有「裝備／技能／天賦／計算」頁籤。
