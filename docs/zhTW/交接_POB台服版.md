@@ -134,3 +134,8 @@ Path{space}of{space}Building.exe <src\zhTWCoverage.lua 的完整路徑>   → sr
    - 結果以「最佳化 <原名>」加入裝備清單（[尚未使用]），提升不到 0.1% 不加入；身上的裝備不換。已汙染的物品照樣算，結果不帶汙染。
    - 測試：`Path{space}of{space}Building.exe <src\zhTWOptimizeTest.lua 完整路徑>` → `src\zhTWOptimizeTest.log`（用 spec/TestBuilds 的兩個 Build，檢查前後綴數量、group 不重複、等級，並模擬按鈕流程）。
    - 可再做：工藝台詞綴、珠寶（2 前綴 2 後綴）、選擇比較的數值（例如 FullDPS、有效生命）。
+
+13. **「新增詞綴至物品」視窗中文化＋搜尋（11/18）**：`Modules/ZhTWModSearch.lua`，ItemsTab.lua 的 `AddCustomModifierToDisplayItem` 結尾一處掛勾（只在中文介面）。
+   - 詞綴清單用 `ZhTWMods.translate` 顯示中文（翻不到的保留英文），後面標（前綴／後綴，等級 N）；精髓前面加精髓名稱。加入物品時仍用英文詞綴。
+   - 搜尋框：中文、英文、詞綴名稱都能搜，空白分隔的每個詞都要符合；右邊顯示「符合數／總數」。換來源、換排序後會重新套用搜尋（直接過濾同一個 modList 表）。
+   - 測試：`src/zhTWModSearchTest.lua` → `src/zhTWModSearchTest.log`。

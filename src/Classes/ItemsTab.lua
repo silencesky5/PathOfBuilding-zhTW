@@ -3947,7 +3947,11 @@ function ItemsTabClass:AddCustomModifierToDisplayItem()
 	controls.close = new("ButtonControl"):ButtonControl(nil, {45, 75, 80, 20}, "Cancel", function()
 		main:ClosePopup()
 	end)
-	main:OpenPopup(710, 105, "Add Modifier to Item", controls, "save", sourceList[controls.source.selIndex].sourceId == "CUSTOM" and "custom")
+	local popupHeight = 105
+	if ZhTWLocale and ZhTWLocale.enabled then -- zhTW: Chinese mod list and a search box (Modules/ZhTWModSearch.lua)
+		popupHeight = LoadModule("Modules/ZhTWModSearch").setup(self, controls, modList, sourceList) or popupHeight
+	end
+	main:OpenPopup(710, popupHeight, "Add Modifier to Item", controls, "save", sourceList[controls.source.selIndex].sourceId == "CUSTOM" and "custom")
 end
 
 -- Opens the crucible modifier popup
