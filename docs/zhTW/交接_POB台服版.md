@@ -112,6 +112,9 @@ Path{space}of{space}Building.exe <src\zhTWCoverage.lua 的完整路徑>   → sr
    - `StatDescriber.lua` 的 `{:+d}` 改成保留正負號（台服資料用這種寫法，原本 `+850 最大生命…` 會變成 `850 …` 而無法解析；台服匯入也受益）。
    - 測試：`Path{space}of{space}Building.exe <src\zhTWItemTextTest.lua 完整路徑>` → `src\zhTWItemTextTest.log`。範例在 `docs/zhTW/samples/`；另做傳奇物品往返測試（英文→中文→英文），目前 441 件中 434 件通過，失敗的是多行一組的特殊詞綴（深淵眼珠寶、Bound Fate 等）。
    - 物品說明框（中文介面）把稀有／魔法物品的詞綴分成「前綴」「後綴」兩組（`Modules/ZhTWAffixType.lua`）：匯入的物品沒有詞綴資訊，用基底可出現的詞綴比對每一行；工藝詞綴比對工藝台資料。稀有範本 722 行中 716 行能判斷，判斷不了的放在最後、不加標題。
+   - **輸入中文（11/18）**：引擎把打進來的非英文字元一律交給 OnChar 成 `?`。`Modules/ZhTWIme.lua` 用 LuaJIT FFI 子類化視窗（`SetWindowSubclass`），記下 WM_CHAR 的真實字元，再把 `?` 換回來（掛在 `launch.OnChar`）。貼上中文不再換成 `?`；倒退／刪除會刪整個中文字。
+   - 搜尋用中文：幽魂庫、傳奇資料庫（名稱、基底、詞綴）、技能寶石都會比對中文名稱（`ZhTWLocale.searchMatch`）。
+   - 怪物名稱：`Export/Scripts/zhTWMonsters.lua` 從台服 MonsterVarieties 匯出 `Data/zhTW/Monsters.lua`（`set ZHTW_SCRIPT=Scripts/zhTWMonsters.lua` 再跑 `zhTWRun.lua`）。之前的「遠古 構造」是把怪物名當成稀有物品名逐字翻的。測試：`src/zhTWSearchTest.lua`。
 10. **製作頁籤第一階段（11/18 凌晨）**：角色配置的第 5 個頁籤「製作」（只在中文介面）。
    - 能做的：選類別／底材／物品等級（或從當前裝備帶入底材與物品等級）；十種基本通貨＋精髓＋化石（1～4 顆，鑄新儀）；上一步；物品卡用 POB 自己的物品提示（中文、裝上後的變化）；詞綴與階層列表；「加入 Build」。
    - 還沒做：園藝、工藝台（引擎沒移植）；批次模擬器；倉庫／背包畫面；公會分享（第二階段，需要改 Worker 的登入流程，先問 KAI）；帶入時不帶詞綴（POB 物品 → 網站詞綴 id 的對照還沒做）。
