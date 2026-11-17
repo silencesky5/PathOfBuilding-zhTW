@@ -125,3 +125,11 @@ Path{space}of{space}Building.exe <src\zhTWCoverage.lua 的完整路徑>   → sr
    - 登入：本機 127.0.0.1:49090～49093 接回呼，Worker 只回一次性代碼，POB 用 PKCE verifier 到 `/auth/pob-token` 換 token；token 存 Settings.xml 的 zhTWGuildToken。
    - Worker 改動在 Poe-tool 的 `pob-login` 分支（只新增 client=pob 模式與 /auth/pob-token）。**部署前要 KAI 本人確認**；回滾：在 Poe-tool\worker 執行 `npx wrangler rollback ba2365a0-8150-45ee-a095-01446014dd46`（11/18 時的正式版）。
    - 還沒做：裝備頁物品右鍵分享（POB 物品 → 網站詞綴 id 對照）、在 POB 撤下分享、分享附圖。
+
+12. **稀有裝備傷害最佳化（11/18）**：裝備頁「製作物品／自訂物品」右邊的按鈕（只在中文介面），程式在 `Modules/ZhTWOptimize.lua`，ItemsTab.lua 只加一行掛勾。
+   - 選欄位（或全部稀有裝備）→ 用 POB 自己的詞綴表（`item.affixes`）找出該底材在遊戲規則內 DPS 最高的組合：最多 3 前綴 3 後綴、同 mod group 不重複、詞綴等級 ≤ 物品等級、權重 > 0（含物品本身的影響力），排除化石專屬與瑪文的 Elevated 詞綴；數值取最高。
+   - 計算用 `GetMiscCalculator`，比較主要技能的 `CombinedDPS`（召喚物技能用 Minion.CombinedDPS），DPS 相同時用生命＋能量護盾決定。搜尋：每個詞綴單獨算一次 → 前綴、後綴各取前 8 名 → 逐一加入最好的 → 兩輪逐一替換。每件約 100～170 次計算、約 1 秒；視窗用 coroutine 分散到每個畫面（每畫面 25ms）。
+   - 「保留抗性」（預設勾選）：目前的正值抗性詞綴原樣保留、佔用原本的欄位（判斷前綴／後綴用 `ZhTWAffixType.getType`），同類詞綴不再加。破裂詞綴一律保留。
+   - 結果以「最佳化 <原名>」加入裝備清單（[尚未使用]），提升不到 0.1% 不加入；身上的裝備不換。已汙染的物品照樣算，結果不帶汙染。
+   - 測試：`Path{space}of{space}Building.exe <src\zhTWOptimizeTest.lua 完整路徑>` → `src\zhTWOptimizeTest.log`（用 spec/TestBuilds 的兩個 Build，檢查前後綴數量、group 不重複、等級，並模擬按鈕流程）。
+   - 可再做：抗性改成「總量不低於目前」（允許改用全抗／雙抗省欄位）、工藝台詞綴、珠寶（2 前綴 2 後綴）、選擇比較的數值（例如 FullDPS、有效生命）。
