@@ -549,6 +549,69 @@ local function hideTradeButtons(itemsTab)
 	end
 end
 
+-- Item list (this build's items): "當前裝備" title, and a status tag before every item:
+-- [使用中] in the active item set or tree, [其他組] only in another set or tree, else [尚未使用]
+local TAG_USED, TAG_OTHER, TAG_UNUSED = "^x7FD87F[使用中] ", "^x8C8C8C[其他組] ", "^x7FB0E8[尚未使用] "
+local function setupItemList(itemsTab)
+	local list = itemsTab.controls.itemList
+	if not list then
+		return
+	end
+	-- room for the title above the filter row
+	local origY = list.y
+	list.y = function(self)
+		local y = type(origY) == "function" and origY(self) or origY
+		return enabled() and (y + 20) or y
+	end
+	local origLabel = list.label
+	list.label = function(self)
+		if enabled() then
+			return GOLD .. "當前裝備"
+		end
+		return type(origLabel) == "function" and origLabel(self) or origLabel
+	end
+	-- title one row above the filter row (not through Draw: the parent class proxy would
+	-- find an instance Draw and call it again)
+	list.labelPositionOffset = setmetatable({ }, { __index = function(_, i)
+		if i == 2 and enabled() then
+			return -20
+		end
+		return 0
+	end })
+	local baseRow = list.GetRowValue
+	list.GetRowValue = function(self, column, index, itemId)
+		local item = self.itemsTab.items[itemId]
+		if not enabled() or column ~= 1 or not item then
+			return baseRow(self, column, index, itemId)
+		end
+		local tag, where
+		local slot, itemSet = self.itemsTab:GetEquippedSlotForItem(item)
+		if slot and not itemSet then
+			tag = TAG_USED
+		else
+			local otherSet = itemSet and (itemSet.title or "Default")
+			local otherAbyss = self:FindEquippedAbyssJewel(itemId, true)
+			local otherTree = self:FindSocketedJewel(itemId, true)
+			local anyAbyss = self:FindEquippedAbyssJewel(itemId, false)
+			local anyTree = self:FindSocketedJewel(itemId, false)
+			if (anyAbyss and not otherAbyss) or (anyTree and not otherTree) then
+				tag = TAG_USED
+			else
+				where = otherSet or otherAbyss or otherTree
+				tag = where and TAG_OTHER or TAG_UNUSED
+			end
+		end
+		-- the name is translated here: with the tag in front the whole line no longer matches
+		local name = (colorCodes[item.rarity] or "^7") .. item.name
+		name = ZhTWLocale.tr and ZhTWLocale.tr(name) or name
+		local text = tag .. name
+		if where then
+			text = text .. "  ^9(Used in '" .. where .. "')"
+		end
+		return text
+	end
+end
+
 function ZhTWLayout.setupItemsTab(itemsTab)
 	for _, slot in ipairs(itemsTab.orderedSlots or { }) do
 		local heading = slotGroups[slot.slotName]
@@ -578,6 +641,7 @@ function ZhTWLayout.setupItemsTab(itemsTab)
 		if not self.zhTWTradeHidden then -- the buttons exist only once the constructor has finished
 			self.zhTWTradeHidden = true
 			hideTradeButtons(self)
+			setupItemList(self)
 		end
 		origDraw(self, viewPort, inputEvents)
 		ZhTWLayout.drawDetails(self, viewPort)

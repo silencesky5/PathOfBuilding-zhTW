@@ -409,6 +409,33 @@ local ok, err = xpcall(function()
 					tostring(it.controls.displayItemBuySimilar:GetProperty("shown") and true or false), slotY))
 			end
 			ZhTWLocale.enabled = true
+			-- item list tags; a newly added item shows as unused
+			local list = it.controls.itemList
+			local counts = { }
+			for i, id in ipairs(list.list) do
+				local text = StripEscapes(list:GetRowValue(1, i, id))
+				local tag = text:match("^%[(.-)%]") or "none"
+				counts[tag] = (counts[tag] or 0) + 1
+			end
+			local parts = { }
+			for tag, n in pairs(counts) do parts[#parts + 1] = tag .. "=" .. n end
+			table.sort(parts)
+			local raw = main.uniqueDB and main.uniqueDB.list and next(main.uniqueDB.list) and select(2, next(main.uniqueDB.list))
+			local newTag = "-"
+			if raw then
+				local newItem = new("Item"):Item(raw.raw)
+				it:AddItem(newItem, true)
+				list:UpdateList()
+				frames(1)
+				for i, id in ipairs(list.list) do
+					if id == newItem.id then newTag = StripEscapes(list:GetRowValue(1, i, id)) end
+				end
+				it:DeleteItem(newItem)
+				list:UpdateList()
+			end
+			local _, listY = list:GetPos()
+			log(string.format("== Item list tags: %s | list y=%d label=%s | new item: %s", table.concat(parts, " "), listY,
+				tostring(list:GetProperty("label") and StripEscapes(list:GetProperty("label"))), newTag))
 			build.viewMode = saved
 		end
 		-- Main skill box in the 技能 tab (moved from the side bar)
