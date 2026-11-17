@@ -366,3 +366,7 @@ function DrawStringCursorIndex(height, font, text, cursorX, cursorY)
 	end
 	return #text + 1
 end
+
+-- Typing Chinese: the engine turns typed non-ASCII characters into "?" (Modules/ZhTWIme.lua)
+ZhTWIme = LoadModule("Modules/ZhTWIme")
+ZhTWIme.install()

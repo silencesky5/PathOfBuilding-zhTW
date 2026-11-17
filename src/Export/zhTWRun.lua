@@ -35,7 +35,7 @@ function runner:OnInit()
 		end
 		main.ggpk = { path = path, oozPath = GetWorkDir() .. "\\ggpk\\" }
 		log("GGPK: " .. path)
-		local errMsg = PLoadModule("Scripts/zhTW.lua")
+		local errMsg = PLoadModule(os.getenv("ZHTW_SCRIPT") or "Scripts/zhTW.lua") -- ZHTW_SCRIPT: e.g. Scripts/zhTWMonsters.lua
 		if errMsg then
 			error(errMsg)
 		end

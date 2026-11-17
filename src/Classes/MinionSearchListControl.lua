@@ -40,12 +40,18 @@ function MinionSearchListClass:DoesEntryMatchFilters(searchStr, minionId, filter
 		if not err and match then
 			return true
 		end
+		if ZhTWLocale and ZhTWLocale.searchMatch(self.data.minions[minionId].name, searchStr) then -- zhTW: Chinese names
+			return true
+		end
 	end
 	if filterMode == 2 or filterMode == 3 then
 		for _, skillId in ipairs(self.data.minions[minionId].skillList) do
 			if self.data.skills[skillId] then
 				local err, match = PCall(string.matchOrPattern, self.data.skills[skillId].name:lower(), searchStr)
 				if not err and match then
+					return true
+				end
+				if ZhTWLocale and ZhTWLocale.searchMatch(self.data.skills[skillId].name, searchStr) then -- zhTW
 					return true
 				end
 			end

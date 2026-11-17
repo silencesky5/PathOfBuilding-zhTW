@@ -536,7 +536,9 @@ function EditClass:OnKeyDown(key, doubleClick)
 			if self.pasteFilter then
 				text = self.pasteFilter(text)
 			end
-			text = text:gsub("[\128-\255]","?")
+			if not ZhTWLocale then -- zhTW: Chinese text can be drawn (Modules/ZhTWText.lua), keep it
+				text = text:gsub("[\128-\255]","?")
+			end
 			if self.sel and self.sel ~= self.caret then
 				self:ReplaceSel(text)
 			else
@@ -624,6 +626,10 @@ function EditClass:OnKeyDown(key, doubleClick)
 					end
 				end
 			end
+			-- zhTW: remove a whole multi-byte (Chinese) character
+			while self.caret - len > 1 and self.buf:sub(self.caret - len, self.caret - len):match("[\128-\191]") do
+				len = len + 1
+			end
 			self.buf = self.buf:sub(1, self.caret - 1 - len) .. self.buf:sub(self.caret)
 			self.caret = self.caret - len
 			self.sel = nil
@@ -648,6 +654,10 @@ function EditClass:OnKeyDown(key, doubleClick)
 						len = len + 1
 					end
 				end
+			end
+			-- zhTW: remove a whole multi-byte (Chinese) character
+			while self.caret + len <= #self.buf and self.buf:sub(self.caret + len, self.caret + len):match("[\128-\191]") do
+				len = len + 1
 			end
 			self.buf = self.buf:sub(1, self.caret - 1) .. self.buf:sub(self.caret + len)
 			self.sel = nil

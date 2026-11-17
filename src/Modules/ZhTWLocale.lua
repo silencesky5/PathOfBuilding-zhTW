@@ -148,6 +148,12 @@ local function load()
 	addReverse(LoadModule("Data/zhTW/Gems"))
 	addReverse(LoadModule("Data/zhTW/Passives"))
 	addReverse(LoadModule("Data/zhTW/Classes"))
+	-- Monster names (spectres, minions): English -> Chinese (Export/Scripts/zhTWMonsters.lua)
+	for en, zh in pairs(LoadModule("Data/zhTW/Monsters") or { }) do
+		if not names[en] then
+			names[en] = zh
+		end
+	end
 	-- PoB shows support gems without the word "Support"
 	local extra = { }
 	for en, zh in pairs(names) do
@@ -546,6 +552,30 @@ function ZhTWLocale.tr(text, measure)
 	cache[text] = out
 	cacheSize = cacheSize + 1
 	return out
+end
+
+-- Chinese text for an English name or line, also while an edit box runs or in the English interface
+function ZhTWLocale.translate(text)
+	local enabled, suspend = ZhTWLocale.enabled, ZhTWLocale.suspend
+	ZhTWLocale.enabled, ZhTWLocale.suspend = true, 0
+	local ok, out = pcall(ZhTWLocale.tr, text)
+	ZhTWLocale.enabled, ZhTWLocale.suspend = enabled, suspend
+	return ok and out or text
+end
+
+-- Search boxes: true when the query has Chinese text and the Chinese name contains it
+-- (spaces and colour codes ignored). Returns nil for queries without Chinese.
+local searchCache = { }
+function ZhTWLocale.searchMatch(en, query)
+	if type(query) ~= "string" or not s_find(query, "[\128-\255]") or type(en) ~= "string" then
+		return nil
+	end
+	local zh = searchCache[en]
+	if not zh then
+		zh = ZhTWLocale.translate(en):gsub("%^x%x%x%x%x%x%x", ""):gsub("%^%d", ""):gsub("%s+", ""):lower()
+		searchCache[en] = zh
+	end
+	return s_find(zh, (query:gsub("%s+", ""):lower()), 1, true) ~= nil
 end
 
 -- Forget cached translations (after tables change)

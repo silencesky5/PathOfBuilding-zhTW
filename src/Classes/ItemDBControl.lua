@@ -165,6 +165,11 @@ function ItemDBClass:DoesItemMatchFilters(item)
 			if not err and match then
 				found = true
 			end
+			-- zhTW: Chinese item and base names
+			if not found and ZhTWLocale and (ZhTWLocale.searchMatch(item.title or item.name, searchStr)
+				or ZhTWLocale.searchMatch(item.baseName, searchStr)) then
+				found = true
+			end
 		end
 		if mode == 1 or mode == 3 then
 			for _, line in pairs(item.enchantModLines) do
@@ -189,7 +194,7 @@ function ItemDBClass:DoesItemMatchFilters(item)
 					searchLine = searchLine .. table.concat(newMod, " "):lower()
 				end
 				local err, match = PCall(string.matchOrPattern, searchLine, searchStr)
-				if not err and match then
+				if not err and match or ZhTWLocale and ZhTWLocale.searchMatch(line.line, searchStr) then -- zhTW: Chinese mod text
 					found = true
 					break
 				end
