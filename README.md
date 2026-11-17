@@ -1,3 +1,16 @@
+<!-- zhTW -->
+# POB 台服版（非官方繁體中文版）
+
+Path of Building Community 的非官方繁體中文版：可以直接用台服帳號匯入角色，介面與遊戲內容為繁體中文。
+
+- **下載**：到右邊的 **Releases** 下載最新的 `POB台服版_*.zip`，解壓縮後執行 `Path of Building.exe`。
+- **自動更新**：之後的更新會自動下載（更新來源是這個專案，不會被官方 POB 蓋掉中文化）。
+- 使用說明在壓縮檔裡的 `使用說明.txt`。
+
+本版本與 Grinding Gear Games 及 Path of Building Community 官方無關。以下是原專案的說明。
+
+---
+
 # Path of Building Community
 ## Welcome to Path of Building, an offline build planner for Path of Exile!
 
