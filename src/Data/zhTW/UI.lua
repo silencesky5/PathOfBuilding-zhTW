@@ -4,6 +4,7 @@
 -- Used by Modules/ZhTWLocale.lua at draw time. Edit freely; reload with F5.
 return {
 	strings = {
+		["Timeout reached without a response received by the local server"] = "等待逾時，本機沒有收到登入回應",
 		["Weapon 2 Swap:"] = "副手 (切換):",
 		["Weapon 1 Swap:"] = "主手 (切換):",
 		["Weapon 2:"] = "副手:",
