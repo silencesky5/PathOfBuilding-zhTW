@@ -40,6 +40,10 @@ Path of Building Community（PoE1）的非官方繁體中文版：
 | `src/Modules/ZhTWMods.lua` | 英文詞綴 → 中文顯示。先比對 POB 自己的英文描述，再比對遊戲的英文描述 |
 | `src/Modules/ZhTWText.lua` | 中文字繪製：引擎字型只有 ASCII，中文從字形圖貼上；也處理斷行和輸入框 |
 | `src/Modules/ZhTWLayout.lua` | 中文介面的版面：左側摘要卡片與分組、裝備頁分組、珠寶收合、右側固定詳細、資料庫切換鈕、頂部列、匯入頁只留台服與「全部匯入」 |
+| `src/Modules/ZhTWTheme.lua` | 可愛（亮色）主題：繪圖時改色，暗色主題或英文介面不作用 |
+| `src/Modules/ZhTWCraftEngine.lua`、`src/Classes/ZhTWCraftTab.lua` | 「製作」頁籤：製裝網站（Poe-tool 的 craft-engine.js）規則的 Lua 版＋頁籤畫面 |
+| `src/Export/zhTWCraftData.py` → `src/Data/zhTW/CraftData.lua` | 從製裝網站的 `craft-data.js` 產生製作頁資料（兩邊同一份 RePoE 來源）。網站資料更新後重跑 |
+| `src/Export/zhTWCraftCompare.js/.py`、`src/zhTWCraftTest.lua`、`src/zhTWCraftCompare.lua` | 製作頁引擎與網站 JS 引擎的對照測試 |
 | POB 原檔掛勾 | `Modules/Main.lua`（載入、語言選項）、`Modules/Build.lua`、`Classes/ItemsTab.lua`、`Classes/ImportTab.lua` |
 
 ## 3. 測試（全部無介面，不操作畫面）
@@ -58,7 +62,8 @@ Path{space}of{space}Building.exe <src\zhTWCoverage.lua 的完整路徑>   → sr
 
 - 腳本路徑要用完整的 Windows 路徑，並且從 runtime 資料夾執行。
 - 腳本有錯時主控台會卡住、不會寫紀錄：先看 log 檔的修改時間有沒有更新。
-- 目前基準：三隻角色轉換失敗 0 行；未翻譯 503 行，其中設定頁說明 375 行。
+- 目前基準：三隻角色轉換失敗 0 行；未翻譯約 502～505 行（隨測試抽到的傳奇物品浮動），缺字 0。
+- 製作頁引擎對照（JS 與 Lua 各跑 20000 次）：指令寫在 `src/Export/zhTWCraftCompare.py` 開頭；文字、階層、錯誤訊息要完全相同，詞綴出現機率在亂數誤差內。
 
 ## 4. 踩過的坑
 
@@ -106,3 +111,7 @@ Path{space}of{space}Building.exe <src\zhTWCoverage.lua 的完整路徑>   → sr
    - `Modules/ZhTWItemText.lua` 把繁中文字轉成英文遊戲複製格式再交給 POB：稀有度、名稱、基底、品質、需求、插槽、物品等級、`{ 前綴/後綴 }` 註解（含詞綴英文名、階層、大師工藝/破裂等旗標）、數值範圍 `40(33-43)`、已汙染等。轉不了的行會略過，並跳出視窗列出。
    - `StatDescriber.lua` 的 `{:+d}` 改成保留正負號（台服資料用這種寫法，原本 `+850 最大生命…` 會變成 `850 …` 而無法解析；台服匯入也受益）。
    - 測試：`Path{space}of{space}Building.exe <src\zhTWItemTextTest.lua 完整路徑>` → `src\zhTWItemTextTest.log`。範例在 `docs/zhTW/samples/`；另做傳奇物品往返測試（英文→中文→英文），目前 441 件中 434 件通過，失敗的是多行一組的特殊詞綴（深淵眼珠寶、Bound Fate 等）。
+10. **製作頁籤第一階段（11/18 凌晨）**：角色配置的第 5 個頁籤「製作」（只在中文介面）。
+   - 能做的：選類別／底材／物品等級（或從當前裝備帶入底材與物品等級）；十種基本通貨＋精髓；上一步；物品卡用 POB 自己的物品提示（中文、裝上後的變化）；詞綴與階層列表；「加入 Build」。
+   - 還沒做：化石／鑄新儀、園藝、工藝台的介面（引擎已有化石規則，園藝和工藝台沒移植）；批次模擬器；倉庫／背包畫面；公會分享（第二階段，需要改 Worker 的登入流程，先問 KAI）；帶入時不帶詞綴（POB 物品 → 網站詞綴 id 的對照還沒做）。
+   - 設計：製作頁的物品轉成英文遊戲格式文字再交給 POB 解析；存 Build 時若停在製作頁，存成「裝備」頁（避免官方 POB 開到不存在的頁籤）。
