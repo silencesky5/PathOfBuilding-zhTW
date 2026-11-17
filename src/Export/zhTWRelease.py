@@ -194,7 +194,9 @@ def cmd_package(args):
 	local_manifest, count = build_manifest(version, args.base_url or default_base_url(), files, contents, "win32", branch)
 	# The local manifest must list exactly the files of the remote one, or the updater would
 	# download (or delete) files right after installing
-	if args.base_url is None and local_manifest.split(b"<File", 1)[1] != remote_manifest.split(b"<File", 1)[1]:
+	def file_rows(m):
+		return m.replace(b"\r\n", b"\n").split(b"<File", 1)[1]
+	if args.base_url is None and file_rows(local_manifest) != file_rows(remote_manifest):
 		sys.exit("manifest.xml in HEAD is out of date; run publish (or the manifest command) and commit.")
 
 	name = args.name or f"POB台服版_{version}"
