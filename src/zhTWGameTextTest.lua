@@ -75,6 +75,58 @@ local ok, err = pcall(function()
 			log("skip", gemId)
 		end
 	end
+	-- Gem stat lines: unsupported lines, multi-line descriptions, PoB English outside its value range
+	local function gemTooltipText(name, level)
+		for _, gem in pairs(build.data.gems) do
+			if gem.name == name then
+				local tooltip = new("Tooltip"):Tooltip()
+				pcall(gemTooltip.AddGemTooltip, tooltip, build, { gemData = gem, level = level, quality = 0, enabled = true, enableGlobal1 = true })
+				local lines = { }
+				for _, line in ipairs(tooltip.lines) do
+					if line.text then table.insert(lines, StripEscapes(ZhTWLocale.tr(line.text))) end
+				end
+				return table.concat(lines, "\n")
+			end
+		end
+		return ""
+	end
+	for _, case in ipairs({
+		{ "Animate Guardian", 10, "最高可使用物品需求等級 58" },
+		{ "Animate Guardian", 10, "(PoB 尚未支援)" },
+		{ "Vaal Animate Weapon", 1, "幻化武器轉化至物品需求等級" },
+		{ "Spellblade", 20, "附加法術傷害" },
+		{ "Summon Phantasm", 1, "召喚幻影上限" },
+	}) do
+		local text = gemTooltipText(case[1], case[2])
+		local hit = text:find(case[3], 1, true)
+		local line = hit and text:sub(1, hit):match("([^\n]*)$") .. text:sub(hit + 1):match("^([^\n]*)") or ""
+		check(hit ~= nil and not line:find("Can use Items") and not line:find("Not supported"), "gem stat " .. case[1] .. " " .. case[3], line)
+	end
+	-- Every gem tooltip line (levels 1 and 20): kinds of lines still showing English words
+	local leftKinds, leftSample = 0, { }
+	local seenKinds = { }
+	for _, gem in pairs(build.data.gems) do
+		for _, level in ipairs({ 1, 20 }) do
+			local tooltip = new("Tooltip"):Tooltip()
+			if pcall(gemTooltip.AddGemTooltip, tooltip, build, { gemData = gem, level = level, quality = 0, enabled = true, enableGlobal1 = true }) then
+				for _, line in ipairs(tooltip.lines) do
+					if line.text and line.font ~= "FONTIN SC ITALIC" then
+						local zh = StripEscapes(ZhTWLocale.tr(line.text))
+						local isFlavour = zh:find('^"') or zh:find('"$')
+						if zh:find("%a%a%a%a") and not isFlavour then
+							local key = zh:gsub("%d+%.?%d*", "#")
+							if not seenKinds[key] then
+								seenKinds[key] = true
+								leftKinds = leftKinds + 1
+								if #leftSample < 8 then table.insert(leftSample, gem.name .. ": " .. zh) end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	log("gem tooltip lines still in English (incl. flavour text)", leftKinds, table.concat(leftSample, " | "))
 
 	-- 2. Anoint oils
 	local tree = build.spec.tree

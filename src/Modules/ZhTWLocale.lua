@@ -470,8 +470,25 @@ local function translateCore(core)
 end
 
 -- Translates a single line, keeping colour escapes
+local NOT_SUPPORTED = " ^8(Not supported in PoB yet)"
 translateLine = function(line)
 	local esc, core = splitEscape(line)
+	-- zhTW: unsupported lines end with " ^8(Not supported in PoB yet)" (or its Chinese text when an
+	-- already translated line is drawn again): translate the modifier on its own
+	local zhSuffix = ui[NOT_SUPPORTED]
+	for _, suffix in ipairs({ NOT_SUPPORTED, zhSuffix }) do
+		if suffix and #core > #suffix and core:sub(-#suffix) == suffix then
+			local body = core:sub(1, -#suffix - 1)
+			if s_find(body, "[\228-\233][\128-\191][\128-\191]") then
+				return esc .. body .. (zhSuffix or suffix) -- the modifier is already Chinese
+			end
+			local tb = translateLine(body)
+			if tb then
+				return esc .. tb .. (zhSuffix or suffix)
+			end
+			break
+		end
+	end
 	local v = translateCore(core)
 	if v then
 		return esc .. v

@@ -189,6 +189,10 @@ local function addCommonGemInfo(tooltip, build, gemInstance, grantedEffect, addL
 			end
 		end
 		local descriptions, lineMap = build.data.describeStats(stats, grantedEffect.statDescriptionScope)
+		if ZhTWLocale and ZhTWLocale.enabled then -- zhTW: multi-line descriptions are translated whole (Modules/ZhTWGameText.lua)
+			ZhTWGameText = ZhTWGameText or LoadModule("Modules/ZhTWGameText")
+			descriptions = ZhTWGameText.statLines(descriptions, lineMap)
+		end
 		for _, line in ipairs(descriptions) do
 			local source = grantedEffect.statMap[lineMap[line]] or build.data.skillStatMap[lineMap[line]]
 			if source then

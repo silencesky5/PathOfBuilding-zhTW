@@ -39,6 +39,8 @@ local files = {
 }
 
 local compiled -- single-line English templates
+local compiledBlocks = { } -- zhTW: whole multi-line English templates (filled by compileAll)
+local relaxLimits = false -- zhTW: true inside ZhTWMods.translateLoose
 local nameLookup -- function(english name) -> Chinese name
 
 local function compileAll()
@@ -90,6 +92,21 @@ local function compileAll()
 							for part in (text:gsub("\\n", "\n") .. "\n"):gmatch("(.-)\n") do
 								t_insert(parts, part)
 							end
+							-- zhTW: the whole multi-line description too, matched against a whole
+							-- block of lines (PoB's English may break the lines differently from the client's)
+							if #parts > 1 then
+								local c = compileTemplate(text, nameIndex)
+								if c and c.fixed >= 8 then
+									c.desc = desc
+									c.variant = variant
+									c.specials = specials
+									c.nameIndex = nameIndex
+									c.file = file
+									c.fileIndex = fileIndex
+									c.block = true
+									t_insert(compiledBlocks, c)
+								end
+							end
 							for partIndex, part in ipairs(parts) do
 								local c = compileTemplate(part, nameIndex)
 								if c and c.lineCount == 1 and c.fixed >= 4 then
@@ -112,6 +129,12 @@ local function compileAll()
 			end
 		end
 	end
+	table.sort(compiledBlocks, function(a, b)
+		if a.fixed ~= b.fixed then
+			return a.fixed > b.fixed
+		end
+		return a.fileIndex < b.fileIndex
+	end)
 	-- Longest fixed text first; ties keep file order
 	table.sort(compiled, function(a, b)
 		if a.fixed ~= b.fixed then
@@ -214,7 +237,7 @@ local function tryCandidate(c, caps)
 			values[i] = valueForLimit(variant.limit[i] or { "#", "#" }, #c.order == 0)
 		end
 		local limit = variant.limit[i]
-		if limit and not names[i] and not limitOk(limit, values[i]) then
+		if limit and not names[i] and not limitOk(limit, values[i]) and not relaxLimits then -- zhTW: relaxLimits, see translateLoose
 			return nil
 		end
 	end
@@ -242,6 +265,10 @@ local function tryCandidate(c, caps)
 		for part in (l .. "\n"):gmatch("(.-)\n") do
 			t_insert(out, part)
 		end
+	end
+	if c.block then
+		-- zhTW: a whole multi-line description; the Chinese may have a different number of lines
+		return #out > 0 and t_concat(out, "\n") or nil
 	end
 	if c.partIndex then
 		-- One line of a multi-line description: take the same line of the Chinese text
@@ -314,6 +341,22 @@ function ZhTWMods.translate(line)
 		return nil
 	end
 	local zh
+	if line:find("\n", 1, true) then
+		-- zhTW: a whole multi-line description (gem stats; StatDescriber keeps its lines together)
+		local lower = line:lower()
+		compileAll()
+		for _, c in ipairs(compiledBlocks) do
+			if lower:find(c.anchor, 1, true) then
+				local caps = { lower:match(c.pattern) }
+				if caps[1] ~= nil or (#c.order == 0 and lower:match(c.pattern)) then
+					zh = tryCandidate(c, caps)
+					if zh then
+						return zh
+					end
+				end
+			end
+		end
+	end
 	if line:find(RANGE) then
 		zh = translateRange(line)
 	else
@@ -331,6 +374,16 @@ function ZhTWMods.translate(line)
 		end
 	end
 	return nil
+end
+
+-- zhTW: second try for gem stat lines. PoB's English sometimes uses a variant outside its value
+-- range (singular "Maximum 5 Summoned Phantasm"); ignore the English ranges and let the Chinese
+-- description pick its variant from the real values.
+function ZhTWMods.translateLoose(line)
+	relaxLimits = true
+	local ok, zh = pcall(ZhTWMods.translate, line)
+	relaxLimits = false
+	return ok and zh or nil
 end
 
 -- Names are looked up without case (the line is matched in lower case)
