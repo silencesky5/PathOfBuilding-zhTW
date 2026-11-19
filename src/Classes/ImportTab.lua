@@ -929,6 +929,9 @@ function ImportTabClass:DownloadItems(realm)
 					self.charImportStatus = colorCodes.POSITIVE .. "已匯入天賦、珠寶、物品與技能。"
 						.. (total > 0 and (colorCodes.WARNING .. " 有 " .. total .. " 行詞綴無法轉換（詳細內容請按 Ctrl+~ 開主控台）") or "")
 				end
+				if status:find("successfully imported") then -- zhTW: show the imported gear right away
+					self.build.viewMode = "ITEMS"
+				end
 			end
 		end)
 end

@@ -9,6 +9,8 @@
 --
 local ipairs = ipairs
 local t_insert = table.insert
+local pairs = pairs
+local m_min = math.min
 
 local M = { }
 
@@ -94,19 +96,77 @@ function M.toggleEdit(itemsTab)
 	itemsTab:AddUndoState()
 end
 
+-- true while the item slots below show the guardian's set (button 套用 pressed)
+function M.isEditing(itemsTab)
+	local editing = itemsTab.zhTWGuardianEditing
+	return editing ~= nil and editing == itemsTab.activeItemSetId
+end
+
+-- Gold frame around the row whose gear the item slots below are showing
+local FRAME_PAD = 4
+local function drawFrame(left, right)
+	local lx = left:GetPos()
+	local _, ly = left:GetPos()
+	local rx, ry = right:GetPos()
+	local rw, rh = right:GetSize()
+	local x1, y1 = lx - FRAME_PAD - 2, m_min(ly, ry) - FRAME_PAD
+	local x2, y2 = rx + rw + FRAME_PAD, ry + rh + FRAME_PAD
+	SetDrawColor(0.85, 0.68, 0.3)
+	DrawImage(nil, x1, y1, x2 - x1, 1)
+	DrawImage(nil, x1, y2 - 1, x2 - x1, 1)
+	DrawImage(nil, x1, y1, 1, y2 - y1)
+	DrawImage(nil, x2 - 1, y1, 1, y2 - y1)
+	SetDrawColor(0.85, 0.68, 0.3, 0.08)
+	DrawImage(nil, x1 + 1, y1 + 1, x2 - x1 - 2, y2 - y1 - 2)
+	SetDrawColor(1, 1, 1)
+end
+
 function M.setup(itemsTab)
 	local controls = itemsTab.controls
-	if not controls.setSelect or not controls.setLabel then
+	if not controls.setSelect or not controls.setLabel or not controls.setManage then
 		return
 	end
-	-- 角色裝備 instead of 裝備組 for the top row
+	local setSelect, setManage = controls.setSelect, controls.setManage
+	-- Row 1: 角色 (the player's own item set)
 	local origLabel = controls.setLabel.label
 	controls.setLabel.label = function()
-		return enabled() and "^7角色裝備:" or origLabel
+		return enabled() and "^7角色:" or origLabel
+	end
+	-- While the guardian's set is shown below, this row still names the player's set
+	local origSetDraw = setSelect.Draw
+	setSelect.Draw = function(self, ...)
+		if enabled() and M.isEditing(itemsTab) then
+			for index, setId in ipairs(itemsTab.itemSetOrderList) do
+				if setId == itemsTab.zhTWGuardianReturnSet then
+					self.selIndex = index
+				end
+			end
+		end
+		return origSetDraw(self, ...)
 	end
 
+	-- Row 2: 武器組 I II (moved up from the top edge of the item slots)
+	local function rowTwoPos(offsetX)
+		local x, y = setManage:GetPos()
+		local w, h = setManage:GetSize()
+		return x + w - offsetX, y + h + 6
+	end
+	for name, offsetX in pairs({ weaponSwap1 = 38, weaponSwap2 = 18 }) do
+		local button = controls[name]
+		if button then
+			local origGetPos = button.GetPos
+			button.GetPos = function(self)
+				if enabled() then
+					return rowTwoPos(offsetX)
+				end
+				return origGetPos(self)
+			end
+		end
+	end
+
+	-- Row 3: 幻化守衛
 	local rows -- the item sets behind the dropdown rows
-	local select = new("DropDownControl"):DropDownControl({ "TOPLEFT", controls.setSelect, "BOTTOMLEFT" }, { 0, 4, 216, 20 }, nil, function(index)
+	local select = new("DropDownControl"):DropDownControl({ "TOPLEFT", setSelect, "BOTTOMLEFT" }, { 0, 32, 216, 20 }, nil, function(index)
 		local row = rows and rows[index]
 		if not row then
 			return
@@ -123,7 +183,7 @@ function M.setup(itemsTab)
 		return enabled()
 	end
 	select.enabled = function()
-		return #M.guardianGems(itemsTab.build) > 0
+		return #M.guardianGems(itemsTab.build) > 0 and not M.isEditing(itemsTab)
 	end
 	select.tooltipFunc = function(tooltip, mode, index)
 		tooltip:Clear()
@@ -132,7 +192,7 @@ function M.setup(itemsTab)
 			itemsTab:AddItemSetTooltip(tooltip, itemsTab.itemSets[row.setId])
 		elseif mode ~= "HOVER" then
 			tooltip:AddLine(16, "^7幻化守衛身上穿的裝備組。台服的角色資料不含守衛的裝備，")
-			tooltip:AddLine(16, "^7請按「編輯」切到這一組，貼上守衛的裝備（物品文字 Ctrl+V）。")
+			tooltip:AddLine(16, "^7請按「套用」顯示這一組，再貼上守衛的裝備（物品文字 Ctrl+V）。")
 			tooltip:AddLine(16, "^7守衛裝備上的光環（例如王者之刃、共鳴之面）會算進你的數值。")
 		end
 	end
@@ -165,37 +225,49 @@ function M.setup(itemsTab)
 		return origDraw(self, ...)
 	end
 	controls.zhTWGuardianSelect = select
-	controls.zhTWGuardianLabel = new("LabelControl"):LabelControl({ "RIGHT", select, "LEFT" }, { -2, 0, 0, 16 }, "^7幻化守衛裝備:")
+	controls.zhTWGuardianLabel = new("LabelControl"):LabelControl({ "RIGHT", select, "LEFT" }, { -2, 0, 0, 16 }, "^7幻化守衛:")
 	controls.zhTWGuardianLabel.shown = select.shown
 
 	local button = new("ButtonControl"):ButtonControl({ "LEFT", select, "RIGHT" }, { 4, 0, 90, 20 }, function()
-		local editing = itemsTab.zhTWGuardianEditing
-		return (editing and editing == itemsTab.activeItemSetId) and "返回" or "編輯"
+		return M.isEditing(itemsTab) and "返回角色" or "套用"
 	end, function()
 		M.toggleEdit(itemsTab)
 	end)
 	button.shown = select.shown
-	button.enabled = select.enabled
+	button.enabled = function()
+		return #M.guardianGems(itemsTab.build) > 0
+	end
 	button.tooltipFunc = function(tooltip)
 		tooltip:Clear()
-		local editing = itemsTab.zhTWGuardianEditing
-		if editing and editing == itemsTab.activeItemSetId then
-			tooltip:AddLine(16, "^7回到你自己的角色裝備。")
+		if M.isEditing(itemsTab) then
+			tooltip:AddLine(16, "^7下面裝備欄換回你自己的角色裝備。")
 		else
-			tooltip:AddLine(16, "^7把守衛的裝備組切到上方顯示，方便貼上裝備（沒有就自動新增一組）。")
-			tooltip:AddLine(16, "^7顯示守衛裝備時，左側數值是「你穿這組」的結果，按「返回」就恢復。")
+			tooltip:AddLine(16, "^7下面裝備欄改成顯示守衛的裝備，可以直接放上或更換（沒有裝備組會自動新增一組）。")
+			tooltip:AddLine(16, "^7顯示守衛裝備時，左側數值是「你穿這組」的結果，按「返回角色」就恢復。")
 		end
 	end
 	controls.zhTWGuardianEdit = button
 
-	-- The Chinese layout moves the equipped items up into the hidden trade button's row (ZhTWLayout),
-	-- which is where this row sits: push them (and the 武器組 buttons on their top edge) back down one row.
+	-- The frame: drawn as a control so it follows the rows
+	local frame = new("Control"):Control({ "TOPLEFT", itemsTab, "TOPLEFT" }, { 0, 0, 0, 0 })
+	frame.shown = select.shown
+	frame.Draw = function()
+		if M.isEditing(itemsTab) then
+			drawFrame(controls.zhTWGuardianLabel, button)
+		else
+			drawFrame(controls.setLabel, setManage)
+		end
+	end
+	controls.zhTWGuardianFrame = frame
+
+	-- The Chinese layout moves the item slots up into the hidden trade button's row (ZhTWLayout);
+	-- they go below the three rows instead
 	local anchor = itemsTab.slotAnchor
 	if anchor then
 		local origY = anchor.y
 		anchor.y = function(self)
 			local y = type(origY) == "function" and origY(self) or origY
-			return enabled() and (y + 24) or y
+			return enabled() and (y + 36) or y
 		end
 	end
 end
