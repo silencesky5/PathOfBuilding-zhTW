@@ -3445,14 +3445,27 @@ function calcs.perform(env, skipEHP)
 	-- Upstream only applies the minion's item mods to the minion itself and never reads its ExtraAura list.
 	for _, activeSkill in ipairs(env.player.activeSkillList) do
 		local sourceMinion = activeSkill.minion
-		if sourceMinion and sourceMinion.itemSet and sourceMinion.uses and not sourceMinion.hostile then
+		-- The guardian's gear is whichever set was picked for it (sidebar or 技能詳情) that is not the player's own
+		-- active set; a guardian left on the player's set would only count the player's auras twice.
+		local guardianSet
+		if sourceMinion and sourceMinion.uses and not sourceMinion.hostile and activeSkill.activeEffect.grantedEffect.minionHasItemSet then
+			local itemsTab = env.build.itemsTab
+			local src = activeSkill.activeEffect.srcInstance or { }
+			for _, setId in ipairs({ sourceMinion.itemSet and sourceMinion.itemSet.id, src.skillMinionItemSet, src.skillMinionItemSetCalcs }) do
+				if setId and setId ~= itemsTab.activeItemSetId and itemsTab.itemSets[setId] then
+					guardianSet = itemsTab.itemSets[setId]
+					break
+				end
+			end
+		end
+		if guardianSet then
 			for slotName, slot in pairs(env.build.itemsTab.slots) do
 				if sourceMinion.uses[slotName] then
 					local setSlotName = slotName
-					if slot.weaponSet == 1 and sourceMinion.itemSet.useSecondWeaponSet then
+					if slot.weaponSet == 1 and guardianSet.useSecondWeaponSet then
 						setSlotName = slotName .. " Swap"
 					end
-					local itemSlot = sourceMinion.itemSet[setSlotName]
+					local itemSlot = guardianSet[setSlotName]
 					local item = itemSlot and env.build.itemsTab.items[itemSlot.selItemId]
 					local itemModList = item and (item.modList or (item.slotModList and item.slotModList[slot.slotNum]))
 					for _, itemMod in ipairs(itemModList or { }) do

@@ -60,8 +60,16 @@ local ok, err = pcall(function()
 	for _, group in ipairs(build.skillsTab.socketGroupList) do
 		for _, gem in ipairs(group.gemList) do
 			if gem.nameSpec == "Animate Guardian" then
-				gem.skillMinionItemSet = set.id
 				gem.skillMinionItemSetCalcs = set.id
+			end
+		end
+	end
+	local calcsOnly = stats("guardian set picked only in 技能詳情")
+	log("RESULT calcs-only crit multi +", (calcsOnly.CritMultiplier or 0) - (before.CritMultiplier or 0))
+	for _, group in ipairs(build.skillsTab.socketGroupList) do
+		for _, gem in ipairs(group.gemList) do
+			if gem.nameSpec == "Animate Guardian" then
+				gem.skillMinionItemSet = set.id
 			end
 		end
 	end
