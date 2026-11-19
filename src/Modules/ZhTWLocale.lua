@@ -148,6 +148,12 @@ local function load()
 	addReverse(LoadModule("Data/zhTW/Gems"))
 	addReverse(LoadModule("Data/zhTW/Passives"))
 	addReverse(LoadModule("Data/zhTW/Classes"))
+	-- zhTW: timeless jewel passives (conquered nodes) and tattoos (Export/Scripts/zhTWExtra.lua)
+	local legionOk, legion = pcall(LoadModule, "Data/zhTW/Legion")
+	if legionOk and type(legion) == "table" then
+		addReverse(legion.passives)
+		addReverse(legion.tattoos)
+	end
 	-- Monster names (spectres, minions): English -> Chinese (Export/Scripts/zhTWMonsters.lua)
 	for en, zh in pairs(LoadModule("Data/zhTW/Monsters") or { }) do
 		if not names[en] then

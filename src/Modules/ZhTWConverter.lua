@@ -38,6 +38,9 @@ local function loadTables()
 		passives = LoadModule("Data/zhTW/Passives"),
 		statDescriptions = LoadModule("Data/zhTW/StatDescriptions"),
 	}
+	-- zhTW: timeless jewel / tattoo passive names (Export/Scripts/zhTWExtra.lua)
+	local ok, legion = pcall(LoadModule, "Data/zhTW/Legion")
+	tables.legion = ok and type(legion) == "table" and legion or { }
 	return tables
 end
 
@@ -128,7 +131,9 @@ local function passiveValidator(en)
 end
 
 local function passiveName(zh)
-	return lookupName(loadTables().passives, zh, passiveValidator)
+	local t = loadTables()
+	return lookupName(t.passives, zh, passiveValidator)
+		or lookupName(t.legion.passives or { }, zh) or lookupName(t.legion.tattoos or { }, zh) -- zhTW: timeless jewel / tattoo passives
 end
 
 local function uniqueName(zh, baseName)
@@ -909,6 +914,90 @@ local prefixRules = {
 
 local cache = { }
 
+-- zhTW: Timeless jewels. The client writes the general and the faction through
+-- alternate_tree_version_* stats, and its descriptions name only some of them, so
+-- "萊基亞塔指揮領導超過14832名戰士" / "範圍內的天賦臣服於卡魯" never matched.
+-- Data/zhTW/Legion.lua (Export/Scripts/zhTWExtra.lua) has the client's generals, factions
+-- and line templates; each line is matched on its own.
+-- PoB's names for generals the client calls differently (ModParser conquerorList)
+local generalAlias = { Mazcotl = "Ahuana" }
+local timelessRules
+local function getTimelessRules()
+	if timelessRules then
+		return timelessRules
+	end
+	timelessRules = { }
+	local ok, legion = pcall(LoadModule, "Data/zhTW/Legion")
+	if not ok or type(legion) ~= "table" then
+		return timelessRules
+	end
+	for _, tpl in ipairs(legion.templates or { }) do
+		local parts, order, pos = { "^" }, { }, 1
+		while true do
+			local a, b, n = tpl.zh:find("{(%d)}", pos)
+			if not a then
+				t_insert(parts, escapePattern(tpl.zh:sub(pos)))
+				break
+			end
+			t_insert(parts, escapePattern(tpl.zh:sub(pos, a - 1)))
+			t_insert(parts, n == "1" and "%s*([%d,]+)%s*" or "%s*(.-)%s*")
+			t_insert(order, n)
+			pos = b + 1
+		end
+		t_insert(parts, "$")
+		t_insert(timelessRules, { pattern = t_concat(parts), order = order, en = tpl.en })
+	end
+	timelessRules.generals = legion.generals or { }
+	timelessRules.factions = legion.factions or { }
+	return timelessRules
+end
+
+local function convertTimelessLine(line)
+	local rules = getTimelessRules()
+	line = trim(line)
+	for _, rule in ipairs(rules) do
+		local caps = { line:match(rule.pattern) }
+		if caps[1] then
+			local values, ok = { }, true
+			for i, n in ipairs(rule.order) do
+				local v = caps[i]
+				if n == "1" then
+					values[n] = v:gsub(",", "")
+				elseif n == "2" then
+					local g = rules.generals[v]
+					values[n] = g and (generalAlias[g.en] or g.en)
+				else
+					values[n] = rules.factions[v]
+				end
+				if not values[n] then
+					ok = false
+					break
+				end
+			end
+			if ok then
+				return (rule.en:gsub("{(%d)}", function(n) return values[n] or "{" .. n .. "}" end))
+			end
+		end
+	end
+end
+
+-- Every line must be a timeless jewel line; returns English or nil
+local function convertTimeless(text)
+	if not text:find("[\128-\255]") then
+		return nil
+	end
+	local out = { }
+	for line in (text .. "\n"):gmatch("([^\n]*)\n") do
+		local en = convertTimelessLine(line)
+		if not en then
+			return nil
+		end
+		t_insert(out, en)
+	end
+	return #out > 0 and t_concat(out, "\n") or nil
+end
+ZhTW.convertTimeless = convertTimeless
+
 -- Converts a (possibly multi-line) modifier. Returns English or nil.
 -- Newer Taiwan data has keyword links in mod texts: "+8%[PlayerItemRarity|物品稀有度]"
 local function stripLinks(s)
@@ -939,6 +1028,11 @@ local function convertModText(text, field)
 	local cacheKey = text .. "|" .. tostring(field) .. "|" .. (itemContext and itemContext.sig or "")
 	if cache[cacheKey] ~= nil then
 		return cache[cacheKey] or nil
+	end
+	local timeless = convertTimeless(text) -- zhTW: timeless jewel lines
+	if timeless then
+		cache[cacheKey] = timeless
+		return timeless
 	end
 	local lines = { }
 	for line in (text .. "\n"):gmatch("([^\n]*)\n") do
@@ -1332,6 +1426,14 @@ function ZhTW.convertPassiveResponse(resp)
 				local en = bases[override.name]
 				if type(en) == "table" then
 					en = en[1].name
+				end
+				-- zhTW: keystone tattoos etc. are passive override names, not item bases
+				local tattooNodes = main and main.tree and latestTreeVersion and main.tree[latestTreeVersion] and main.tree[latestTreeVersion].tattoo
+				if tattooNodes and tattooNodes.nodes and (not en or not tattooNodes.nodes[en]) then
+					local alt = lookupName(loadTables().legion.tattoos or { }, override.name, function(e) return tattooNodes.nodes[e] ~= nil end)
+					if alt and tattooNodes.nodes[alt] then
+						en = alt
+					end
 				end
 				if en then
 					override.name = en
