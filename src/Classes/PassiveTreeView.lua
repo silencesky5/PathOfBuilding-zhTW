@@ -1434,6 +1434,13 @@ function PassiveTreeViewClass:AddNodeName(tooltip, node, build)
 	tooltip.center = true
 	tooltip:AddLine(24, nodeName..(launch.devModeAlt and " ["..node.id.."]" or ""), "FONTIN")
 	tooltip.center = false
+	if node.recipe and ZhTWLocale and ZhTWLocale.enabled then -- zhTW: anoint oils in text (Modules/ZhTWGameText.lua)
+		ZhTWGameText = ZhTWGameText or LoadModule("Modules/ZhTWGameText")
+		local recipeLine = ZhTWGameText.recipeLine(node.recipe)
+		if recipeLine then
+			tooltip:AddLine(16, "^7" .. recipeLine, "FONTIN")
+		end
+	end
 	if launch.devModeAlt and node.id > 65535 then
 		-- Decompose cluster node Id
 		local index = band(node.id, 0xF)
