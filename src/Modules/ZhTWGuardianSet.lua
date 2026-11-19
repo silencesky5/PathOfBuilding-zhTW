@@ -87,7 +87,17 @@ function M.toggleEdit(itemsTab)
 		itemsTab:SetActiveItemSet(back)
 		M.assign(itemsTab, editing)
 	else
-		local setId = M.currentSetId(itemsTab) or M.newSet(itemsTab).id
+		local setId = M.currentSetId(itemsTab)
+		if not setId then
+			-- reuse a 幻化守衛 set made before (e.g. after picking 未設定) instead of adding another
+			for _, id in ipairs(itemsTab.itemSetOrderList) do
+				local itemSet = itemsTab.itemSets[id]
+				if id ~= itemsTab.activeItemSetId and itemSet and itemSet.title == NEW_SET_TITLE then
+					setId = id
+				end
+			end
+		end
+		setId = setId or M.newSet(itemsTab).id
 		itemsTab.zhTWGuardianReturnSet = itemsTab.activeItemSetId
 		itemsTab.zhTWGuardianEditing = setId
 		M.assign(itemsTab, setId)
