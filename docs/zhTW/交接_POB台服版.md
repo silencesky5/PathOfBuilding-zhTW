@@ -32,6 +32,8 @@ Path of Building Community（PoE1）的非官方繁體中文版：
 | 檔案 | 作用 |
 |---|---|
 | `src/Export/Scripts/zhTW.lua`、`src/Export/zhTWRun.lua` | 從台服客戶端匯出對照資料到 `src/Data/zhTW/`、`src/Data/StatDescriptions/zhTW/{en,tc}/` |
+| `src/Export/Scripts/zhTWExtra.lua` | 匯出 `Data/zhTW/Legion.lua`（永恆珠寶將軍／派系／範本、永恆珠寶與紋身天賦名）與 `GemDescriptions.lua`（寶石說明，以 granted effect id 對照）。`set ZHTW_SCRIPT=Scripts/zhTWExtra.lua` 再跑 `zhTWRun.lua`，要在 `zhTW.lua` 之後跑 |
+| `src/Modules/ZhTWGameText.lua` | 中文介面的寶石說明（依 id）、塗油油名與「塗油：」行 |
 | `src/Export/zhTWFont.ps1` | 產生中文字形圖 `Font12/14/16/18/20/24/32.png/.lua`，收錄資料與程式中所有非英數字 |
 | `src/Export/zhTWRelease.py`、`zhTWRelease.ini` | 發佈工具：產生 manifest.xml（publish）、打包可自動更新的壓縮檔（package）；cfg 寫 GitHub repo 和分支 |
 | `src/Export/zhTWPackage.ps1` | 打包壓縮檔（呼叫 zhTWRelease.py package），只包含版本控制中的檔案，不含 Settings.xml 和 Builds |
@@ -90,7 +92,7 @@ Path{space}of{space}Building.exe <src\zhTWCoverage.lua 的完整路徑>   → sr
    - GitHub 公開 repo 與自動更新已完成（見上方「發佈與自動更新」）。
 2. **設定頁說明文字翻譯**：清單在 `docs/zhTW/zhTW_config_tooltips_todo.txt`（375 行，保留顏色碼）。翻好後加進 `UI.lua` 的 strings。
 3. 其他未翻譯：新角色才會出現的介面數字（點燃 DPS 差異、圖騰放置時間）、風味文字。
-4. 已知限制：永恆珠寶第 1、2 種（瓦爾、卡魯）的將軍名稱，新版資料只有通用句，無法轉換。
+4. ~~已知限制：永恆珠寶第 1、2 種（瓦爾、卡魯）的將軍名稱，新版資料只有通用句，無法轉換。~~ 11/19 已解決，見第 14 項。
 5. 桌面上的「POB台服版」捷徑被刪了，可以重建（已重建在 `Work_Space\POE相關\POB台服版\開啟 POB 台服版.lnk`，目標 `PathOfBuilding\runtime\Path{space}of{space}Building.exe`）。
 6. **介面改動紀錄（11/17 晚，`ZhTWLayout.lua`，只在中文介面生效）**：
    - 左上角只留「匯入/匯出」、「角色配置」、「設定」三個按鈕。
@@ -140,3 +142,12 @@ Path{space}of{space}Building.exe <src\zhTWCoverage.lua 的完整路徑>   → sr
    - 詞綴清單用 `ZhTWMods.translate` 顯示中文（翻不到的保留英文），後面標（前綴／後綴，等級 N）；精髓前面加精髓名稱。加入物品時仍用英文詞綴。
    - 搜尋框：中文、英文、詞綴名稱都能搜，空白分隔的每個詞都要符合；右邊顯示「符合數／總數」。換來源、換排序後會重新套用搜尋（直接過濾同一個 modList 表）。
    - 測試：`src/zhTWModSearchTest.lua` → `src/zhTWModSearchTest.log`。
+
+14. **參考 PobTools-zh 的做法新增 4 項（11/19）**：資料全部從我們自己的台服客戶端匯出，沒有複製 PobTools-zh 的翻譯檔。
+   - **永恆珠寶轉換（待辦 #4）**：`Export/Scripts/zhTWExtra.lua` 從 AlternateTreeVersions（派系，如「卡魯」）、AlternateTreeVersionKeystones（將軍；POB 的 spec 沒有這張表，欄位在腳本裡補：Key 版本、Int 序號、String 名稱、Int v2）、描述檔的通用句與特定句（「神主」「卡葛爾」「沃拉娜(沃拉娜-梅德偉)」等別名）匯出 `Data/zhTW/Legion.lua`。`ZhTWConverter.convertTimeless` 每行先用範本比對，種子用數字樣式抓；客戶端的 Mazcotl 對到 POB 的 Ahuana（`generalAlias`）。
+   - **紋身**：PassiveSkillOverrides 的中英名稱；匯入時底材名稱找不到（關鍵天賦紋身等）就查這張表。天賦樹上被永恆珠寶／紋身改過的節點名稱也顯示中文（ZhTWLocale 反查）。
+   - **寶石說明**：GemTooltip 在中文介面改用 `GemDescriptions.lua`（主動技能取 ActiveSkills.Description，輔助取 GemEffects.Description），871/871。
+   - **塗油**：用 POB 天賦樹資料本身的 `node.recipe`，只翻油名（台服底材名），節點提示名稱下多一行「塗油：A、B、C」（只在中文介面）。
+   - **搜尋同義詞**：`UI.lua` 的 `searchSynonyms`（依序改寫，查詢字和被搜尋文字兩邊都改），`ZhTWLocale.normalizeSearch`；幽魂庫、傳奇資料庫、技能寶石、新增詞綴視窗都套用。副作用：單字同義詞會讓「飽與」也搜到「飽和」，可接受。
+   - 測試：`src/zhTWLegionTest.lua`（93 項）、`src/zhTWGameTextTest.lua`（26 項），用法同其他測試。瓦爾永恆珠寶的 LUT 是壓縮檔，測試要把 HeadlessWrapper 換掉的 `Inflate` 還原（同 zhTWTest）。
+   - 客戶端改版後：先跑 `zhTW.lua`，再跑 `zhTWExtra.lua`，然後 `zhTWFont.ps1`、測試。
