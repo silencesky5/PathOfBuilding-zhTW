@@ -187,6 +187,17 @@ function M.setup(itemsTab)
 		end
 	end
 	controls.zhTWGuardianEdit = button
+
+	-- The Chinese layout moves the equipped items up into the hidden trade button's row (ZhTWLayout),
+	-- which is where this row sits: push them (and the 武器組 buttons on their top edge) back down one row.
+	local anchor = itemsTab.slotAnchor
+	if anchor then
+		local origY = anchor.y
+		anchor.y = function(self)
+			local y = type(origY) == "function" and origY(self) or origY
+			return enabled() and (y + 24) or y
+		end
+	end
 end
 
 return M
