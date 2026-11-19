@@ -173,7 +173,12 @@ local function addCommonGemInfo(tooltip, build, gemInstance, grantedEffect, addL
 		build:AddRequirementsToTooltip(tooltip, reqLevel, reqStr, reqDex, reqInt)
 	end
 	if grantedEffect.description then
-		tooltip:AddLine(fontSizeBig, colorCodes.GEM .. grantedEffect.description, "FONTIN SC")
+		local description = grantedEffect.description
+		if ZhTWLocale and ZhTWLocale.enabled then -- zhTW: client's Chinese description by granted effect id (Modules/ZhTWGameText.lua)
+			ZhTWGameText = ZhTWGameText or LoadModule("Modules/ZhTWGameText")
+			description = ZhTWGameText.gemDescription(grantedEffect) or description
+		end
+		tooltip:AddLine(fontSizeBig, colorCodes.GEM .. description, "FONTIN SC")
 	end
 	if build.data.describeStats then
 		tooltip:AddSeparator(10)
