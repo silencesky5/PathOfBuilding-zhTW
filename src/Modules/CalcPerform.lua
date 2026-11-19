@@ -3440,6 +3440,46 @@ function calcs.perform(env, skipEHP)
 		modDB:NewMod("ExtraAura", "LIST", { mod = modLib.createMod("PhysicalDamageGainAsFire", "BASE", val, "Hallowing Flame", { type = "GlobalEffect", effectType = "Global", unscalable = true }, { type = "ActorCondition", actor = "enemy", var = "HallowingFlame" }, { type = "Multiplier", var = "HallowingFlame", actor = "enemy" }) })
 	end
 
+	-- zhTW: auras on items worn by a minion that has its own item set (Animate Guardian), such as Kingmaker's
+	-- "Nearby Allies have ..." or Leer Cast's "You and nearby allies ...", affect the player as allied auras.
+	-- Upstream only applies the minion's item mods to the minion itself and never reads its ExtraAura list.
+	for _, activeSkill in ipairs(env.player.activeSkillList) do
+		local sourceMinion = activeSkill.minion
+		if sourceMinion and sourceMinion.itemSet and sourceMinion.uses and not sourceMinion.hostile then
+			for slotName, slot in pairs(env.build.itemsTab.slots) do
+				if sourceMinion.uses[slotName] then
+					local setSlotName = slotName
+					if slot.weaponSet == 1 and sourceMinion.itemSet.useSecondWeaponSet then
+						setSlotName = slotName .. " Swap"
+					end
+					local itemSlot = sourceMinion.itemSet[setSlotName]
+					local item = itemSlot and env.build.itemsTab.items[itemSlot.selItemId]
+					local itemModList = item and (item.modList or (item.slotModList and item.slotModList[slot.slotNum]))
+					for _, itemMod in ipairs(itemModList or { }) do
+						local value = itemMod.name == "ExtraAura" and type(itemMod.value) == "table" and itemMod.value
+						if value and value.mod then
+							local modList = { value.mod }
+							if not modDB:Flag(nil, "AlliesAurasCannotAffectSelf") then
+								local inc = modDB:Sum("INC", nil, "BuffEffectOnSelf", "AuraEffectOnSelf")
+								local more = modDB:More(nil, "BuffEffectOnSelf", "AuraEffectOnSelf")
+								modDB:ScaleAddList(modList, (1 + inc / 100) * more)
+								if not value.notBuff then
+									modDB.multipliers["BuffOnSelf"] = (modDB.multipliers["BuffOnSelf"] or 0) + 1
+								end
+							end
+							-- The guardian itself gets "You and nearby allies" auras, and other minions get all of them
+							if env.minion and not env.minion.hostile and (env.minion ~= sourceMinion or not value.onlyAllies) then
+								local inc = env.minion.modDB:Sum("INC", nil, "BuffEffectOnSelf", "AuraEffectOnSelf")
+								local more = env.minion.modDB:More(nil, "BuffEffectOnSelf", "AuraEffectOnSelf")
+								env.minion.modDB:ScaleAddList(modList, (1 + inc / 100) * more)
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+
 	-- Check for extra auras
 	buffExports["Aura"]["extraAura"] = { effectMult = 1, modList = new("ModList"):ModList() }
 	for _, value in ipairs(modDB:List(nil, "ExtraAura")) do
