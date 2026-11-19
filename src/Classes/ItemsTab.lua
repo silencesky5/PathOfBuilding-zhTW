@@ -321,6 +321,7 @@ function ItemsTabClass:ItemsTab(build)
 	end)
 	if ZhTWLocale then -- zhTW: 稀有裝備傷害最佳化 button (Modules/ZhTWOptimize.lua)
 		LoadModule("Modules/ZhTWOptimize").setup(self)
+		LoadModule("Modules/ZhTWGuardianSet").setup(self) -- zhTW: 角色裝備／幻化守衛裝備 rows
 	end
 	self.controls.displayItemTip = new("LabelControl"):LabelControl({"TOPLEFT",self.controls.craftDisplayItem,"BOTTOMLEFT"}, {0, 8, 100, 16},
 [[^7Double-click an item from one of the lists,
