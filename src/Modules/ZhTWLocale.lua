@@ -29,6 +29,7 @@ local affixes -- { prefix = { [en] = zh }, suffix = { [en] = zh } }
 local baseNames -- English base names, longest first (for magic item names)
 local baseSet -- the same names as a set
 local patterns -- { { pattern, replacement } } from Data/zhTW/UI.lua
+local searchSynonyms = { } -- Data/zhTW/UI.lua searchSynonyms: { { from, to } } applied in order
 local display -- Data/zhTW/Display.lua: descriptions, skill names, tags, flavour, client strings
 local braceFormats -- compiled ClientStrings templates like "+{0} Levels from Item"
 local modTranslator -- function(line) -> Chinese or nil
@@ -98,6 +99,7 @@ local function load()
 	end
 	local data = LoadModule("Data/zhTW/UI") or { }
 	ui = data.strings or data
+	searchSynonyms = data.searchSynonyms or { } -- zhTW search: same-meaning words
 	display = LoadModule("Data/zhTW/Display") or { }
 	for _, k in ipairs({ "descriptions", "skillNames", "tags", "flavour", "reminders", "clientStrings", "clientFormats" }) do
 		display[k] = display[k] or { }
@@ -569,8 +571,23 @@ function ZhTWLocale.translate(text)
 	return ok and out or text
 end
 
+-- Search text: same-meaning words written one way (「與」→「和」、「提高」→「增加」…, see
+-- searchSynonyms in Data/zhTW/UI.lua). Used on both the query and the text being searched.
+function ZhTWLocale.normalizeSearch(text)
+	if type(text) ~= "string" or not s_find(text, "[\128-\255]") then
+		return text
+	end
+	load()
+	for _, pair in ipairs(searchSynonyms) do
+		if s_find(text, pair[1], 1, true) then
+			text = text:gsub(escapePattern(pair[1]), (pair[2]:gsub("%%", "%%%%")))
+		end
+	end
+	return text
+end
+
 -- Search boxes: true when the query has Chinese text and the Chinese name contains it
--- (spaces and colour codes ignored). Returns nil for queries without Chinese.
+-- (spaces and colour codes ignored, synonyms normalised). Returns nil for queries without Chinese.
 local searchCache = { }
 function ZhTWLocale.searchMatch(en, query)
 	if type(query) ~= "string" or not s_find(query, "[\128-\255]") or type(en) ~= "string" then
@@ -578,10 +595,10 @@ function ZhTWLocale.searchMatch(en, query)
 	end
 	local zh = searchCache[en]
 	if not zh then
-		zh = ZhTWLocale.translate(en):gsub("%^x%x%x%x%x%x%x", ""):gsub("%^%d", ""):gsub("%s+", ""):lower()
+		zh = ZhTWLocale.normalizeSearch((ZhTWLocale.translate(en):gsub("%^x%x%x%x%x%x%x", ""):gsub("%^%d", ""):gsub("%s+", ""):lower()))
 		searchCache[en] = zh
 	end
-	return s_find(zh, (query:gsub("%s+", ""):lower()), 1, true) ~= nil
+	return s_find(zh, ZhTWLocale.normalizeSearch((query:gsub("%s+", ""):lower())), 1, true) ~= nil
 end
 
 -- Forget cached translations (after tables change)

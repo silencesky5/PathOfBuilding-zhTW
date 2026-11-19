@@ -56,7 +56,8 @@ local function searchText(entry)
 	for _, line in ipairs(mod) do
 		t_insert(parts, line)
 	end
-	return (t_concat(parts, " "):gsub("%^x%x%x%x%x%x%x", ""):gsub("%^%d", ""):lower())
+	local text = t_concat(parts, " "):gsub("%^x%x%x%x%x%x%x", ""):gsub("%^%d", ""):lower()
+	return ZhTWLocale.normalizeSearch and ZhTWLocale.normalizeSearch(text) or text -- 同義詞（與→和、提高→增加…）
 end
 
 function M.setup(itemsTab, controls, modList, sourceList)
@@ -79,6 +80,7 @@ function M.setup(itemsTab, controls, modList, sourceList)
 
 	local function matches(entry)
 		for word in query:lower():gmatch("%S+") do
+			word = ZhTWLocale.normalizeSearch and ZhTWLocale.normalizeSearch(word) or word
 			if not entry.zhTWSearch:find(word, 1, true) then
 				return false
 			end
