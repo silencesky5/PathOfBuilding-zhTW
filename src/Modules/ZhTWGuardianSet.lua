@@ -260,6 +260,41 @@ function M.setup(itemsTab)
 	end
 	controls.zhTWGuardianFrame = frame
 
+	-- While the guardian's gear is shown, only the slots it can wear stay (weapons and armour); the
+	-- 飾品／藥劑 slots, tree jewels and the 天賦配置 row belong to the player and are hidden
+	local function guardianUses()
+		local gem = M.guardianGems(itemsTab.build)[1]
+		local grantedEffect = gem and (gem.grantedEffect or (gem.gemData and gem.gemData.grantedEffect))
+		return grantedEffect and grantedEffect.minionUses
+	end
+	local function hideWhileEditing(control, keep)
+		if not control then
+			return
+		end
+		local orig = control.shown
+		control.shown = function(self)
+			if enabled() and M.isEditing(itemsTab) and not (keep and keep()) then
+				return false
+			end
+			if type(orig) == "function" then
+				return orig(self)
+			end
+			return orig ~= false
+		end
+	end
+	local function slotUsable(slot)
+		local uses = guardianUses()
+		local base = slot.parentSlot or slot
+		local name = base.slotName and base.slotName:gsub(" Swap$", "")
+		return uses ~= nil and name ~= nil and uses[name] == true
+	end
+	for _, slot in ipairs(itemsTab.orderedSlots or { }) do
+		hideWhileEditing(slot, not slot.nodeId and function() return slotUsable(slot) end or nil)
+	end
+	for _, name in ipairs({ "specSelect", "specButton", "specLabel", "zhTWJewelToggle", "zhTWJewelChips" }) do
+		hideWhileEditing(controls[name])
+	end
+
 	-- The Chinese layout moves the item slots up into the hidden trade button's row (ZhTWLayout);
 	-- they go below the three rows instead
 	local anchor = itemsTab.slotAnchor

@@ -50,6 +50,8 @@ local ok, err = pcall(function()
 		log("equipped on guardian set", item.name, slotName)
 	end
 	local editing = recalc()
+	local sl = itemsTab.slots
+	log("shown while editing: Helmet", sl["Helmet"]:IsShown(), "Weapon 1", sl["Weapon 1"]:IsShown(), "Amulet", sl["Amulet"]:IsShown(), "Ring 1", sl["Ring 1"]:IsShown(), "Belt", sl["Belt"]:IsShown(), "Flask 1", sl["Flask 1"]:IsShown(), "spec", itemsTab.controls.specSelect:IsShown())
 	log("while editing CritMultiplier", editing.CritMultiplier)
 	-- 返回
 	G.toggleEdit(itemsTab)
@@ -57,6 +59,7 @@ local ok, err = pcall(function()
 	log("back on set", itemsTab.activeItemSetId, "guardian set", tostring((G.currentSetId(itemsTab))), "CritMultiplier", after.CritMultiplier, "AverageDamage ratio", after.AverageDamage / before.AverageDamage)
 	log(after.CritMultiplier - before.CritMultiplier == 0.5 and "PASS" or "FAIL")
 	log("isEditing after back", G.isEditing(itemsTab))
+	log("shown after back: Amulet", sl["Amulet"]:IsShown(), "Flask 1", sl["Flask 1"]:IsShown(), "spec", itemsTab.controls.specSelect:IsShown())
 	-- dropdown rows and frame draw without errors
 	itemsTab.controls.zhTWGuardianFrame:Draw()
 	local wx, wy = itemsTab.controls.weaponSwap2:GetPos()
