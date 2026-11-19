@@ -193,7 +193,7 @@ function buildMode:Init(dbFileName, buildName, buildXML, convertBuild, importLin
 	end
 	self.controls.pointDisplay = new("Control"):Control({"LEFT",self.anchorTopBarRight,"RIGHT"}, {function() return getPointDisplayX() end, 0, 0, 20})
 	self.controls.pointDisplay.width = function(control)
-		return DrawStringWidth(16, "FIXED", control.str) + 8
+		return DrawStringWidth(16, "FIXED", control.str or "") + 8
 	end
 	self.controls.pointDisplay.Draw = function(control)
 		local x, y = control:GetPos()
@@ -203,7 +203,7 @@ function buildMode:Init(dbFileName, buildName, buildXML, convertBuild, importLin
 		SetDrawColor(0, 0, 0)
 		DrawImage(nil, x + 1, y + 1, width, height - 2)
 		SetDrawColor(1, 1, 1)
-		DrawString(x + 4, y + 2, "LEFT", 16, "FIXED", control.str)
+		DrawString(x + 4, y + 2, "LEFT", 16, "FIXED", control.str or "")
 		if control:IsMouseInBounds() then
 			SetDrawLayer(nil, 10)
 			miscTooltip:Clear()
