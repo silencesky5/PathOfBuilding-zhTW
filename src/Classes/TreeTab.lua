@@ -1034,7 +1034,15 @@ function TreeTabClass:OpenMasteryPopup(node, viewPort)
 	for _, effect in pairs(node.masteryEffects) do
 		local assignedNodeId = isValueInTable(self.build.spec.masterySelections, effect.effect)
 		if not assignedNodeId or assignedNodeId == node.id then
-			t_insert(effects, {label = t_concat(effect.stats, " / "), id = effect.effect})
+			local label = t_concat(effect.stats, " / ")
+			if ZhTWLocale and ZhTWLocale.enabled then -- zhTW: each line in Chinese (the joined text matches no template)
+				local zhStats = { }
+				for _, line in ipairs(effect.stats) do
+					t_insert(zhStats, ZhTWLocale.translate(line))
+				end
+				label = t_concat(zhStats, " / ")
+			end
+			t_insert(effects, {label = label, id = effect.effect})
 		end
 	end
 	--Check to make sure that the effects list has a potential mod to apply to a mastery

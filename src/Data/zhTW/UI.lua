@@ -2327,6 +2327,17 @@ return {
 		["Other trades:"] = "其他交易:",
 		["Overkill damage"] = "溢出傷害",
 		["MCM"] = "魔力倍率",
+		-- zhTW: mastery choices written over two lines in the tree data (11/21)
+		["Flasks adjacent to applied Tincture have 10% increased Effect when\nused if you've Hit an enemy with a Weapon Recently"] = "若你近期用武器擊中敵人，使用時與塗抹中藥酊相鄰的藥劑效果增加 10%",
+		["Flasks adjacent to applied Tincture have 10% increased Effect when"] = "若你近期用武器擊中敵人，使用時與塗抹中藥酊相鄰的",
+		["used if you've Hit an enemy with a Weapon Recently"] = "藥劑效果增加 10%",
+		["Increases and Reductions to Armour also apply to Energy\nShield Recharge Rate at 20% of their value"] = "護甲的增加與減少也以 20% 的效果套用於能量護盾充能速度",
+		["Increases and Reductions to Armour also apply to Energy"] = "護甲的增加與減少也以 20% 的效果",
+		["Shield Recharge Rate at 20% of their value"] = "套用於能量護盾充能速度",
+		["Gain 5 Valour when you Warcry, if able"] = "使用戰吼時，若可以則獲得 5 勇氣",
+		-- zhTW: skills tab
+		["All"] = "全部",
+		["Exceptional"] = "卓越",
 		["ailment threshold is about equal to life, except on bosses that have specific ailment thresholds"] = "異常門檻約等於生命，有特定異常門檻的頭目除外",
 		["the above table shows that when the enemy has X ailment threshold, you chill for Y"] = "上表表示敵人異常門檻為 X 時，你造成的冰緩為 Y",
 		["the above table shows that when the enemy has X ailment threshold, you shock for Y"] = "上表表示敵人異常門檻為 X 時，你造成的感電為 Y",
@@ -4410,6 +4421,8 @@ return {
 	patterns = {
 		-- zhTW: calcs breakdown lines
 		{ "^= ([%d,%.]+) to ([%d,%.]+)$", "= %1 至 %2" },
+		{ "^Active Skill #(%d+):$", "主動技能 #%1:" },
+		{ "^Active Skill #(%d+)'s Main Minion Skill:$", "主動技能 #%1 的主要召喚物技能:" },
 		{ "^([%d,%.]+) (%a[%a ]-) %(([%d,%.]+) remaining%)$", "%1 %t2 (剩餘 %3)" },
 		{ "^%(([%d,%.]+) total%)$", "(共 %1)" },
 		{ "^([%d,%.]+) Overkill damage$", "%1 溢出傷害" },
