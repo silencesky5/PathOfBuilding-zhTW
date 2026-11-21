@@ -159,3 +159,13 @@ Path{space}of{space}Building.exe <src\zhTWCoverage.lua 的完整路徑>   → sr
    - 天賦樹紋身／符文之結選單（TreeTab:ModifyNodePopup）顯示中文名稱與效果。
    - 測試：`src/zhTWCalcsTest.lua`（`ZHTW_CALCS_BUILDS` 可指定 Build），清查計算頁每格來源表與紋身選單。注意：無介面測試每次都會啟動 POB 程式並閃視窗，KAI 會被干擾，跑之前先說。
    - 套用官方 2.68.1（3.30 天賦樹，台服也是 3.30）：changelog.txt、manifest.xml 沒動，發佈時版本號改用 2.68.1-zhTW.1。
+
+16. **比較頁改版：勾選試穿＋變異寶石（11/21）**（只在中文介面）：
+   - 「裝備」子頁改由 `Modules/ZhTWCompareItems.lua` 畫（`Classes/CompareTab.lua` 的 `DrawItems` 開頭一處掛勾）。設計圖：專案資料夾 `設計/比較頁設計_v1.png`。
+   - 最上方固定：「計算技能」選單＋三格結果（總 DPS、有效生命、火／冰／雷抗性的變化）。下方左「我的配置」、右「對方配置」，同部位同列；對方每件前有勾選框，勾起來的列加橘框；右上「全選」「全取消」；每件最右邊「單換 DPS ±X%」（滑鼠移上去看完整變化）。
+   - 只換裝備：寶石、天賦、設定都用自己的；天賦珠寶、守衛裝備不納入。不會改到 Build（要真的換上用裝備頁或英文版的複製）。
+   - 計算技能預設為傷害最高的那招（`Modules/ZhTWBestSkill.lua`，召喚物技能也算），可手動切換；只影響這一頁，不改 Build 的主要技能。
+   - 一次換多件：`Modules/CalcSetup.lua` 加 `override.repItems = { [slotName] = item / false }`（標註 `-- zhTW`）。換上雙手武器（或弓）時副手跟著清空（弓保留箭袋），規則和 POB 單件替換相同。
+   - 計算分散到每個畫面（每畫面 25ms），計算中會顯示「計算中…」。
+   - 「技能」子頁：中文介面時，同一顆基底寶石的變異版本（如 Storm Burst / Storm Burst of Repulsion）以 `gemData.gameId` 比對，合併成一行「風爆 → 風爆．排斥」，不再列成 + / - 兩行；寶石名稱都翻成中文。
+   - 測試：`Path{space}of{space}Building.exe <src\zhTWCompareItemsTest.lua 完整路徑>` → `src\zhTWCompareItemsTest.log`（`ZHTW_COMPARE_PRIMARY`、`ZHTW_COMPARE_OTHER` 可指定兩個 Build）。檢查單換與 POB 原本單件替換相同、全勾與真的換上後重算相同、計算技能切換、主要技能不被改、變異寶石合併。

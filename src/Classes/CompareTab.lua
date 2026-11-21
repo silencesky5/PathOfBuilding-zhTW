@@ -3693,6 +3693,13 @@ function CompareTabClass:AddAbyssSockets(comparison, destTable, requireBothSides
 end
 
 function CompareTabClass:DrawItems(vp, compareEntry, inputEvents)
+	-- zhTW: 中文介面改用「勾選試穿」版面（Modules/ZhTWCompareItems.lua）
+	if ZhTWLocale and ZhTWLocale.enabled then
+		ZhTWCompareItems = ZhTWCompareItems or LoadModule("Modules/ZhTWCompareItems")
+		if ZhTWCompareItems.draw(self, vp, compareEntry, inputEvents) then
+			return
+		end
+	end
 	local baseSlots = { "Weapon 1", "Weapon 2", "Weapon 1 Swap", "Weapon 2 Swap", "Helmet", "Body Armour", "Gloves",
 		"Boots", "Amulet", "Ring 1", "Ring 2", "Belt", "Flask 1", "Flask 2", "Flask 3", "Flask 4", "Flask 5" }
 	if self:ShouldShowRing3(compareEntry) then
@@ -4079,20 +4086,37 @@ function CompareTabClass:DrawSkills(vp, compareEntry)
 		return entry
 	end
 
+	-- zhTW: 中文介面時，同一顆基底寶石的變異版本（例如 Storm Burst / Storm Burst of Repulsion）算同一顆：
+	-- 以 gemData.gameId（變異寶石和基底相同）比對，名稱翻成中文，變異不同時標示「我的 → 對方的」
+	local zhTWGems = ZhTWLocale and ZhTWLocale.enabled
+	local function zhTWName(name)
+		if zhTWGems and name then
+			return ZhTWLocale.tr(name) or name
+		end
+		return name
+	end
+	local function getGemKey(gem)
+		local name = gem.grantedEffect and gem.grantedEffect.name or gem.nameSpec
+		if zhTWGems and name and gem.gemData and gem.gemData.gameId then
+			return "zhTW:" .. gem.gemData.gameId .. (gem.gemData.grantedEffect and gem.gemData.grantedEffect.support and ":S" or "")
+		end
+		return name
+	end
+
 	-- Helper: get the set of gem names in a socket group
 	local function getGemNameSet(group, skillsTab)
 		local set = {}
 		for _, gem in ipairs(group.gemList or {}) do
 			local name = gem.grantedEffect and gem.grantedEffect.name or gem.nameSpec
 			if name then
-				set[name] = true
+				set[getGemKey(gem)] = name -- zhTW: key may be the base gem; value keeps the display name
 			end
 		end
 		local imbuedGem = getImbuedGem(group, skillsTab)
 		if imbuedGem then
 			local name = imbuedGem.grantedEffect and imbuedGem.grantedEffect.name or imbuedGem.nameSpec
 			if name then
-				set[name] = true
+				set[name] = name -- zhTW
 			end
 		end
 		return set
@@ -4190,15 +4214,18 @@ function CompareTabClass:DrawSkills(vp, compareEntry)
 	-- Helper: build the exact string drawGemList will render (used for both drawing and width measurement)
 	local function buildGemDisplayString(entry)
 		if entry.status == "missing" then
-			return colorCodes.NEGATIVE .. "- " .. entry.name .. "^7"
+			return colorCodes.NEGATIVE .. "- " .. zhTWName(entry.name) .. "^7" -- zhTW
 		elseif entry.gem then
-			local gemName = entry.gem.grantedEffect and entry.gem.grantedEffect.name or entry.gem.nameSpec or "?"
+			local gemName = zhTWName(entry.gem.grantedEffect and entry.gem.grantedEffect.name or entry.gem.nameSpec or "?") -- zhTW
 			local gemColor = entry.gem.color or colorCodes.GEM
 			local levelStr = entry.gem.level and (" " .. entry.gem.level) or ""
 			local qualStr = entry.gem.quality and ("/" .. entry.gem.quality .. "") or ""
 			local prefix = ""
 			if entry.status == "additional" then
 				prefix = colorCodes.POSITIVE .. "+ "
+			end
+			if entry.variantFrom then -- zhTW: 同一顆基底、不同變異：我的 → 對方的
+				prefix = prefix .. colorCodes.WARNING .. zhTWName(entry.variantFrom) .. " → "
 			end
 			return prefix .. gemColor .. gemName .. "^7" .. levelStr .. qualStr
 		end
@@ -4233,9 +4260,10 @@ function CompareTabClass:DrawSkills(vp, compareEntry)
 		local cGems = getGemsWithImbued(cGroup, cSkillsTab)
 
 		-- Build name->gem lookup for compare side (common gems only)
+		-- zhTW: keyed by getGemKey (the base gem in the Chinese UI, otherwise the name)
 		local cGemByName = {}
 		for _, gem in ipairs(cGems) do
-			local name = getGemName(gem)
+			local name = getGemKey(gem)
 			if name and pSet[name] and not cGemByName[name] then
 				cGemByName[name] = gem
 			end
@@ -4244,25 +4272,28 @@ function CompareTabClass:DrawSkills(vp, compareEntry)
 		-- Common gems in primary build's order
 		local emittedCommon = {}
 		for _, gem in ipairs(pGems) do
+			local key = getGemKey(gem) -- zhTW
 			local name = getGemName(gem)
-			if name and cSet[name] and not emittedCommon[name] then
-				emittedCommon[name] = true
+			if key and cSet[key] and not emittedCommon[key] then
+				emittedCommon[key] = true
+				local cGem = cGemByName[key]
+				local cName = cGem and getGemName(cGem) or name
 				t_insert(pDisplay, { gem = gem, name = name, status = "common" })
-				t_insert(cDisplay, { gem = cGemByName[name], name = name, status = "common" })
+				t_insert(cDisplay, { gem = cGem, name = cName, status = "common", variantFrom = cName ~= name and name or nil })
 			end
 		end
 
 		-- Additional gems (unique to each side), preserving original order
 		for _, gem in ipairs(pGems) do
-			local name = getGemName(gem)
-			if name and not cSet[name] then
-				t_insert(pDisplay, { gem = gem, name = name, status = "additional" })
+			local key = getGemKey(gem) -- zhTW
+			if key and not cSet[key] then
+				t_insert(pDisplay, { gem = gem, name = getGemName(gem), status = "additional" })
 			end
 		end
 		for _, gem in ipairs(cGems) do
-			local name = getGemName(gem)
-			if name and not pSet[name] then
-				t_insert(cDisplay, { gem = gem, name = name, status = "additional" })
+			local key = getGemKey(gem) -- zhTW
+			if key and not pSet[key] then
+				t_insert(cDisplay, { gem = gem, name = getGemName(gem), status = "additional" })
 			end
 		end
 
@@ -4270,11 +4301,11 @@ function CompareTabClass:DrawSkills(vp, compareEntry)
 		if pGroup and cGroup then
 			local pMissing = {}
 			local cMissing = {}
-			for name in pairs(cSet) do
-				if not pSet[name] then t_insert(pMissing, name) end
+			for key, name in pairs(cSet) do -- zhTW: value is the display name
+				if not pSet[key] then t_insert(pMissing, type(name) == "string" and name or key) end
 			end
-			for name in pairs(pSet) do
-				if not cSet[name] then t_insert(cMissing, name) end
+			for key, name in pairs(pSet) do
+				if not cSet[key] then t_insert(cMissing, type(name) == "string" and name or key) end
 			end
 			table.sort(pMissing)
 			table.sort(cMissing)

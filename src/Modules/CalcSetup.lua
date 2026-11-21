@@ -826,7 +826,12 @@ function calcs.initEnv(build, mode, override, specEnv)
 				goto continue
 			end
 			local item
-			if slotName == override.repSlotName then
+			if override.repItems and override.repItems[slotName] ~= nil then -- zhTW: 比較頁「勾選試穿」一次換多件（false = 清空該部位）
+				item = override.repItems[slotName] or nil
+				if not item then
+					goto continue
+				end
+			elseif slotName == override.repSlotName then
 				item = override.repItem
 			elseif override.repItem and override.repSlotName:match("^Weapon 1") and slotName:match("^Weapon 2") and
 			(override.repItem.base.type == "Staff" or override.repItem.base.type == "Two Handed Sword" or override.repItem.base.type == "Two Handed Axe" or override.repItem.base.type == "Two Handed Mace"
