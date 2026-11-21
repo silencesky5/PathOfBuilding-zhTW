@@ -6,6 +6,7 @@
 local ipairs = ipairs
 local t_insert = table.insert
 local t_remove = table.remove
+local ZhTWSkillSort = LoadModule("Modules/ZhTWSkillSort") -- zhTW: socket groups sorted by equipment slot
 local slot_map = {
 	["Weapon 1"] 		= { icon = NewImageHandle(), path = "Assets/icon_weapon.png" },
 	["Weapon 2"] 		= { icon = NewImageHandle(), path = "Assets/icon_weapon_2.png" },
@@ -111,6 +112,9 @@ function SkillListClass:GetRowValue(column, index, socketGroup)
 			if colorStr:len() > 0 then
 				label = label .. " ^7" .. colorStr
 			end
+		end
+		if ZhTWSkillSort.enabled() then -- zhTW: 部位名稱，例如「武器1：精準 G」
+			label = ZhTWSkillSort.rowLabel(socketGroup, label)
 		end
 
 		return label
@@ -235,6 +239,9 @@ end
 
 
 function SkillListClass:Draw(viewPort)
+	if ZhTWSkillSort.enabled() and not self.selDragging then -- zhTW: keep the list in equipment slot order
+		ZhTWSkillSort.sort(self.skillsTab)
+	end
 	self.ListControl.Draw(self, viewPort)
 end
 
