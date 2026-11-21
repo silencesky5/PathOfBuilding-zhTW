@@ -1372,6 +1372,30 @@ function PassiveTreeViewClass:DoesNodeMatchSearchParams(node)
 		return false
 	end
 
+	-- zhTW: words with Chinese text match the Chinese node name or description (ZhTWLocale.searchMatch)
+	if ZhTWLocale and ZhTWLocale.searchMatch then
+		for i = #needMatches, 1, -1 do
+			local need = needMatches[i]
+			if need:find("[\128-\255]") then
+				local found = ZhTWLocale.searchMatch(node.dn, need)
+				if not found then
+					for _, line in ipairs(node.sd or { }) do
+						if ZhTWLocale.searchMatch(line, need) then
+							found = true
+							break
+						end
+					end
+				end
+				if found then
+					table.remove(needMatches, i)
+				end
+			end
+		end
+		if #needMatches == 0 then
+			return true
+		end
+	end
+
 	-- Check node name
 	err, needMatches = PCall(search, node.dn:lower(), needMatches)
 	if err then return false end

@@ -30,13 +30,14 @@ local function getZhTW() -- zhTW
 	ZhTW = ZhTW or LoadModule("Modules/ZhTWConverter")
 	return ZhTW
 end
--- zhTW: prints the conversion report and returns a status suffix
+-- zhTW: prints the conversion report and returns a status suffix, the count and the failed lines
 local function zhTWReportStatus(label) -- zhTW
 	local failed = getZhTW().printReport(label)
+	local lines = copyTable(getZhTW().getFailures())
 	if failed > 0 then
-		return colorCodes.WARNING .. " 有 " .. failed .. " 行詞綴無法轉換（詳細內容請按 Ctrl+~ 開主控台）", failed
+		return colorCodes.WARNING .. " 有 " .. failed .. " 行詞綴無法轉換（已列在匯入結果視窗）", failed, lines
 	end
-	return "", 0
+	return "", 0, lines
 end
 
 local function addOAuthControls(self)
@@ -871,11 +872,11 @@ function ImportTabClass:DownloadPassiveTree(realm)
 			local deleteJewels = self.controls.siteCharImportTreeClearJewels.state
 			local status = self:ImportPassiveTreeAndJewels(charData, deleteJewels)
 			if realm.zhTW then -- zhTW
-				local suffix, failed = zhTWReportStatus("Passive tree")
+				local suffix, failed, lines = zhTWReportStatus("Passive tree")
 				self.charImportStatus = status .. suffix
 				if self.zhTWImportAll then -- zhTW: one-click import goes on with items and skills
 					self.zhTWImportAll = nil
-					self.zhTWTreeResult = { status = status, failed = failed }
+					self.zhTWTreeResult = { status = status, failed = failed, lines = lines }
 					self:DownloadItems(realm)
 				end
 			end
@@ -919,18 +920,26 @@ function ImportTabClass:DownloadItems(realm)
 			local ignoreWeaponSwap = self.controls.siteCharImportItemsIgnoreWeaponSwap.state
 			local _, status = self:ImportItemsAndSkills(charData, clearItems, clearSkills, ignoreWeaponSwap)
 			if realm.zhTW then -- zhTW
-				local suffix, failed = zhTWReportStatus("Items and skills")
+				local suffix, failed, lines = zhTWReportStatus("Items and skills")
 				self.charImportStatus = status .. suffix
 				local tree = self.zhTWTreeResult
 				self.zhTWTreeResult = nil
+				local allLines = lines
 				if tree and status:find("successfully imported") and tree.status:find("successfully imported") then
 					-- one-click import: one status line for both parts, counting all unconverted lines
 					local total = failed + tree.failed
 					self.charImportStatus = colorCodes.POSITIVE .. "已匯入天賦、珠寶、物品與技能。"
-						.. (total > 0 and (colorCodes.WARNING .. " 有 " .. total .. " 行詞綴無法轉換（詳細內容請按 Ctrl+~ 開主控台）") or "")
+						.. (total > 0 and (colorCodes.WARNING .. " 有 " .. total .. " 行詞綴無法轉換（已列在匯入結果視窗）") or "")
+					allLines = copyTable(tree.lines or { })
+					for _, f in ipairs(lines) do
+						t_insert(allLines, f)
+					end
 				end
 				if status:find("successfully imported") then -- zhTW: show the imported gear right away
 					self.build.viewMode = "ITEMS"
+					-- zhTW: unconverted lines and the bandit / pantheon reminder (Modules/ZhTWImportReport.lua)
+					ZhTWImportReport = ZhTWImportReport or LoadModule("Modules/ZhTWImportReport")
+					ZhTWImportReport.show(self.build, allLines)
 				end
 			end
 		end)

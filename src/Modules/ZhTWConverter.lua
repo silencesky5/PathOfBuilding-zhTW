@@ -1493,6 +1493,11 @@ function ZhTW.printReport(label)
 	return #r.failures
 end
 
+-- The lines the last conversion could not convert ({ item, field, line }); Modules/ZhTWImportReport.lua
+function ZhTW.getFailures()
+	return report.failures
+end
+
 -- Shared with Modules/ZhTWMods.lua (English -> Chinese display)
 ZhTW.internal = {
 	compileTemplate = compileTemplate,

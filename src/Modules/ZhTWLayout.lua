@@ -1117,7 +1117,7 @@ end
 ---------------------------------------------------------------------------
 -- Side bar buttons: only Import/Export, Build and Configuration; the build
 -- sheets (Items / Skills / Tree / Calcs) become tabs above the main view.
--- Notes, Party and Compare are hidden but their tabs and saved data stay.
+-- Party is hidden but its tab and saved data stay. Notes is a sheet tab (11/21).
 ---------------------------------------------------------------------------
 
 local SHEET_STRIP = 30
@@ -1127,9 +1127,10 @@ local sheetTabs = {
 	{ label = "天賦", mode = "TREE" },
 	{ label = "計算", mode = "CALCS" },
 	{ label = "製作", mode = "CRAFT" },
+	{ label = "筆記", mode = "NOTES" }, -- zhTW 11/21: notes back as a sheet tab (guides keep build notes there)
 }
-local isSheet = { ITEMS = true, SKILLS = true, TREE = true, CALCS = true, CRAFT = true }
-local hiddenModes = { NOTES = true, PARTY = true }
+local isSheet = { ITEMS = true, SKILLS = true, TREE = true, CALCS = true, CRAFT = true, NOTES = true }
+local hiddenModes = { PARTY = true }
 
 local function hideWhenEnabled(control)
 	if not control then
