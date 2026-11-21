@@ -872,8 +872,16 @@ function TreeTabClass:ModifyNodePopup(selectedNode)
 				if node.reminderText then
 					t_insert(descriptionsAndReminders, node.reminderText[1])
 				end
+				local label = node.dn .. "                                                " .. table.concat(node.sd, ",")
+				if ZhTWLocale and ZhTWLocale.enabled then -- zhTW: tattoo / runegraft names and stats in Chinese
+					local zhSd = { }
+					for _, line in ipairs(node.sd) do
+						t_insert(zhSd, ZhTWLocale.translate(line))
+					end
+					label = ZhTWLocale.translate(node.dn) .. "                                                " .. table.concat(zhSd, "、")
+				end
 				t_insert(modGroups, {
-				label = node.dn .. "                                                " .. table.concat(node.sd, ","),
+				label = label,
 				descriptions = descriptionsAndReminders,
 				id = id,
 				})

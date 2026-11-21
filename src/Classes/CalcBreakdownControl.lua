@@ -13,6 +13,14 @@ local m_cos = math.cos
 local m_pi = math.pi
 local band = bit.band
 
+-- zhTW: Chinese breakdown tables (Modules/ZhTWCalcs.lua); nil in the English interface
+local function zhCalcs()
+	if ZhTWLocale and ZhTWLocale.enabled then
+		ZhTWCalcs = ZhTWCalcs or LoadModule("Modules/ZhTWCalcs")
+		return ZhTWCalcs
+	end
+end
+
 ---@class CalcBreakdownControl: Control, ControlHost
 local CalcBreakdownClass = newClass("CalcBreakdownControl", "Control", "ControlHost")
 
@@ -110,14 +118,17 @@ function CalcBreakdownClass:SetBreakdownData(displayData, pinned, forceActor)
 		elseif section.type == "TABLE" then
 			-- This also calculates the width of each column in the table
 			section.width = 4
+			local zh = zhCalcs() -- zhTW: Chinese column titles, larger table text
+			local textSize, rowHeight = zh and zh.TABLE_TEXT or 12, zh and zh.TABLE_ROW or 14
 			for _, col in pairs(section.colList) do
+				local colLabel = zh and zh.column(col.label) or col.label
 				for _, row in pairs(section.rowList) do
 					if row[col.key] then
 						local _, num = string.gsub(row[col.key], "%d%d%d%d", "") -- count how many commas will be added
 						if main.showThousandsSeparators and num > 0 then
-							col.width = m_max(col.width or 0, DrawStringWidth(16, "VAR", col.label) + 6, DrawStringWidth(12, "VAR", row[col.key]) + 6 + (4 * num))
+							col.width = m_max(col.width or 0, DrawStringWidth(16, "VAR", colLabel) + 6, DrawStringWidth(textSize, "VAR", row[col.key]) + 6 + (4 * num))
 						else 
-							col.width = m_max(col.width or 0, DrawStringWidth(16, "VAR", col.label) + 6, DrawStringWidth(12, "VAR", row[col.key]) + 6)
+							col.width = m_max(col.width or 0, DrawStringWidth(16, "VAR", colLabel) + 6, DrawStringWidth(textSize, "VAR", row[col.key]) + 6)
 						end
 					end
 				end
@@ -125,15 +136,15 @@ function CalcBreakdownClass:SetBreakdownData(displayData, pinned, forceActor)
 					section.width = section.width + col.width
 				end
 			end
-			section.height = #section.rowList * 14 + 20
+			section.height = #section.rowList * rowHeight + 20
 			if section.label then
 				self.contentWidth = m_max(self.contentWidth, 6 + DrawStringWidth(16, "VAR", section.label..":"))
 				section.height = section.height + 16
 			end
 			if section.footer then
-				self.contentWidth = m_max(self.contentWidth, 6 + DrawStringWidth(12, "VAR", section.footer))
+				self.contentWidth = m_max(self.contentWidth, 6 + DrawStringWidth(textSize, "VAR", section.footer))
 				local _, lines = string.gsub(section.footer, "\n", "\n") -- counts newlines in the string
-				section.height = section.height + 12 * (lines + 1)
+				section.height = section.height + textSize * (lines + 1)
 			end
 		end
 		self.contentWidth = m_max(self.contentWidth, section.width)
@@ -381,7 +392,8 @@ function CalcBreakdownClass:AddModSection(sectionData, modList)
 							total = round((total - 1) * 100)
 						end
 						if total and total ~= 0 then
-							t_insert(lines, self:FormatModValue(total, modType) .. " " .. modName:gsub("(%l)(%u)","%1 %2"))
+							local zh = zhCalcs() -- zhTW: Chinese stat name
+							t_insert(lines, self:FormatModValue(total, modType) .. " " .. (zh and zh.modName(modName) or modName:gsub("(%l)(%u)","%1 %2")))
 						end
 					end
 				else
@@ -406,16 +418,18 @@ function CalcBreakdownClass:AddModSection(sectionData, modList)
 			section.colList[1].right = true
 			row.displayValue = formatRound(row.value, 2)
 		end
+		local zh = zhCalcs() -- zhTW: Chinese stat names, sources, skill types and notes
 		if modList or type(sectionData.modName) == "table" then
 			-- Multiple stat names specified, add this modifier's stat to the table
-			row.name = self:FormatModName(row.mod.name)
+			row.name = zh and zh.modName(row.mod.name) or self:FormatModName(row.mod.name)
 		end
 		local sourceType = row.mod.source and row.mod.source:match("[^:]+") or ""
-		row.source = sourceType
+		row.source = zh and zh.source(sourceType) or sourceType
 		if not modList and not sectionData.modSource then
 			-- No modifier source specified, add the source type to the table
 			row.sourceTooltip = function(tooltip)
-				tooltip:AddLine(16, "Total from "..sourceType..":")
+				local zhT = zhCalcs()
+				tooltip:AddLine(16, zhT and zhT.totalFrom(sourceType) or "Total from "..sourceType..":")
 				for _, line in ipairs(sourceTotals[sourceType]) do
 					tooltip:AddLine(14, line)
 				end
@@ -473,7 +487,7 @@ function CalcBreakdownClass:AddModSection(sectionData, modList)
 				end
 			end
 			table.sort(flagNames)
-			row.flags = table.concat(flagNames, ", ")
+			row.flags = zh and zh.flags(flagNames) or table.concat(flagNames, ", ")
 		end
 		row.tags = nil
 		if row.mod[1] then
@@ -530,6 +544,9 @@ function CalcBreakdownClass:AddModSection(sectionData, modList)
 					row.tags = (row.tags and row.tags .. ", " or "") .. desc
 				end
 			end
+			if zh then
+				row.tags = zh.tags(self, row.mod, build)
+			end
 		end
 	end
 end
@@ -547,6 +564,10 @@ function CalcBreakdownClass:FormatModBase(mod, base)
 end
 
 function CalcBreakdownClass:FormatModValue(value, modType)
+	local zh = zhCalcs()
+	if zh then -- zhTW: 「+12 基礎」「增加 60%」「總增 10%」
+		return zh.formatModValue(value, modType)
+	end
 	if modType == "BASE" then
 		return string.format("%+g base", value)
 	elseif modType == "INC" then
@@ -584,6 +605,8 @@ function CalcBreakdownClass:DrawBreakdownTable(viewPort, x, y, section)
 		y = y + 16
 	end
 	local colX = x + 4
+	local zh = zhCalcs() -- zhTW: Chinese column titles, larger table text
+	local textSize, rowHeight = zh and zh.TABLE_TEXT or 12, zh and zh.TABLE_ROW or 14
 	for index, col in ipairs(section.colList) do
 		if col.width then
 			-- Column is present, draw the separator and label
@@ -591,10 +614,10 @@ function CalcBreakdownClass:DrawBreakdownTable(viewPort, x, y, section)
 			if index > 1 then
 				-- Skip the separator for the first column
 				SetDrawColor(0.5, 0.5, 0.5)
-				DrawImage(nil, colX - 2, y, 1, section.height - (section.label and 16 or 0) - (section.footer and 12 or 0))
+				DrawImage(nil, colX - 2, y, 1, section.height - (section.label and 16 or 0) - (section.footer and textSize or 0))
 			end
 			SetDrawColor(1, 1, 1)
-			DrawString(colX, y + 2, "LEFT", 16, "VAR", col.label)
+			DrawString(colX, y + 2, "LEFT", 16, "VAR", zh and zh.column(col.label) or col.label)
 			colX = colX + col.width
 		end
 	end
@@ -610,24 +633,24 @@ function CalcBreakdownClass:DrawBreakdownTable(viewPort, x, y, section)
 				local _, notes = string.gsub(row[col.key], " to ", " ") -- counts " to " in the string
 				local _, paren = string.gsub(row[col.key], "%b()", " ") -- counts parenthesis in the string
 				if (alpha == 0 or notes > 0 or paren > 0) and col.right then
-					DrawString(col.x + col.width - 4, rowY + 1, "RIGHT_X", 12, "VAR", "^7"..formatNumSep(tostring(row[col.key])))
+					DrawString(col.x + col.width - 4, rowY + 1, "RIGHT_X", textSize, "VAR", "^7"..formatNumSep(tostring(row[col.key])))
 				elseif (alpha == 0 or notes > 0 or paren > 0) then
-					DrawString(col.x, rowY + 1, "LEFT", 12, "VAR", "^7"..formatNumSep(tostring(row[col.key])))
+					DrawString(col.x, rowY + 1, "LEFT", textSize, "VAR", "^7"..formatNumSep(tostring(row[col.key])))
 				else
-					DrawString(col.x, rowY + 1, "LEFT", 12, "VAR", "^7"..tostring(row[col.key]))
+					DrawString(col.x, rowY + 1, "LEFT", textSize, "VAR", "^7"..tostring(row[col.key]))
 				end
 				local ttFunc = row[col.key.."Tooltip"]
 				local ttNode = row[col.key.."Node"]
-				if (ttFunc or ttNode) and cursorY >= viewPort.y + 2 and cursorY < viewPort.y + viewPort.height - 2 and cursorX >= col.x and cursorY >= rowY and cursorX < col.x + col.width and cursorY < rowY + 14 then
+				if (ttFunc or ttNode) and cursorY >= viewPort.y + 2 and cursorY < viewPort.y + viewPort.height - 2 and cursorX >= col.x and cursorY >= rowY and cursorX < col.x + col.width and cursorY < rowY + rowHeight then
 					-- Mouse is over the cell, draw highlighting lines and show the tooltip/node location
 					SetDrawLayer(nil, 15)
 					SetDrawColor(0, 1, 0)
 					DrawImage(nil, col.x - 2, rowY - 1, col.width, 1)
-					DrawImage(nil, col.x - 2, rowY + 13, col.width, 1)
+					DrawImage(nil, col.x - 2, rowY + rowHeight - 1, col.width, 1)
 					if ttFunc then
 						self.tooltip:Clear()
 						ttFunc(self.tooltip)
-						self.tooltip:Draw(col.x, rowY, col.width, 12, viewPort)
+						self.tooltip:Draw(col.x, rowY, col.width, textSize, viewPort)
 					elseif ttNode and ttNode.x and ttNode.y then -- The source "node" from cluster jewels don't know their location because it's the abstract node in tree.lua rather than the generated node from the cluster jewel.
 						local viewerX = col.x + col.width + 5
 						if viewPort.x + viewPort.width < viewerX + 304 then
@@ -652,11 +675,11 @@ function CalcBreakdownClass:DrawBreakdownTable(viewPort, x, y, section)
 				end
 			end
 		end
-		rowY = rowY + 14
+		rowY = rowY + rowHeight
 	end
 	if section.footer then
 		-- Draw table footer if able
-		DrawString(x + 2, rowY, "LEFT", 12, "VAR", "^7"..section.footer)
+		DrawString(x + 2, rowY, "LEFT", textSize, "VAR", "^7"..section.footer)
 	end
 end
 

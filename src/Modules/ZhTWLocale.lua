@@ -33,6 +33,8 @@ local searchSynonyms = { } -- Data/zhTW/UI.lua searchSynonyms: { { from, to } } 
 local display -- Data/zhTW/Display.lua: descriptions, skill names, tags, flavour, client strings
 local braceFormats -- compiled ClientStrings templates like "+{0} Levels from Item"
 local modTranslator -- function(line) -> Chinese or nil
+local notes = { } -- zhTW: calcs breakdown notes "(resistance)" -> "抗性" (Data/zhTW/UI.lua calcNotes, and harvested from formats)
+local notePatterns = { } -- zhTW: Data/zhTW/UI.lua calcNotePatterns
 -- Measuring text (DrawStringWidth) skips the slow modifier matching: tooltips measure many
 -- partial lines while word-wrapping. Full lines are translated when drawn and then cached.
 local quick = false
@@ -125,6 +127,21 @@ local function load()
 			t_insert(formats, f)
 		end
 	end
+	-- zhTW: notes of calcs breakdown lines, e.g. "%.2f ^8(resistance)" = "%.2f ^8(抗性)"
+	notes = { }
+	for en, zh in pairs(data.formats or { }) do
+		local plainEn = en:gsub("%%[%-%+#0]*%d*%.?%d*[dsfgx%%]", "0")
+		local plainZh = zh:gsub("%%[%-%+#0]*%d*%.?%d*[dsfgx%%]", "0")
+		local a = s_match(plainEn, "^[^%a]-%(([%a][^()]*)%)[^()]*$")
+		local b = s_match(plainZh, "^[^%(]-%(([^()]*)%)[^()]*$")
+		if a and b and not s_find(a, "%%") and not s_find(b, "%%") then
+			notes[a] = notes[a] or b
+		end
+	end
+	for en, zh in pairs(data.calcNotes or { }) do
+		notes[en] = zh
+	end
+	notePatterns = data.calcNotePatterns or { }
 	table.sort(formats, function(a, b) return #a.anchor > #b.anchor end)
 	names = { }
 	-- Reverse the import tables (Chinese -> English) for display (English -> Chinese)
@@ -333,9 +350,31 @@ local function translateCore(core)
 	-- Surrounding spaces
 	local lead, mid, trail = s_match(core, "^(%s*)(.-)(%s*)$")
 	if mid ~= core and mid ~= "" then
-		v = lookup(mid)
+		-- zhTW: indented calcs breakdown lines ("\t1,061 Life (3 remaining)") get every rule below too
+		v = translateCore(mid)
 		if v then
 			return lead .. v .. trail
+		end
+	end
+	-- Calcs breakdown lines: numbers, then a note in parentheses ("x 0.88 ^8(fire damage reduction)")
+	local numPart, noteEsc, note, after = s_match(core, "^([x=%*/%+%-%s%d%.,%%%[%]()]*)(%^?[x%d]?%x*)%(([^()]-)%)(.*)$")
+	if numPart and s_find(numPart, "%d") and not s_find(note, "^[%d%.,%s%%%+%-x]*$") then
+		local zhNote = lookup(note) or notes[note] or notes[note:lower()]
+		if not zhNote then
+			for _, p in ipairs(notePatterns) do
+				local caps = { s_match(note, p[1]) }
+				if caps[1] ~= nil then
+					zhNote = (p[2]:gsub("%%(t?)(%d)", function(t, n)
+						local c = caps[tonumber(n)] or ""
+						return t == "t" and (translateLine(c) or translateLine((c:gsub("^%l", string.upper))) or c) or c
+					end))
+					break
+				end
+			end
+		end
+		if zhNote then
+			local rest = after ~= "" and (translateLine(after) or after) or ""
+			return numPart .. (numPart:find("%s$") and "" or " ") .. noteEsc .. "(" .. zhNote .. ")" .. rest
 		end
 	end
 	-- Pattern rules (e.g. "Socket #3:")
