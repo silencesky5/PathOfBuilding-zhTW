@@ -9,6 +9,29 @@ local s_format = string.format
 
 local M = {}
 
+-- zhTW: 中文介面時，比較頁「計算」子頁的來源提示框用中文（數值、來源類型、來源名稱、詞綴名稱、分組標題）
+local function zhTW()
+	if ZhTWLocale and ZhTWLocale.enabled then
+		ZhTWCalcs = ZhTWCalcs or LoadModule("Modules/ZhTWCalcs")
+		return true
+	end
+	return false
+end
+local function zhTWName(text)
+	if type(text) == "string" and text ~= "" and ZhTWLocale and ZhTWLocale.enabled then
+		-- 物品名稱前面有稀有度顏色碼
+		local code, rest = text:match("^(%^x%x%x%x%x%x%x)(.*)$")
+		if not code then
+			code, rest = text:match("^(%^%d)(.*)$")
+		end
+		if code then
+			return code .. (ZhTWLocale.tr(rest) or rest)
+		end
+		return ZhTWLocale.tr(text) or text
+	end
+	return text
+end
+
 -- Format a modifier value with its type for display
 function M.FormatCalcModValue(value, modType)
 	if modType == "BASE" then
@@ -135,6 +158,16 @@ function M.FormatModRow(row, sectionData, build)
 	if type(sectionData.modName) == "table" then
 		modName = "  " .. M.FormatCalcModName(row.mod.name)
 	end
+	if zhTW() then -- zhTW
+		if not sectionData.modType then
+			displayValue = ZhTWCalcs.formatModValue(row.value, row.mod.type)
+		end
+		sourceType = ZhTWCalcs.source(sourceType)
+		sourceName = zhTWName(sourceName)
+		if type(sectionData.modName) == "table" then
+			modName = "  " .. ZhTWCalcs.modName(row.mod.name)
+		end
+	end
 
 	return displayValue, sourceType, sourceName, modName
 end
@@ -186,6 +219,10 @@ function M.DrawCalcsTooltip(tooltip, primaryBuild, primaryLabel, colData, rowLab
 		end
 
 		local compareLabel = compareEntry.label or "Compare Build"
+		local zh = zhTW() -- zhTW
+		if zh then
+			compareLabel = zhTWName(compareLabel)
+		end
 
 		-- Tooltip header
 		tooltip:AddLine(16, "^7" .. (rowLabel or ""))
@@ -253,7 +290,10 @@ function M.DrawCalcsTooltip(tooltip, primaryBuild, primaryLabel, colData, rowLab
 
 					-- Sub-section header (e.g., "Sources", "Increased Life Regeneration Rate")
 					local sectionLabel = sectionData.label or "Player modifiers"
-					tooltip:AddLine(14, "^7" .. sectionLabel .. ":")
+					if zh then -- zhTW
+						sectionLabel = sectionData.label and zhTWName(sectionData.label) or "玩家詞綴"
+					end
+					tooltip:AddLine(14, "^7" .. sectionLabel .. (zh and "：" or ":"))
 
 					-- Common modifiers
 					if #common > 0 then
@@ -264,7 +304,7 @@ function M.DrawCalcsTooltip(tooltip, primaryBuild, primaryLabel, colData, rowLab
 							end
 							return false
 						end)
-						tooltip:AddLine(12, "^x808080  Common:")
+						tooltip:AddLine(12, zh and "^x808080  兩邊都有：" or "^x808080  Common:") -- zhTW
 						for _, pair in ipairs(common) do
 							local pVal, sourceType, sourceName, modName = M.FormatModRow(pair[1], sectionData, primaryBuild)
 							local cVal = M.FormatModRow(pair[2], sectionData, compareEntry)
@@ -287,7 +327,7 @@ function M.DrawCalcsTooltip(tooltip, primaryBuild, primaryLabel, colData, rowLab
 							end
 							return false
 						end)
-						tooltip:AddLine(12, colorCodes.POSITIVE .. "  " .. primaryLabel .. " only:")
+						tooltip:AddLine(12, colorCodes.POSITIVE .. "  " .. (zh and ("只有" .. primaryLabel .. "：") or (primaryLabel .. " only:"))) -- zhTW
 						for _, row in ipairs(pOnly) do
 							local displayValue, sourceType, sourceName, modName = M.FormatModRow(row, sectionData, primaryBuild)
 							local line = s_format("    ^7%-10s ^7%-6s ^7%s%s", displayValue, sourceType, sourceName, modName)
@@ -303,7 +343,7 @@ function M.DrawCalcsTooltip(tooltip, primaryBuild, primaryLabel, colData, rowLab
 							end
 							return false
 						end)
-						tooltip:AddLine(12, colorCodes.WARNING .. "  " .. compareLabel .. " only:")
+						tooltip:AddLine(12, colorCodes.WARNING .. "  " .. (zh and ("只有" .. compareLabel .. "：") or (compareLabel .. " only:"))) -- zhTW
 						for _, row in ipairs(cOnly) do
 							local displayValue, sourceType, sourceName, modName = M.FormatModRow(row, sectionData, compareEntry)
 							local line = s_format("    ^7%-10s ^7%-6s ^7%s%s", displayValue, sourceType, sourceName, modName)
@@ -399,7 +439,17 @@ function M.DrawSkillBreakdownPanel(build, breakdownKey, label, cellX, cellY, cel
 		local sourceType, sourceName = resolveModSource(mod, build)
 		row.source = sourceType
 		row.sourceName = sourceName
+		if zhTW() then -- zhTW
+			row.displayValue = ZhTWCalcs.formatModValue(entry.value, mod.type)
+			row.name = ZhTWCalcs.modName(mod.name or "")
+			row.source = ZhTWCalcs.source(sourceType)
+			row.sourceName = zhTWName(sourceName)
+		end
 		t_insert(rows, row)
+	end
+
+	if zhTW() then -- zhTW
+		colDefs[1].label, colDefs[2].label, colDefs[3].label, colDefs[4].label = "數值", "屬性", "來源", "來源名稱"
 	end
 
 	-- Measure column widths

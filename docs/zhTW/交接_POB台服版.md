@@ -168,4 +168,8 @@ Path{space}of{space}Building.exe <src\zhTWCoverage.lua 的完整路徑>   → sr
    - 一次換多件：`Modules/CalcSetup.lua` 加 `override.repItems = { [slotName] = item / false }`（標註 `-- zhTW`）。換上雙手武器（或弓）時副手跟著清空（弓保留箭袋），規則和 POB 單件替換相同。
    - 計算分散到每個畫面（每畫面 25ms），計算中會顯示「計算中…」。
    - 「技能」子頁：中文介面時，同一顆基底寶石的變異版本（如 Storm Burst / Storm Burst of Repulsion）以 `gemData.gameId` 比對，合併成一行「風爆 → 風爆．排斥」，不再列成 + / - 兩行；寶石名稱都翻成中文。
+   - 11/22 追加：「單換 DPS」改成疊加計算（KAI 同意）：都沒勾時是單換；有勾選時，沒勾的顯示「再換」（已勾選＋這件），勾的顯示「拿掉」（拿掉這件）；勾選一變就重算。
+   - 11/22 追加：「總結」子頁的我方數值改用計算技能（`ZhTWCompareItems.summarySkill`，和裝備子頁同一個選擇），上方一列顯示我方計算技能與對方用的技能（對方一律用對方 Build 的主要技能）。
+   - 11/22 追加：裝備子頁名稱是「RARE e4446c2」「MAGIC … a61cb9e」這種（匯入資料沒有名稱）時改顯示底材中文；`void_battery_CannotTranslateMod_1` 這類內部代碼行不顯示；詞綴行一律用 `ZhTWMods.translate`（Trigger／Triggers 詞綴有中文了）；物品提示框不再被列表區裁切。
+   - 11/22 追加：「計算」子頁的來源提示框（`Classes/CompareCalcsHelpers.lua`，標註 `-- zhTW`）：數值、來源類型、來源名稱、詞綴名稱、「兩邊都有／只有對方」標題都中文。技能部分名稱（如 1 Orb Tick）還是英文，POB 自己的名稱，台服客戶端沒有對照。
    - 測試：`Path{space}of{space}Building.exe <src\zhTWCompareItemsTest.lua 完整路徑>` → `src\zhTWCompareItemsTest.log`（`ZHTW_COMPARE_PRIMARY`、`ZHTW_COMPARE_OTHER` 可指定兩個 Build）。檢查單換與 POB 原本單件替換相同、全勾與真的換上後重算相同、計算技能切換、主要技能不被改、變異寶石合併。

@@ -3164,6 +3164,15 @@ function CompareTabClass:DrawSummary(vp, compareEntry)
 	local compareCalcs = compareEntry.calcsTab
 	local primaryEnvMain = primaryCalcs and primaryCalcs.mainEnv
 	local compareEnvMain = compareCalcs and compareCalcs.mainEnv
+	-- zhTW: 中文介面時，我方改用「計算技能」（預設傷害最高的那招，和裝備子頁共用；Modules/ZhTWCompareItems.lua）
+	local zhTWSkillEnv
+	if ZhTWLocale and ZhTWLocale.enabled then
+		ZhTWCompareItems = ZhTWCompareItems or LoadModule("Modules/ZhTWCompareItems")
+		vp, zhTWSkillEnv = ZhTWCompareItems.summarySkill(self, vp, compareEntry)
+		if zhTWSkillEnv then
+			primaryEnvMain = zhTWSkillEnv
+		end
+	end
 
 	-- If each selected builds skill is a minion skill, use it
 	local primaryMinionSkill = primaryEnvMain and primaryEnvMain.player and primaryEnvMain.player.mainSkill
@@ -3172,7 +3181,7 @@ function CompareTabClass:DrawSummary(vp, compareEntry)
 		and compareEnvMain.player.mainSkill.minion and compareEnvMain.minion
 	local summaryUseMinion = primaryMinionSkill or compareMinionSkill
 
-	local primaryOutput = primaryMinionSkill and primaryEnvMain.minion.output or primaryCalcs.mainOutput
+	local primaryOutput = primaryMinionSkill and primaryEnvMain.minion.output or (zhTWSkillEnv and zhTWSkillEnv.player.output) or primaryCalcs.mainOutput -- zhTW
 	local compareOutput = compareMinionSkill and compareEnvMain.minion.output or compareEntry:GetOutput()
 	if not primaryOutput or not compareOutput then
 		return

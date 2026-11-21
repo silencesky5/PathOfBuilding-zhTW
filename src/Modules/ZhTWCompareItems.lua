@@ -4,7 +4,9 @@
 -- 比較頁「裝備」檢視的中文介面版面（KAI 11/21）：勾選對方的裝備，試穿到我的 Build 上，看數值變化。
 --   * 最上方固定：計算技能選單＋三格結果（總 DPS、有效生命、火／冰／雷抗性），綠色上升、紅色下降。
 --   * 下方左右兩欄：左「我的配置」、右「對方配置」，同一個部位排在同一列。
---   * 對方每件裝備前有勾選框；勾起來的那列加橘色外框；最右邊標示「單換 DPS ±X%」（只換那一件）。
+--   * 對方每件裝備前有勾選框；勾起來的那列加橘色外框；最右邊的 DPS 變化是疊加計算（KAI 11/22）：
+--     都沒勾時是「單換」；有勾選時，沒勾的是「再換」（在已勾選的基礎上再換這件），勾的是「拿掉」（拿掉這件）。
+--   * 「總結」子頁的我方數值也改用計算技能（M.summarySkill，和裝備子頁同一個選擇）。
 --   * 右上角「全選」「全取消」。
 --   * 只換裝備：技能寶石、天賦樹、設定都用我自己的。天賦珠寶、守衛裝備不納入。
 --   * 計算技能預設為我的 Build 裡傷害最高的那招（Modules/ZhTWBestSkill，召喚物技能也算），可手動切換；
@@ -301,18 +303,67 @@ local function currentCand(st)
 	return cand
 end
 
--- 開始（或重新開始）計算：基準與每件單換，分散到每個畫面
+local function checkedSignature(st, slots)
+	local parts = { }
+	for _, slot in ipairs(slots) do
+		if st.checked[slot[1]] and st.items and st.items[slot[1]] then
+			t_insert(parts, slot[1])
+		end
+	end
+	return t_concat(parts, ",")
+end
+
+-- 疊加計算（KAI 11/22）：以目前勾選的狀態為準
+--   沒勾的那件：在已勾選的基礎上「再換這件」的結果（都沒勾時就是單換）
+--   已勾的那件：「拿掉這件」（其他勾選保持）的結果
+-- st.alt[slot] / st.altOutput[slot] 存那個結果，顯示時和 st.combined 比較
+local function deltaJob(st, build, slots)
+	local calc = st.calc
+	local checked = { }
+	for slotName, v in pairs(st.checked) do
+		if v and st.items[slotName] then
+			checked[slotName] = true
+		end
+	end
+	local rep = buildRepItems(build, st.items, checked)
+	local out = rep and calc({ repItems = rep }) or st.baseOutput
+	st.combinedOutput = out
+	st.combined = metrics(out)
+	coroutine.yield()
+	for _, slot in ipairs(slots) do
+		local slotName = slot[1]
+		if st.items[slotName] then
+			local set = { }
+			for k in pairs(checked) do
+				set[k] = true
+			end
+			set[slotName] = not checked[slotName] or nil
+			local r = buildRepItems(build, st.items, set)
+			local o = r and calc({ repItems = r }) or st.baseOutput
+			st.altOutput[slotName] = o
+			st.alt[slotName] = metrics(o)
+			coroutine.yield()
+		end
+	end
+end
+
+local function resetDelta(st)
+	st.alt = { }
+	st.altOutput = { }
+	st.combined = nil
+	st.combinedOutput = nil
+end
+
+-- 開始（或重新開始）計算：基準、勾選結果與每件的疊加結果，分散到每個畫面
 local function startJob(st, build, compareEntry, slots, sig)
 	st.sig = sig
 	st.items = compareItems(compareEntry, slots)
-	st.single = { }
-	st.singleOutput = { }
-	st.combined = nil
-	st.combinedSig = nil
+	resetDelta(st)
 	st.calc = nil
 	st.base = nil
 	st.baseOutput = nil
 	st.error = nil
+	st.deltaSig = checkedSignature(st, slots)
 	local cand = currentCand(st)
 	st.co = coroutine.create(function()
 		local calc, base = makeCalculator(build, cand)
@@ -320,16 +371,21 @@ local function startJob(st, build, compareEntry, slots, sig)
 		st.baseOutput = base
 		st.base = metrics(base)
 		coroutine.yield()
-		for _, slot in ipairs(slots) do
-			local item = st.items[slot[1]]
-			if item then
-				local rep = buildRepItems(build, st.items, { [slot[1]] = true })
-				local out = calc({ repItems = rep })
-				st.singleOutput[slot[1]] = out
-				st.single[slot[1]] = metrics(out)
-				coroutine.yield()
-			end
-		end
+		deltaJob(st, build, slots)
+	end)
+end
+
+-- 勾選改變：沿用同一個計算器，只重算勾選結果與每件的疊加結果
+local function restartDelta(st, build, slots)
+	local dsig = checkedSignature(st, slots)
+	if st.deltaSig == dsig or not st.calc then
+		return
+	end
+	st.deltaSig = dsig
+	resetDelta(st)
+	st.error = nil
+	st.co = coroutine.create(function()
+		deltaJob(st, build, slots)
 	end)
 end
 
@@ -353,39 +409,6 @@ local function runJob(st)
 	until GetTime() - start > FRAME_BUDGET
 end
 
-local function checkedSignature(st, slots)
-	local parts = { }
-	for _, slot in ipairs(slots) do
-		if st.checked[slot[1]] and st.items and st.items[slot[1]] then
-			t_insert(parts, slot[1])
-		end
-	end
-	return t_concat(parts, ",")
-end
-
-local function updateCombined(st, build, slots)
-	if not st.calc or not st.base then
-		return
-	end
-	local csig = checkedSignature(st, slots)
-	if st.combinedSig == csig then
-		return
-	end
-	st.combinedSig = csig
-	local rep = buildRepItems(build, st.items, st.checked)
-	if not rep then
-		st.combined = st.base
-		return
-	end
-	local ok, out = pcall(st.calc, { repItems = rep })
-	if ok then
-		st.combined = metrics(out)
-	else
-		st.error = tostring(out)
-		st.combined = nil
-	end
-end
-
 -- ===== 控制項 =====
 
 local function setupControls(compareTab)
@@ -395,6 +418,11 @@ local function setupControls(compareTab)
 	local controls = compareTab.controls
 	local function itemsZh()
 		return enabled() and compareTab.compareViewMode == "ITEMS" and compareTab:GetActiveCompare() ~= nil
+	end
+	-- 計算技能選單：裝備、總結兩個子頁共用（同一個選擇）
+	local function skillShown()
+		local mode = compareTab.compareViewMode
+		return enabled() and (mode == "ITEMS" or mode == "SUMMARY") and compareTab:GetActiveCompare() ~= nil
 	end
 	-- 原本的「展開模式」與天賦配置選單在中文版面不顯示（天賦配置可在比較頁的天賦檢視切換）
 	for _, name in ipairs({ "itemsExpandedCheck", "primaryTreeSetLabel", "primaryTreeSetSelect", "compareTreeSetLabel", "compareTreeSetSelect" }) do
@@ -419,11 +447,11 @@ local function setupControls(compareTab)
 		st.manualKey = cand and (cand.groupIndex .. ":" .. cand.activeIndex .. ":" .. tostring(cand.minionSkillIndex)) or nil
 		st.sig = nil -- 重新計算
 	end)
-	dd.shown = itemsZh
-	dd.enabled = itemsZh
+	dd.shown = skillShown
+	dd.enabled = skillShown
 	dd.maxDroppedWidth = 600
 	dd.enableDroppedWidth = true
-	dd.tooltipText = "DPS 用哪一招技能計算。預設是我的 Build 裡傷害最高的那招（召喚物技能也算）。\n只影響這一頁的數字，不會改到 Build 的主要技能。"
+	dd.tooltipText = "我的 DPS 用哪一招技能計算（裝備、總結兩頁共用）。預設是我的 Build 裡傷害最高的那招（召喚物技能也算）。\n只影響比較頁的數字，不會改到 Build 的主要技能。對方一律用對方 Build 的主要技能。"
 	controls.zhTWCompareSkill = dd
 end
 
@@ -475,7 +503,7 @@ local function inside(cx, cy, x, y, w, h)
 end
 
 -- 物品名稱＋前兩行詞綴（中文）
-local function itemLines(item)
+function M.itemLines(item)
 	if not item then
 		return nil
 	end
@@ -485,11 +513,11 @@ local function itemLines(item)
 			if #lines >= 2 then
 				break
 			end
-			if modLine.line and modLine.line ~= "" then
+			-- 內部代碼（例如 void_battery_CannotTranslateMod_1：匯入資料裡遊戲翻不出來的詞綴）不顯示
+			if modLine.line and modLine.line ~= "" and not modLine.line:match("^[%w_]+_[%w_]+$") then
 				local text = modLine.line
-				if ZhTWMods and ZhTWMods.translate then
-					text = ZhTWMods.translate(text) or text
-				end
+				ZhTWMods = ZhTWMods or LoadModule("Modules/ZhTWMods")
+				text = ZhTWMods.translate(text) or text
 				t_insert(lines, text)
 			end
 		end
@@ -516,6 +544,15 @@ local function fitText(text, size, maxW)
 	return text
 end
 
+-- 物品顯示名稱：匯入資料沒有名稱的稀有／魔法物品（「RARE e4446c2」「MAGIC Silver Flask d64e79c」）改顯示底材
+function M.itemName(item)
+	local name = item.title or item.name
+	if not name or name:match("^RARE ") or name:match("^MAGIC ") or name:match("^NORMAL ") or name:match(" %x%x%x%x%x%x%x$") then
+		name = item.baseName or name or "?"
+	end
+	return tr(name) or name
+end
+
 local function drawItemCell(x, y, w, h, item)
 	drawBox(x, y, w, h, 0.11, 0.11, 0.12)
 	if not item then
@@ -523,11 +560,11 @@ local function drawItemCell(x, y, w, h, item)
 		DrawString(x + 10, y + h / 2 - 8, "LEFT", 16, "VAR", "^8（無）")
 		return
 	end
-	local name = item.title or item.name or "?"
+	local name = M.itemName(item)
 	local color = colorCodes[item.rarity] or "^7"
 	SetDrawColor(1, 1, 1)
-	DrawString(x + 10, y + 4, "LEFT", 16, "VAR", color .. fitText(tr(name) or name, 16, w - 20))
-	local lines = itemLines(item)
+	DrawString(x + 10, y + 4, "LEFT", 16, "VAR", color .. fitText(name, 16, w - 20))
+	local lines = M.itemLines(item)
 	for i, line in ipairs(lines or { }) do
 		DrawString(x + 12, y + 4 + 16 + (i - 1) * 15, "LEFT", 14, "VAR", "^7" .. fitText(line, 14, w - 24))
 	end
@@ -557,6 +594,76 @@ local function drawCard(x, y, w, h, title)
 	DrawString(x + 14, y + 6, "LEFT", 18, "VAR", "^7" .. title)
 end
 
+-- ===== 總結子頁 =====
+
+-- 用計算技能算一次我的完整環境（總結子頁的數值與技能旗標都從這裡取）
+local function summaryEnv(st, build)
+	local cand = currentCand(st)
+	if not cand then
+		return nil
+	end
+	local key = tostring(build.outputRevision) .. "|" .. tostring(st.skillChoice)
+	if st.summaryKey == key then
+		return st.summaryEnvCache
+	end
+	st.summaryKey = key
+	local calcs = build.calcsTab.calcs
+	local ok, env = pcall(withCand, build, cand, function()
+		local env = calcs.initEnv(build, "CALCULATOR")
+		calcs.perform(env)
+		return env
+	end)
+	if not ok then
+		ConPrintf("zhTW compare summary: %s", tostring(env))
+		env = nil
+	end
+	st.summaryEnvCache = env
+	return env
+end
+
+local function compareSkillName(compareEntry)
+	local env = compareEntry.calcsTab and compareEntry.calcsTab.mainEnv
+	local skill = env and env.player and env.player.mainSkill
+	local effect = skill and skill.activeEffect
+	local name = effect and effect.grantedEffect and effect.grantedEffect.name
+	if not name then
+		return "?"
+	end
+	name = tr(name) or name
+	local minion = skill.minion and skill.minion.mainSkill
+	local mEffect = minion and minion.activeEffect
+	if mEffect and mEffect.grantedEffect and mEffect.grantedEffect.name then
+		name = name .. "／" .. (tr(mEffect.grantedEffect.name) or mEffect.grantedEffect.name)
+	end
+	return name
+end
+
+-- 總結子頁最上面一列：計算技能選單＋對方用的技能。回傳往下移的 vp，以及我方用計算技能算出的 env（nil = 用原本的）
+function M.summarySkill(compareTab, vp, compareEntry)
+	if not enabled() or not compareEntry then
+		return vp, nil
+	end
+	setupControls(compareTab)
+	local build = compareTab.primaryBuild
+	local st = getState(compareTab)
+	refreshCandidates(st, build)
+	local dd = compareTab.controls.zhTWCompareSkill
+	dd.list = st.skillList
+	dd.selIndex = m_min(st.skillChoice or 1, #st.skillList)
+	local rowH = 28
+	local x0 = vp.x + 10
+	SetDrawColor(1, 1, 1)
+	DrawString(x0, vp.y + 6, "LEFT", 16, "VAR", "^7我的計算技能：")
+	dd.x = x0 + DrawStringWidth(16, "VAR", "^7我的計算技能：") + 4
+	dd.y = vp.y + 4
+	local otherX = dd.x + dd.width + 16
+	DrawString(otherX, vp.y + 6, "LEFT", 16, "VAR", "^7對方：" .. colorCodes.WARNING .. compareSkillName(compareEntry) .. " ^8（對方 Build 的主要技能）")
+	SetDrawColor(0.3, 0.3, 0.3)
+	DrawImage(nil, vp.x + 4, vp.y + rowH - 2, vp.width - 8, 1)
+	local env = summaryEnv(st, build)
+	return { x = vp.x, y = vp.y + rowH, width = vp.width, height = vp.height - rowH }, env
+end
+
 function M.draw(compareTab, vp, compareEntry, inputEvents)
 	if not enabled() or not compareEntry then
 		return false
@@ -583,8 +690,8 @@ function M.draw(compareTab, vp, compareEntry, inputEvents)
 	if st.sig ~= sig then
 		startJob(st, build, compareEntry, slots, sig)
 	end
+	restartDelta(st, build, slots)
 	runJob(st)
-	updateCombined(st, build, slots)
 
 	local cursorX, cursorY = GetCursorPos()
 	local x0 = vp.x + 10
@@ -664,6 +771,7 @@ function M.draw(compareTab, vp, compareEntry, inputEvents)
 	local hoverItem, hoverItemsTab, hoverRect
 	local hoverSingle, hoverSingleSlot, hoverSingleRect
 	local toggleSlot
+	local anyChecked = checkedSignature(st, slots) ~= ""
 
 	SetViewport(vp.x, listTop, vp.width, listH)
 	local lcx, lcy = cursorX - vp.x, cursorY - listTop
@@ -705,13 +813,14 @@ function M.draw(compareTab, vp, compareEntry, inputEvents)
 			local cellX = rxx + LABEL_W + 2 + CHECK_W + 2
 			local cellW = colW - LABEL_W - 2 - CHECK_W - 2
 			drawItemCell(cellX, ry, cellW, ROW_H, cItem)
-			-- 單換 DPS
+			-- 單換／再換／拿掉 DPS（疊加計算：以目前勾選的狀態為準）
 			if cItem and not disabled then
 				local text
-				local s = st.single[slotName]
-				if s and st.base then
-					local p = pctChange(st.base.dps, s.dps)
-					text = p and (colorFor(p) .. "單換 DPS " .. (math.abs(p) < 0.05 and "0%" or s_format("%+.1f%%", p))) or "^8單換 DPS —"
+				local a = st.alt[slotName]
+				local word = isChecked and "拿掉" or (anyChecked and "再換" or "單換")
+				if a and st.combined then
+					local p = pctChange(st.combined.dps, a.dps)
+					text = p and (colorFor(p) .. word .. " DPS " .. (math.abs(p) < 0.05 and "0%" or s_format("%+.1f%%", p))) or ("^8" .. word .. " DPS —")
 				else
 					text = "^8計算中…"
 				end
@@ -719,8 +828,8 @@ function M.draw(compareTab, vp, compareEntry, inputEvents)
 				local tx = cellX + cellW - tw - 10
 				SetDrawColor(1, 1, 1)
 				DrawString(tx, ry + ROW_H / 2 - 8, "LEFT", 16, "VAR", text)
-				if inList and inside(lcx, lcy, tx - 4, ry, tw + 14, ROW_H) and st.singleOutput[slotName] then
-					hoverSingle, hoverSingleSlot = st.singleOutput[slotName], slotName
+				if inList and inside(lcx, lcy, tx - 4, ry, tw + 14, ROW_H) and st.altOutput[slotName] then
+					hoverSingle, hoverSingleSlot = st.altOutput[slotName], slotName
 					hoverSingleRect = { tx - 4, ry, tw + 14, ROW_H }
 				elseif inList and inside(lcx, lcy, cellX, ry, cellW, ROW_H) then
 					hoverItem, hoverItemsTab = cItem, cTab
@@ -759,7 +868,8 @@ function M.draw(compareTab, vp, compareEntry, inputEvents)
 		end
 	end
 
-	-- === 提示框 ===
+	-- === 提示框 ===（先還原 viewport，提示框用整個畫面的座標，不被列表區裁切）
+	SetViewport()
 	local tooltip = compareTab.itemTooltip
 	local maxTooltipWidth = m_min(600, m_max(260, vp.width - 24))
 	if not main.popups[1] and tooltip then
@@ -769,12 +879,20 @@ function M.draw(compareTab, vp, compareEntry, inputEvents)
 			SetDrawLayer(nil, 100)
 			tooltip:Draw(vp.x + hoverRect[1], listTop + hoverRect[2], hoverRect[3], hoverRect[4], vp)
 			SetDrawLayer(nil, 0)
-		elseif hoverSingle and st.baseOutput then
+		elseif hoverSingle and st.combinedOutput then
 			tooltip:Clear()
 			tooltip.maxWidth = maxTooltipWidth
 			local cand = currentCand(st)
-			local header = "^7只換這一件（" .. (cand and candLabel(cand) or "主要技能") .. "）："
-			local count = build:AddStatComparesToTooltip(tooltip, st.baseOutput, hoverSingle, header)
+			local what
+			if st.checked[hoverSingleSlot] then
+				what = "拿掉這一件（其他勾選的保持）"
+			elseif checkedSignature(st, slots) ~= "" then
+				what = "在已勾選的基礎上再換這一件"
+			else
+				what = "只換這一件"
+			end
+			local header = "^7" .. what .. "（" .. (cand and candLabel(cand) or "主要技能") .. "）："
+			local count = build:AddStatComparesToTooltip(tooltip, st.combinedOutput, hoverSingle, header)
 			if count == 0 then
 				tooltip:AddLine(14, header)
 				tooltip:AddLine(14, "^7沒有變化。")

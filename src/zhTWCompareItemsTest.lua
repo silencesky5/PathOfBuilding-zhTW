@@ -152,7 +152,7 @@ check(okDraw, "比較頁裝備檢視畫 40 個畫面不出錯 %s", tostring(err 
 local st = compareTab.zhTWCompareItems
 check(st and st.co == nil and st.base ~= nil, "背景計算完成")
 local singles = 0
-for _ in pairs(st and st.single or { }) do
+for _ in pairs(st and st.alt or { }) do
 	singles = singles + 1
 end
 check(singles == n + (res.items["Weapon 1"] and 1 or 0) + (res.items["Weapon 2"] and 1 or 0), "每件都有單換結果（%d）", singles)
@@ -243,6 +243,116 @@ do
 		check(not zhVar:find("[A-Za-z]"), "變異寶石名稱是中文（%s）", zhVar)
 		t_remove(cGroups)
 		compareTab.compareViewMode = "ITEMS"
+	end
+end
+
+-- 8. 疊加計算：勾一件後，沒勾的顯示「再換」＝勾選＋這件，勾的顯示「拿掉」＝不含這件
+do
+	local st = compareTab.zhTWCompareItems
+	compareTab.compareViewMode = "ITEMS"
+	wipeTable(st.checked)
+	local first, other
+	for _, name in ipairs({ "Body Armour", "Gloves", "Helmet", "Boots", "Amulet", "Belt" }) do
+		if res.items[name] then
+			if not first then first = name elseif not other then other = name end
+		end
+	end
+	st.checked[first] = true
+	for frame = 1, 60 do
+		pcall(compareTab.Draw, compareTab, vp, { })
+	end
+	check(st.co == nil, "勾選後重算完成")
+	local cur = st.skillChoice and st.cands[st.skillChoice]
+	local rFirst = M.evaluate(primary, entry, { [first] = true }, cur)
+	local rBoth = M.evaluate(primary, entry, { [first] = true, [other] = true }, cur)
+	check(near(st.combined.dps, rFirst.combined.dps), "勾 %s：結果 DPS %.1f = %.1f", first, st.combined.dps, rFirst.combined.dps)
+	check(st.alt[other] and near(st.alt[other].dps, rBoth.combined.dps), "%s 顯示「再換」＝勾選＋這件：%.1f = %.1f", other, st.alt[other] and st.alt[other].dps or -1, rBoth.combined.dps)
+	check(st.alt[first] and near(st.alt[first].dps, rFirst.base.dps), "%s 顯示「拿掉」＝不含這件：%.1f = 基準 %.1f", first, st.alt[first] and st.alt[first].dps or -1, rFirst.base.dps)
+	-- 畫出來的字
+	local drawn = { }
+	local realDrawString = DrawString
+	DrawString = function(x, y, align, size, font, text)
+		t_insert(drawn, text)
+		return realDrawString(x, y, align, size, font, text)
+	end
+	pcall(compareTab.Draw, compareTab, vp, { })
+	DrawString = realDrawString
+	local hasAgain, hasRemove = false, false
+	for _, t in ipairs(drawn) do
+		if t:find("再換 DPS", 1, true) then hasAgain = true end
+		if t:find("拿掉 DPS", 1, true) then hasRemove = true end
+	end
+	check(hasAgain and hasRemove, "畫面有「再換 DPS」與「拿掉 DPS」")
+	wipeTable(st.checked)
+	for frame = 1, 60 do
+		pcall(compareTab.Draw, compareTab, vp, { })
+	end
+	check(st.alt[other] and near(st.alt[other].dps, rFirst.single[other].dps), "全取消後回到單換（%s %.1f = %.1f）", other, st.alt[other] and st.alt[other].dps or -1, rFirst.single[other].dps)
+end
+
+-- 7. 總結子頁：我方用計算技能（和裝備子頁同一個選擇）
+do
+	local st = compareTab.zhTWCompareItems
+	compareTab.compareViewMode = "SUMMARY"
+	dd.selFunc(1, dd.list[1])
+	local okS, errS = pcall(compareTab.Draw, compareTab, vp, { })
+	check(okS, "總結子頁畫面不出錯 %s", tostring(errS or ""))
+	check(dd:IsShown(), "總結子頁也顯示計算技能選單")
+	local env = st.summaryEnvCache
+	check(env and near(B.dpsOf(env.player.output), cands[1].dps), "總結子頁我方 DPS %.1f = 最高那招 %.1f", env and B.dpsOf(env.player.output) or -1, cands[1].dps)
+	if #cands >= 2 then
+		dd.selFunc(2, dd.list[2])
+		pcall(compareTab.Draw, compareTab, vp, { })
+		env = st.summaryEnvCache
+		check(env and near(B.dpsOf(env.player.output), cands[2].dps), "總結子頁切到第二招 DPS %.1f = %.1f", env and B.dpsOf(env.player.output) or -1, cands[2].dps)
+		compareTab.compareViewMode = "ITEMS"
+		for frame = 1, 40 do
+			pcall(compareTab.Draw, compareTab, vp, { })
+		end
+		check(st.base and near(st.base.dps, cands[2].dps), "裝備子頁跟著用第二招（同步）")
+		dd.selFunc(1, dd.list[1])
+	end
+	check(primary.mainSocketGroup == savedMain, "總結子頁操作後主要技能沒變")
+	compareTab.compareViewMode = "ITEMS"
+end
+
+-- 9. 物品名稱與詞綴行
+do
+	local rare = new("Item"):Item("Rarity: RARE\nRARE e4446c2\nVaal Regalia\n--------\n+90 to maximum Life\n")
+	check(M.itemName(rare) == ZhTWLocale.tr("Vaal Regalia"), "沒有名稱的稀有物品顯示底材：%s", M.itemName(rare))
+	local magic = new("Item"):Item("Rarity: MAGIC\nMAGIC Silver Flask d64e79c\nSilver Flask\n")
+	check(not M.itemName(magic):find("MAGIC", 1, true), "沒有名稱的魔法物品顯示底材：%s", M.itemName(magic))
+	local qh = new("Item"):Item("Rarity: UNIQUE\nThe Queen's Hunger\nVaal Regalia\nImplicits: 0\nvoid_battery_CannotTranslateMod_1\nTrigger Level 20 Bone Offering, Flesh Offering, Spirit Offering every 5 seconds in sequence\nOffering Skills Triggered this way also affect you\n")
+	local lines = M.itemLines(qh)
+	out("  女王的渴望：%s ／ %s", tostring(lines[1]), tostring(lines[2]))
+	check(lines[1] and not lines[1]:find("void_battery", 1, true), "內部代碼的詞綴行不顯示")
+	check(lines[1] and not lines[1]:find("[A-Za-z][a-z]"), "Trigger 詞綴是中文：%s", tostring(lines[1]))
+	local bl = { ZhTWMods.translate("Triggers Level 20 Corpse Walk when Equipped") }
+	check(bl[1] and not bl[1]:find("[A-Za-z][a-z]"), "Triggers 詞綴是中文：%s", tostring(bl[1]))
+end
+
+-- 10. 計算子頁來源提示框中文
+do
+	local helpers = require("Classes.CompareCalcsHelpers")
+	local v, st, sn = helpers.FormatModRow({ value = 38, mod = { type = "INC", source = "Tree:0", name = "Damage" } }, { }, primary)
+	check(v == "增加 38%" and st == "天賦", "提示框數值與來源類型：%s ／ %s", tostring(v), tostring(st))
+	local tip = new("Tooltip"):Tooltip()
+	local okT, errT = pcall(helpers.DrawCalcsTooltip, tip, primary, "我的", { { modName = { "Life" } }, { modName = { "Damage" } } }, "總生命", 0, 0, 10, 10, vp, entry)
+	check(okT, "提示框不出錯 %s", tostring(errT or ""))
+	local eng = { }
+	local zhHead = false
+	for _, line in ipairs(tip.lines or { }) do
+		local text = line.text or ""
+		if text:find("Common:", 1, true) or text:find(" only:", 1, true) or text:find("Player modifiers", 1, true) then
+			t_insert(eng, text)
+		end
+		if text:find("兩邊都有", 1, true) or text:find("只有", 1, true) then
+			zhHead = true
+		end
+	end
+	check(#eng == 0 and zhHead, "提示框分組標題是中文（英文殘留 %d 行）", #eng)
+	for i, line in ipairs(tip.lines or { }) do
+		if i <= 12 then out("  提示框：%s", tostring(line.text)) end
 	end
 end
 
