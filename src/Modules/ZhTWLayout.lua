@@ -1205,6 +1205,10 @@ function ZhTWLayout.setupModeButtons(build)
 	strip.Draw = function(control)
 		local x, y = control:GetPos()
 		local width, height = control:GetSize()
+		-- zhTW 11/21: page background under the tabs. A scrolled page (裝備頁 角色/管理 row,
+		-- 當前裝備 title) is not clipped and used to show between and above the tabs; the strip
+		-- is drawn on the top bar's layer, so this covers the page like PoB's top bar does.
+		ZhTWLayout.drawStripBackground(x, y, width, height)
 		SetDrawLayer(nil, -10) -- below the buttons and dropdowns drawn on top of it
 		rect(x, y + height - 2, width, 1, LINE[1], LINE[2], LINE[3])
 		SetDrawColor(1, 1, 1)
@@ -1265,6 +1269,28 @@ function ZhTWLayout.setupModeButtons(build)
 	end
 
 	ZhTWLayout.setupTreePanel(build)
+end
+
+-- zhTW 11/21: the page background again over the tab strip, lined up with main:DrawBackground
+-- (full-screen tiles of 100 px), so the strip looks the same as the page under it
+function ZhTWLayout.drawStripBackground(x, y, width, height)
+	SetDrawLayer(nil, -20)
+	if ZhTWTheme and ZhTWTheme.active and ZhTWTheme.active() then
+		-- cute theme: main:DrawBackground is a plain fill (ZhTWTheme), any rectangle lines up
+		main:DrawBackground({ x = x, y = y, width = width, height = height })
+	else
+		local assets = main.tree and main.tree[latestTreeVersion] and main.tree[latestTreeVersion].assets
+		local bg = assets and (assets.Background2 or assets.Background1)
+		SetDrawColor(0.5, 0.5, 0.5)
+		if bg then
+			DrawImage(bg.handle, x, y, width, height, x / 100, y / 100, (x + width) / 100, (y + height) / 100)
+		else
+			SetDrawColor(0.05, 0.05, 0.05)
+			DrawImage(nil, x, y, width, height)
+		end
+	end
+	SetDrawColor(1, 1, 1)
+	SetDrawLayer(nil, 0)
 end
 
 -- Icon before a button's text (Chinese interface with the icon sheet only)
@@ -1579,6 +1605,17 @@ function ZhTWLayout.adjustTabViewPort(build, viewPort, inputEvents)
 		build.zhTWLastSheet = build.viewMode
 		viewPort.y = viewPort.y + SHEET_STRIP
 		viewPort.height = viewPort.height - SHEET_STRIP
+		-- zhTW 11/21: clicks between the tabs must not reach a scrolled page hidden under them
+		if inputEvents then
+			local cx, cy = GetCursorPos()
+			if cx >= viewPort.x and cy >= viewPort.y - SHEET_STRIP and cy < viewPort.y then
+				for id, event in pairs(inputEvents) do
+					if event.type == "KeyDown" and event.key:match("BUTTON") then
+						inputEvents[id] = nil
+					end
+				end
+			end
+		end
 	end
 	-- Mouse over the tree panel: clicks and wheel must not reach the tree under it
 	if inputEvents and ZhTWLayout.inTreePanel(build) then

@@ -1233,6 +1233,12 @@ return {
 		["Enchant Item"] = "附魔物品",
 		["Enchantment:"] = "附魔:",
 		["Endgame"] = "終局",
+		-- zhTW: 天賦頁等級提示（Build.lua pointDisplay.req，逐行顯示所以要拆開翻）
+		["Required Level:"] = "需求等級:",
+		["Estimated Progress:"] = "預估進度:",
+		["Act:"] = "章節:",
+		["Questpoints:"] = "任務點數:",
+		["Extra Skillpoints:"] = "額外天賦點:",
 		["Enemies are Pacified after 60% of Pacify's duration has expired"] = "平靜持續時間經過 60% 後，敵人才會被平靜",
 		["Enemies on Profane Ground receive the following modifiers:\n\\t10% increased Effect of Curses\n\\t100% increased chance to be Critically Hit"] = "在褻瀆地面上的敵人獲得以下詞綴:\n\\t詛咒效果增加 10%\n\\t被暴擊的機率增加 100%",
 		["Enemies on your Brine Ground have \n30% increased effect of Lightning and Cold Ailments on them and \nhave 25% reduced Armour and Evasion Rating."] = "在你的鹽水地面上的敵人 \n受到的閃電與冰冷異常狀態效果增加 30%，且 \n護甲與閃避值降低 25%。",
