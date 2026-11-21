@@ -151,3 +151,11 @@ Path{space}of{space}Building.exe <src\zhTWCoverage.lua 的完整路徑>   → sr
    - **搜尋同義詞**：`UI.lua` 的 `searchSynonyms`（依序改寫，查詢字和被搜尋文字兩邊都改），`ZhTWLocale.normalizeSearch`；幽魂庫、傳奇資料庫、技能寶石、新增詞綴視窗都套用。副作用：單字同義詞會讓「飽與」也搜到「飽和」，可接受。
    - 測試：`src/zhTWLegionTest.lua`（93 項）、`src/zhTWGameTextTest.lua`（26 項），用法同其他測試。瓦爾永恆珠寶的 LUT 是壓縮檔，測試要把 HeadlessWrapper 換掉的 `Inflate` 還原（同 zhTWTest）。
    - 客戶端改版後：先跑 `zhTW.lua`，再跑 `zhTWExtra.lua`，然後 `zhTWFont.ps1`、測試。
+
+15. **計算頁中文化＋官方 2.68.1（11/21）**：
+   - `Modules/ZhTWCalcs.lua`：計算頁來源表（CalcBreakdownControl）在中文介面時，數值欄「+12 基礎／增加 60%／總增 10%」、屬性欄（POB 內部詞綴名，片語表＋句型規則）、技能類型、備註、來源欄都中文，表格字 12 → 16。
+   - 計算過程「數字 (說明)」行：`ZhTWLocale` 依 `UI.lua` 的 `calcNotes`／`calcNotePatterns` 翻括號內說明。
+   - 用語以台服客戶端為準：Brittle＝易碎、Sap＝殘喘、Scorch＝焦灼（之前混用脆裂／精疲／削弱／灼燒）。Runegraft＝符文之結。
+   - 天賦樹紋身／符文之結選單（TreeTab:ModifyNodePopup）顯示中文名稱與效果。
+   - 測試：`src/zhTWCalcsTest.lua`（`ZHTW_CALCS_BUILDS` 可指定 Build），清查計算頁每格來源表與紋身選單。注意：無介面測試每次都會啟動 POB 程式並閃視窗，KAI 會被干擾，跑之前先說。
+   - 套用官方 2.68.1（3.30 天賦樹，台服也是 3.30）：changelog.txt、manifest.xml 沒動，發佈時版本號改用 2.68.1-zhTW.1。
