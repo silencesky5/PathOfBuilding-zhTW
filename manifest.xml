@@ -1,11 +1,11 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <PoBVersion>
-	<Version number="2.68.1-zhTW.2" />
+	<Version number="2.68.1-zhTW.3" />
 	<Source part="default" url="https://raw.githubusercontent.com/silencesky5/PathOfBuilding-zhTW/{branch}/" />
 	<Source part="runtime" platform="win32" url="https://raw.githubusercontent.com/silencesky5/PathOfBuilding-zhTW/{branch}/runtime/" />
 	<Source part="program" url="https://raw.githubusercontent.com/silencesky5/PathOfBuilding-zhTW/{branch}/src/" />
 	<Source part="tree" url="https://raw.githubusercontent.com/silencesky5/PathOfBuilding-zhTW/{branch}/src/" />
-	<File name="changelog.txt" part="default" sha1="45d3f928a0272a6db70171b4b034f7a647b5d181" />
+	<File name="changelog.txt" part="default" sha1="74b6f7cd02f85197de751a2681b9e14540935e23" />
 	<File name="help.txt" part="default" sha1="b1287f429e40ffdb96a2aff30b20adfa1540cf66" />
 	<File name="LICENSE.md" part="default" sha1="be578b61d2b3381db4135c02101b2b0fc34fdeac" />
 	<File name="Assets/ascendancypassiveheaderleft.png" part="program" sha1="6a65683dcc3b14382dc083198fe9361454e91b15" />
@@ -131,10 +131,10 @@
 	<File name="Classes/CalcsTab.lua" part="program" sha1="c03e53a84ec8421327f868d8fcc1f75618b5afbc" />
 	<File name="Classes/CheckBoxControl.lua" part="program" sha1="7f2399bb5e0753013092bbf91e56abd43598b208" />
 	<File name="Classes/CompareBuySimilar.lua" part="program" sha1="54d3c9bfaa2054f42a08a5197aee606a66e43311" />
-	<File name="Classes/CompareCalcsHelpers.lua" part="program" sha1="7cf5f9a2c894e8be7df9d7f3205c1ea8a0ad030a" />
+	<File name="Classes/CompareCalcsHelpers.lua" part="program" sha1="dd50ed4cd5bf54deba8c5dd91e937948615d4f10" />
 	<File name="Classes/CompareEntry.lua" part="program" sha1="d285a43b741212d728db8f6928178728dd736c22" />
 	<File name="Classes/ComparePowerReportListControl.lua" part="program" sha1="c8c886686430eb217337b9ac8ed9f81bab9d4763" />
-	<File name="Classes/CompareTab.lua" part="program" sha1="d2165727a2d5551648c11d2965d6e43ae5683041" />
+	<File name="Classes/CompareTab.lua" part="program" sha1="bf9bc814e8385c7b6f7bf491eaca3dc99c268388" />
 	<File name="Classes/ConfigSetListControl.lua" part="program" sha1="48a6156d2be931f483b7c7213c0c281ea25fca2e" />
 	<File name="Classes/ConfigTab.lua" part="program" sha1="fed1df15846a78cf45b65edd45eb0e393c9079e8" />
 	<File name="Classes/Control.lua" part="program" sha1="f0486dba04419a153d58f14cafe09e2ce83a6ff3" />
@@ -502,7 +502,7 @@
 	<File name="Modules/ZhTWAffixType.lua" part="program" sha1="6b97a047f69b5fd8a9641f4c4887c39b88ef4886" />
 	<File name="Modules/ZhTWBestSkill.lua" part="program" sha1="38070601dea0e4d2a639090a7f8b9663c86d988e" />
 	<File name="Modules/ZhTWCalcs.lua" part="program" sha1="840b08c8c75358654eb7bba367f26614814a13f7" />
-	<File name="Modules/ZhTWCompareItems.lua" part="program" sha1="e6d24eb5215c877484253f0966f073a657c2e981" />
+	<File name="Modules/ZhTWCompareItems.lua" part="program" sha1="3250fe8eb3093bd919f82e2f963f4df77edcd253" />
 	<File name="Modules/ZhTWConverter.lua" part="program" sha1="21bd418454bcbfb49b70648cbc114c7332ea7f5e" />
 	<File name="Modules/ZhTWCraftEngine.lua" part="program" sha1="f3c8ff4e2cd09109330c28d7c7f6ca03564e34dd" />
 	<File name="Modules/ZhTWGameText.lua" part="program" sha1="d961f8ab82a86efe5cd4efff022c6e9084d2be4d" />
