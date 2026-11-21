@@ -110,6 +110,10 @@ function listMode:Init(selBuildName, subPath)
 	self.controls.searchText.width = buildListWidth
 	self.controls.searchText.x = buildListOffset
 
+	if ZhTWBossDrops then -- zhTW: 我的 Build / 頭目掉落 / 命運卡 menu on the left (Chinese interface only)
+		ZhTWBossDrops.setupListMenu(self)
+	end
+
 	self:BuildList()
 	self.controls.buildList:SelByFullFileName(selBuildName and main.buildPath..self.subPath..selBuildName..".xml")
 	self:SelectControl(self.controls.buildList)

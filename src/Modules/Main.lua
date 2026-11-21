@@ -20,6 +20,7 @@ LoadModule("Modules/ZhTWText") -- zhTW: draw Chinese characters (the engine font
 ZhTWLayout = LoadModule("Modules/ZhTWLayout") -- zhTW: layout for the Chinese interface
 ZhTWTheme = LoadModule("Modules/ZhTWTheme") -- zhTW: optional light theme (after ZhTWText: wraps its DrawString)
 ZhTWGuild = LoadModule("Modules/ZhTWGuild") -- zhTW: guild share shelf of the crafting site (製作 tab)
+ZhTWBossDrops = LoadModule("Modules/ZhTWBossDrops") -- zhTW: 頭目掉落 window and the build list menu
 LoadModule("Modules/CalcFormat")
 LoadModule("Modules/Data")
 LoadModule("Modules/ModTools")
