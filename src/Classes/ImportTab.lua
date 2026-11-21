@@ -1554,6 +1554,9 @@ function ImportTabClass:ImportItemsAndSkills(charData, clearItems, clearSkills, 
 	self.build.configTab:UpdateLevel()
 	self.build.controls.characterLevel:SetText(tostring(charData.level))
 	self.build.buildFlag = true
+	if mainSkillEmpty and ZhTWLocale and ZhTWLocale.enabled then -- zhTW: main skill = the highest-damage skill, not the largest group (KAI 11/21)
+		LoadModule("Modules/ZhTWBestSkill").pickAfterImport(self.build)
+	end
 	-- charData for the wrapper
 	return charData, colorCodes.POSITIVE .. "Items and skills successfully imported."
 end
