@@ -3424,6 +3424,11 @@ return {
 		["Socketed In"] = "鑲嵌於",
 		["Damage Taken"] = "承受傷害",
 		["Overkill damage"] = "溢出傷害",
+		-- zhTW: Storm Burst skill parts (PoB's own names, not in the client) and the Spectre entry of the calcs buff list
+		["1 Orb Tick"] = "單顆能量球跳躍",
+		["Max Channelled Orbs"] = "最多引導能量球",
+		["Max Duration Explode"] = "最長持續時間引爆",
+		["Spectre"] = "幽魂",
 	},
 	formats = {
 		[" (%d mana shadowed by energy shield)"] = " (%d 魔力被能量護盾遮蔽)",
@@ -4475,6 +4480,9 @@ return {
 		{ "^([%-%+]?[%d,%.]+) (%a+) Leech/On Hit Rate$", "%1 %t2偷取／擊中回復速度" },
 		{ "^You can't deal (%a+) damage$", "你無法造成%t1傷害" },
 		{ "^Total from (.+):$", "來自%t1的合計:" },
+		-- zhTW: full DPS box, "4x Storm Burst:" and the "from Storm Burst" line under it
+		{ "^(%d+)x (.+):$", "%1x %t2:" },
+		{ "^from (.+)$", "來自%t1" },
 		{ "^%(extra ICDR of ([%d%.]+)%% would reach next breakpoint%)$", "(再多 %1% 冷卻恢復可達到下一個斷點)" },
 		{ "^(.+) has no base cooldown or cooldown override$", "%t1沒有基礎冷卻或冷卻覆蓋" },
 		{ "^If attacking constantly, your average strongest Ignite currently achieves ([%d%.]+)%% of its max damage$", "持續攻擊時，你平均最強的點燃目前達到最大傷害的 %1%" },
