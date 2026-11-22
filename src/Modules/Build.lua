@@ -642,6 +642,7 @@ function buildMode:Init(dbFileName, buildName, buildXML, convertBuild, importLin
 		["Skills"] = self.skillsTab,
 		["Calcs"] = self.calcsTab,
 		["Import"] = self.importTab,
+		["Compare"] = self.compareTab, -- zhTW: 比較對象隨 Build 檔儲存
 	}
 	self.legacyLoaders = { -- Special loaders for legacy sections
 		["Spec"] = self.treeTab,
@@ -1334,6 +1335,13 @@ function buildMode:OnFrame(inputEvents)
 			pane:DrawOverlay(main.viewPort, inputEvents)
 		end
 	end
+
+	-- zhTW: 離開比較頁裝備子頁時，左側面板還原成自己的數值
+	if self.zhTWPanelOutput and not self.zhTWPanelSeen then
+		self.zhTWPanelOutput = nil
+		self:RefreshStatList()
+	end
+	self.zhTWPanelSeen = nil
 
 	self.unsaved = self.modFlag or self.notesTab.modFlag or self.partyTab.modFlag or self.configTab.modFlag or self.treeTab.modFlag or self.treeTab.searchFlag or self.spec.modFlag or self.skillsTab.modFlag or self.itemsTab.modFlag or self.calcsTab.modFlag
 
@@ -2124,11 +2132,19 @@ function buildMode:RefreshStatList()
 		t_insert(statBoxList, { height = 16, "^7Skill disabled:" })
 		t_insert(statBoxList, { height = 14, align = "CENTER_X", x = 140, self.calcsTab.mainEnv.player.mainSkill.disableReason })
 	end
-	self:AddDisplayStatList(self.displayStats, self.calcsTab.mainEnv.player, "player")
+	-- zhTW: 比較頁勾選試穿時，左側面板顯示試穿後的數值
+	local playerActor = self.calcsTab.mainEnv.player
+	if self.zhTWPanelOutput then
+		playerActor = setmetatable({ output = self.zhTWPanelOutput }, { __index = playerActor })
+	end
+	self:AddDisplayStatList(self.displayStats, playerActor, "player")
 	self:InsertItemWarnings()
 	self:EstimatePlayerProgress()
 	if ZhTWLayout then -- zhTW: group headings, labels left / values right
 		ZhTWLayout.refreshSidebar(self)
+	end
+	if self.zhTWPanelOutput then -- zhTW: 試穿中提示
+		t_insert(statBoxList, 1, { height = 18, "^xE0A040試穿對方裝備中（比較頁勾選）" })
 	end
 end
 
@@ -2300,9 +2316,11 @@ function buildMode:SaveDB(fileName)
 
 	-- Call on all savers to save their data in their respective sections
 	for elem, saver in pairsSortByKey(self.savers) do
+		if not (elem == "Compare" and fileName == "code") then -- zhTW: 分享碼不含比較對象
 		local node = { elem = elem }
 		saver:Save(node)
 		t_insert(dbXML, node)
+		end -- zhTW
 	end
 
 	-- Compose the XML

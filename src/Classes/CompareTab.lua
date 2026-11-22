@@ -1241,6 +1241,45 @@ function CompareTabClass:CopyCompareConfig()
 	self.configNeedsRebuild = true
 end
 
+-- zhTW: 比較對象隨 Build 檔儲存／還原（存原始匯入的 XML，壓縮成分享碼格式）
+function CompareTabClass:Save(xml)
+	for _, entry in ipairs(self.compareEntries) do
+		if entry.xmlText then
+			local text = entry.xmlText:gsub("<Compare%s*/>", ""):gsub("<Compare>.-</Compare>", "")
+			t_insert(xml, { elem = "CompareBuild", attrib = { label = entry.label },
+				[1] = common.base64.encode(Deflate(text)):gsub("+","-"):gsub("/","_") })
+		end
+	end
+end
+
+function CompareTabClass:Load(xml, fileName)
+	self.zhTWPendingLoad = { }
+	for _, node in ipairs(xml) do
+		if type(node) == "table" and node.elem == "CompareBuild" and type(node[1]) == "string" then
+			t_insert(self.zhTWPendingLoad, { code = node[1], label = node.attrib and node.attrib.label })
+		end
+	end
+end
+
+function CompareTabClass:PostLoad()
+	local pending = self.zhTWPendingLoad
+	self.zhTWPendingLoad = nil
+	if not pending then return end
+	self.zhTWLoading = true
+	for _, item in ipairs(pending) do
+		local ok, xmlText = pcall(Inflate, common.base64.decode(item.code:gsub("-","+"):gsub("_","/")))
+		if ok and xmlText then
+			pcall(self.ImportBuild, self, xmlText, item.label)
+		end
+	end
+	self.zhTWLoading = nil
+	if #self.compareEntries > 0 then
+		self.activeCompareIndex = 1
+		self:UpdateBuildSelector()
+	end
+end
+-- zhTW end
+
 -- Import a comparison build from XML text
 function CompareTabClass:ImportBuild(xmlText, label)
 	local entry = new("CompareEntry"):CompareEntry(xmlText, label)
@@ -1248,6 +1287,7 @@ function CompareTabClass:ImportBuild(xmlText, label)
 		t_insert(self.compareEntries, entry)
 		self.activeCompareIndex = #self.compareEntries
 		self:UpdateBuildSelector()
+		if not self.zhTWLoading then self.primaryBuild.modFlag = true end -- zhTW: 標記未儲存
 		-- Restore primary build's window title
 		if self.primaryBuild.spec then
 			self.primaryBuild.spec:SetWindowTitleWithBuildClass()
@@ -1279,6 +1319,7 @@ function CompareTabClass:RemoveBuild(index)
 		if self.activeCompareIndex == 0 and #self.compareEntries > 0 then
 			self.activeCompareIndex = 1
 		end
+		self.primaryBuild.modFlag = true -- zhTW: 標記未儲存
 		if #self.compareEntries == 0 then
 			for _, control in ipairs({ self.controls.cmpMainSkill, self.controls.cmpSkillPart, self.controls.cmpStageCount,
 				self.controls.cmpMineCount, self.controls.cmpMinion, self.controls.cmpMinionSkill }) do

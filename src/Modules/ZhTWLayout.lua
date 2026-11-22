@@ -77,7 +77,7 @@ end
 
 -- The four numbers people look for first
 local function summaryCards(build)
-	local output = build.calcsTab and build.calcsTab.mainOutput or { }
+	local output = build.zhTWPanelOutput or build.calcsTab and build.calcsTab.mainOutput or { } -- zhTW: 比較頁試穿
 	local dpsLabel, dps = "合計 DPS", output.CombinedDPS
 	local skillName = mainSkillName(build)
 	if output.FullDPS and output.FullDPS > 0 then

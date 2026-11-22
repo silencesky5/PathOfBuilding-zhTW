@@ -330,6 +330,15 @@ local function deltaJob(st, build, slots)
 	st.combinedOutput = out
 	st.combined = metrics(out)
 	coroutine.yield()
+	-- 左側面板用：自己主要技能的試穿結果（計算技能不同時另外算）
+	if not rep then
+		st.panelOutput = nil
+	elseif st.panelCalc == calc then
+		st.panelOutput = out
+	else
+		st.panelOutput = st.panelCalc({ repItems = rep })
+		coroutine.yield()
+	end
 	for _, slot in ipairs(slots) do
 		local slotName = slot[1]
 		if st.items[slotName] then
@@ -362,12 +371,15 @@ local function startJob(st, build, compareEntry, slots, sig)
 	st.calc = nil
 	st.base = nil
 	st.baseOutput = nil
+	st.panelCalc = nil
+	st.panelOutput = nil
 	st.error = nil
 	st.deltaSig = checkedSignature(st, slots)
 	local cand = currentCand(st)
 	st.co = coroutine.create(function()
 		local calc, base = makeCalculator(build, cand)
 		st.calc = calc
+		st.panelCalc = cand and makeCalculator(build, nil) or calc
 		st.baseOutput = base
 		st.base = metrics(base)
 		coroutine.yield()
@@ -692,6 +704,12 @@ function M.draw(compareTab, vp, compareEntry, inputEvents)
 	end
 	restartDelta(st, build, slots)
 	runJob(st)
+	-- 左側面板跟著試穿結果（Build.lua RefreshStatList 讀 build.zhTWPanelOutput）
+	if build.zhTWPanelOutput ~= st.panelOutput then
+		build.zhTWPanelOutput = st.panelOutput
+		build:RefreshStatList()
+	end
+	build.zhTWPanelSeen = true
 
 	local cursorX, cursorY = GetCursorPos()
 	local x0 = vp.x + 10
@@ -849,7 +867,11 @@ function M.draw(compareTab, vp, compareEntry, inputEvents)
 	-- === 點擊 ===
 	if inputEvents and not main.popups[1] then
 		for id, event in ipairs(inputEvents) do
-			if event.type == "KeyUp" and event.key == "LEFTBUTTON" then
+			if event.type == "KeyDown" and event.key == "c" and IsKeyDown("CTRL") and hoverItem then
+				-- Ctrl+C 複製指著的裝備（到裝備頁 Ctrl+V 貼上後可以編輯詞綴）
+				Copy(hoverItem:BuildRaw():gsub("\n", "\r\n"))
+				inputEvents[id] = nil
+			elseif event.type == "KeyUp" and event.key == "LEFTBUTTON" then
 				if hoverAll then
 					for _, slot in ipairs(slots) do
 						if st.items and st.items[slot[1]] and not (slot[1] == "Ring 3" and not primaryHasRing3) then
@@ -876,6 +898,7 @@ function M.draw(compareTab, vp, compareEntry, inputEvents)
 		if hoverItem and hoverItemsTab then
 			tooltip:Clear()
 			hoverItemsTab:AddItemTooltip(tooltip, hoverItem, nil, nil, maxTooltipWidth)
+			tooltip:AddLine(14, "^8按 Ctrl+C 複製這件裝備，到裝備頁按 Ctrl+V 貼上後可以編輯詞綴")
 			SetDrawLayer(nil, 100)
 			tooltip:Draw(vp.x + hoverRect[1], listTop + hoverRect[2], hoverRect[3], hoverRect[4], vp)
 			SetDrawLayer(nil, 0)
