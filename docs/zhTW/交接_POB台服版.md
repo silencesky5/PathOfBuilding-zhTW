@@ -173,3 +173,10 @@ Path{space}of{space}Building.exe <src\zhTWCoverage.lua 的完整路徑>   → sr
    - 11/22 追加：裝備子頁名稱是「RARE e4446c2」「MAGIC … a61cb9e」這種（匯入資料沒有名稱）時改顯示底材中文；`void_battery_CannotTranslateMod_1` 這類內部代碼行不顯示；詞綴行一律用 `ZhTWMods.translate`（Trigger／Triggers 詞綴有中文了）；物品提示框不再被列表區裁切。
    - 11/22 追加：「計算」子頁的來源提示框（`Classes/CompareCalcsHelpers.lua`，標註 `-- zhTW`）：數值、來源類型、來源名稱、詞綴名稱、「兩邊都有／只有對方」標題都中文。技能部分名稱（如 1 Orb Tick）還是英文，POB 自己的名稱，台服客戶端沒有對照。
    - 測試：`Path{space}of{space}Building.exe <src\zhTWCompareItemsTest.lua 完整路徑>` → `src\zhTWCompareItemsTest.log`（`ZHTW_COMPARE_PRIMARY`、`ZHTW_COMPARE_OTHER` 可指定兩個 Build）。檢查單換與 POB 原本單件替換相同、全勾與真的換上後重算相同、計算技能切換、主要技能不被改、變異寶石合併。
+
+17. **柳條人（Wickerman，3.30）支援（11/22）**：官方 2.68 已有四個欄位（Head/Body/Arm/Leg）、臟器資料庫（`main.visceraDB`，`Data/Viscera.lua`）與底材（`Data/Bases/wickerman.lua`，type = "Viscera"）。我們補的：
+   - 中文：欄位 頭／軀幹／上肢／下肢、類型「臟器」（遊戲複製文字是「物品種類: 臟器」）；製作物品「類型」下拉的子類型（護甲/能量護盾、魔符、細劍…）都加進 `UI.lua`；資料庫名稱「Lesser／Greater X」顯示「低階／高階 + 底材中文」（`UI.lua` patterns）。
+   - 裝備頁資料庫按鈕多一顆「柳條人臟器」（`ZhTWLayout.setupItemDBs`；之前中文介面把官方下拉的第三項漏掉了）。
+   - 貼上遊戲文字：`ZhTWItemText` 認得「物品種類: 臟器」（沒有稀有度行），輸出 `Item Class: Viscera`；「將此物帶給…柳條人…」那行轉成英文給 Item.lua 略過。
+   - 台服匯入：11/22 實測台服 get-items 只回傳 items、character，沒有柳條人欄位；ImportTab／ZhTWConverter 已加 `wickerman` 欄位的相容處理，API 有給就會匯入。
+   - 計算：官方 `CalcSetup.lua` 用 `item.type:match("^Wickerman ")` 判斷，但實際 type 是 "Viscera"，所以臟器的「手套／鞋子效果提高」完全沒算（標註 `-- zhTW` 修正）。雲端無頭驗證：手套 +50 生命，裝上 30% 手套效果的臟器後生命 110 → 125（修正前維持 110）。

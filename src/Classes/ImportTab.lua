@@ -915,6 +915,7 @@ function ImportTabClass:DownloadItems(realm)
 			local charData = copyTable(charListData)
 			charData.equipment = responseLua.items
 			charData.guardian = responseLua.guardian
+			charData.wickerman = responseLua.wickerman -- zhTW: Wickerman parts, if the API ever sends them (Taiwan get-items did not on 11/22)
 			local clearItems = self.controls.siteCharImportItemsClearItems.state
 			local clearSkills = self.controls.siteCharImportItemsClearSkills.state
 			local ignoreWeaponSwap = self.controls.siteCharImportItemsIgnoreWeaponSwap.state

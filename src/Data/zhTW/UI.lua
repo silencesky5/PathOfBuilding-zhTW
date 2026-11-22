@@ -4,6 +4,28 @@
 -- Used by Modules/ZhTWLocale.lua at draw time. Edit freely; reload with F5.
 return {
 	strings = {
+		-- zhTW: Wickerman slots (3.30). Game words: Head/Torso/Upper Limb/Lower Limb = 頭/軀幹/上肢/下肢
+		["Body"] = "軀幹",
+		["Arm"] = "上肢",
+		["Leg"] = "下肢",
+		["Viscera"] = "臟器", -- item class in the game copy text: 物品種類: 臟器
+		-- zhTW: item type sub-types (Craft item "Type:" list shows "Type: Sub-type")
+		["Talisman"] = "魔符",
+		["Armour/Energy Shield"] = "護甲/能量護盾",
+		["Armour/Evasion"] = "護甲/閃避",
+		["Armour/Evasion/Energy Shield"] = "護甲/閃避/能量護盾",
+		["Evasion/Energy Shield"] = "閃避/能量護盾",
+		["Charm"] = "咒語",
+		["Cluster"] = "星團",
+		["Timeless"] = "永恆",
+		["Hybrid"] = "複合",
+		["Mana"] = "魔力",
+		["Utility"] = "功能型",
+		["Thrusting"] = "細劍",
+		["Blightcore"] = "菌潮核心",
+		["Flask"] = "藥劑",
+		["Tincture"] = "萃取物",
+		["Graft"] = "接肢",
 		["Timeout reached without a response received by the local server"] = "等待逾時，本機沒有收到登入回應",
 		["Weapon 2 Swap:"] = "副手 (切換):",
 		["Weapon 1 Swap:"] = "主手 (切換):",
@@ -4491,6 +4513,9 @@ return {
 		{ "^Weapon 2(:?)$", "副手%1" },
 		{ "^Weapon 1 Swap(:?)$", "主手 (切換)%1" },
 		{ "^Weapon 2 Swap(:?)$", "副手 (切換)%1" },
+		-- zhTW: Viscera database names ("Lesser Scorched Arm" = 低階 + 焦黑手臂)
+		{ "^Lesser (.+)$", "低階%t1" },
+		{ "^Greater (.+)$", "高階%t1" },
 	},
 	-- zhTW search: words treated as the same when searching (ZhTWLocale.normalizeSearch).
 	-- Both the query and the Chinese text are rewritten, in this order, before comparing.

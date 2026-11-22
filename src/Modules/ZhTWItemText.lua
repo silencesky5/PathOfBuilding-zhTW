@@ -57,6 +57,9 @@ local rarityNames = {
 }
 local frameTypes = { Normal = 0, Magic = 1, Rare = 2, Unique = 3, Gem = 4, Currency = 5, Relic = 9 }
 
+-- zhTW: the last line of a Wickerman part (Data/zhTW/Display.lua clientStrings)
+local VISCERA_ATTACH = "將此物帶給城鎮或藏身處中的柳條人以將其附上。"
+
 -- Whole lines that are flags; English text as Classes/Item.lua expects it
 local flagLinesEn = { "Corrupted", "Mirrored", "Unidentified", "Split", "Synthesised Item", "Fractured Item",
 	"Shaper Item", "Elder Item", "Crusader Item", "Redeemer Item", "Hunter Item", "Warlord Item",
@@ -331,11 +334,14 @@ function M.convert(text)
 	local l = 1
 	local rarity = "Rare"
 	local names = { }
+	local viscera, hasRarity = false, false -- zhTW: Wickerman parts (物品種類: 臟器) have no rarity line
 	while lines[l] and lines[l] ~= SEPARATOR do
 		local key, val = splitSpec(lines[l])
 		if key == "物品種類" then
 			-- the base type decides the item class
+			viscera = val == "臟器"
 		elseif key == "稀有度" then
+			hasRarity = true
 			rarity = rev.rarity[val] or (isAscii(val) and val) or "Rare"
 		else
 			t_insert(names, lines[l])
@@ -372,6 +378,11 @@ function M.convert(text)
 	end
 
 	local out = { "Rarity: " .. rarity }
+	if viscera and not hasRarity then
+		-- zhTW: Classes/Item.lua reads a Viscera item without a rarity line as a normal item named by its base
+		out = { "Item Class: Viscera" }
+		names = { names[#names] }
+	end
 	if baseEn then
 		local typeLine = isAscii(itemData.typeLine or "") and itemData.typeLine or baseEn
 		if #names >= 2 and rarity ~= "Normal" and rarity ~= "Magic" then
@@ -434,6 +445,10 @@ function M.convert(text)
 			local header, postfix = translateHeader(inner)
 			t_insert(out, header)
 			group = { header = true, postfix = postfix }
+		elseif viscera and line == VISCERA_ATTACH then
+			-- zhTW: "Take this to the Wickerman ..." (Classes/Item.lua skips it for Viscera)
+			flush()
+			t_insert(out, "Take this to the Wickerman in a town or hideout to attach it.")
 		elseif rev.flags[line] then
 			flush()
 			t_insert(out, rev.flags[line])

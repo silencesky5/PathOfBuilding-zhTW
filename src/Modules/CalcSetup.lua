@@ -818,7 +818,7 @@ function calcs.initEnv(build, mode, override, specEnv)
 				if not build.spec.treeVersion:find("3_27") then
 					goto continue
 				end
-			elseif slotName:match("^Wickerman ") and not env.spec.treeVersion:find("3_30") then
+			elseif (slotName:match("^Wickerman ") or slotName == "Head" or slotName == "Body" or slotName == "Arm" or slotName == "Leg") and not env.spec.treeVersion:find("3_30") then -- zhTW: the slots are named Head/Body/Arm/Leg
 				goto continue
 			end
 			-- ignore item in Ring 3 if The Unseen Hand is not allocated
@@ -1044,7 +1044,7 @@ function calcs.initEnv(build, mode, override, specEnv)
 		local equipmentBonusModDB = new("ModDB"):ModDB(env.initialNodeModDB)
 		equipmentBonusModDB:AddList(build.configTab.modList)
 		for _, item in pairs(items) do
-			if item.type:match("^Wickerman ") then
+			if item.type:match("^Wickerman ") or item.type == "Viscera" then -- zhTW: Wickerman parts have type "Viscera"
 				for _, mod in ipairs(item.modList or { }) do
 					if mod.name == "EffectOfBonusesFromGloves" or mod.name == "EffectOfBonusesFromBoots" then
 						equipmentBonusModDB:AddMod(mod)

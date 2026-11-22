@@ -1013,6 +1013,12 @@ function ZhTWLayout.setupItemDBs(itemsTab)
 	end
 	wrap(uniqueDB, "height", fillHeight)
 	wrap(rareDB, "height", fillHeight)
+	local visceraDB = controls.visceraDB -- zhTW: Wickerman parts (3.30), POB's third "Import from" entry
+	if visceraDB then
+		wrap(visceraDB, "shown", function() return selectDB.selIndex == 3 end)
+		wrap(visceraDB, "y", function() return 78 end)
+		wrap(visceraDB, "height", fillHeight)
+	end
 	local function sourceButton(index, text, anchor, x, y)
 		local button = new("ButtonControl"):ButtonControl(anchor, { x, y, 110, 22 }, function()
 			return (selectDB.selIndex == index and GOLD or "^7") .. text
@@ -1026,11 +1032,13 @@ function ZhTWLayout.setupItemDBs(itemsTab)
 	local rare = sourceButton(2, "稀有範本", { "LEFT", unique, "RIGHT" }, 6, 0)
 	controls.zhTWSourceUnique = unique
 	controls.zhTWSourceRare = rare
+	local viscera = visceraDB and sourceButton(3, "柳條人臟器", { "LEFT", rare, "RIGHT" }, 6, 0) -- zhTW: Wickerman
+	controls.zhTWSourceViscera = viscera
 	-- gold underline under the chosen one
-	local mark = new("Control"):Control({ "TOPLEFT", unique, "BOTTOMLEFT" }, { 0, 1, 226, 2 })
+	local mark = new("Control"):Control({ "TOPLEFT", unique, "BOTTOMLEFT" }, { 0, 1, 342, 2 })
 	mark.shown = enabled
 	mark.Draw = function(control)
-		local chosen = selectDB.selIndex == 2 and rare or unique
+		local chosen = (selectDB.selIndex == 3 and viscera) or (selectDB.selIndex == 2 and rare) or unique
 		local x, y = chosen:GetPos()
 		local w, h = chosen:GetSize()
 		rect(x, y + h + 1, w, 2, 0.78, 0.64, 0.35)
@@ -1695,6 +1703,9 @@ function ZhTWLayout.hookItemLists(itemsTab)
 	hook(controls.itemList, itemById, false, true)
 	hook(controls.uniqueDB, itself, true, false)
 	hook(controls.rareDB, itself, true, false)
+	if controls.visceraDB then -- zhTW: Wickerman parts
+		hook(controls.visceraDB, itself, true, false)
+	end
 	hook(controls.sharedItemList, itself, false, false)
 	-- Equipped slots (also the jewel sockets)
 	for _, slot in ipairs(itemsTab.orderedSlots) do

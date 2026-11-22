@@ -1404,6 +1404,9 @@ function ZhTW.convertItemsResponse(resp)
 	for _, itemData in ipairs(resp.guardian or { }) do
 		safeConvertItem(itemData)
 	end
+	for _, itemData in ipairs(resp.wickerman or { }) do -- zhTW: Wickerman parts (3.30)
+		safeConvertItem(itemData)
+	end
 	if resp.character then
 		resp.character.league = convertLeague(resp.character.league)
 	end
