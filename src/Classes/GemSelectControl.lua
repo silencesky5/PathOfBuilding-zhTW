@@ -735,6 +735,7 @@ function GemSelectClass:OnKeyDown(key, doubleClick)
 	if not self:IsShown() or not self:IsEnabled() then
 		return
 	end
+	self:ZhTWFilter() -- zhTW: Ctrl+V pastes through EditControl's own Insert
 
 	-- for filter overlay buttons
 	local x, y = self:GetPos()
@@ -852,4 +853,20 @@ function GemSelectClass:OnKeyUp(key)
 	end
 	local newSel = self.EditControl:OnKeyUp(key)
 	return newSel == self.EditControl and self or newSel
+end
+
+-- zhTW: the gem name box only accepts English letters; in the Chinese interface also let
+-- Chinese (non-ASCII) characters through so gems can be searched by Chinese name
+function GemSelectClass:ZhTWFilter()
+	self.filterPattern = (ZhTWLocale and ZhTWLocale.enabled) and "[^ %a':%-\128-\255]" or "[^ %a':-]"
+end
+
+function GemSelectClass:Insert(text) -- zhTW
+	self:ZhTWFilter()
+	return self.EditControl:Insert(text)
+end
+
+function GemSelectClass:ReplaceSel(text) -- zhTW
+	self:ZhTWFilter()
+	return self.EditControl:ReplaceSel(text)
 end
