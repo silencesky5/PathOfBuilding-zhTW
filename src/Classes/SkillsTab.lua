@@ -9,6 +9,7 @@ local t_insert = table.insert
 local t_remove = table.remove
 local m_min = math.min
 local m_max = math.max
+local ZhTWGemSearch = LoadModule("Modules/ZhTWGemSearch") -- zhTW: 複製寶石名稱、倉庫搜尋字串
 
 local groupSlotDropList = {
 	{ label = "None" },
@@ -436,6 +437,7 @@ will automatically apply to the skill.]]
 	self.controls.gemCountHeader = new("LabelControl"):LabelControl({"BOTTOMLEFT", self.gemSlots[1].count, "TOPLEFT"}, {8, -2, 0, 16}, "^7Count:")
 	if ZhTWLayout then -- zhTW: main skill selection moves here from the side bar
 		ZhTWLayout.setupSkillsTab(self)
+		ZhTWGemSearch.setupSkillsTab(self) -- zhTW: 右下角倉庫搜尋字串
 	end
 	return self
 end
@@ -1079,6 +1081,9 @@ function SkillsTabClass:CreateGemSlot(index)
 		return "Enable "..self.displayGroup.gemList[index].gemData.grantedEffectList[2].name..":"
 	end
 	self.controls["gemSlot"..index.."EnableGlobal2"] = slot.enableGlobal2
+	if ZhTWLayout then -- zhTW: 「數量」左邊的「複製名稱」
+		ZhTWGemSearch.setupGemSlot(self, index, slot)
+	end
 end
 
 -- Update the gem slot controls to reflect the currently displayed socket group

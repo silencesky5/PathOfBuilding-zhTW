@@ -180,3 +180,10 @@ Path{space}of{space}Building.exe <src\zhTWCoverage.lua 的完整路徑>   → sr
    - 貼上遊戲文字：`ZhTWItemText` 認得「物品種類: 臟器」（沒有稀有度行），輸出 `Item Class: Viscera`；「將此物帶給…柳條人…」那行轉成英文給 Item.lua 略過。
    - 台服匯入：11/22 實測台服 get-items 只回傳 items、character，沒有柳條人欄位；ImportTab／ZhTWConverter 已加 `wickerman` 欄位的相容處理，API 有給就會匯入。
    - 計算：官方 `CalcSetup.lua` 用 `item.type:match("^Wickerman ")` 判斷，但實際 type 是 "Viscera"，所以臟器的「手套／鞋子效果提高」完全沒算（標註 `-- zhTW` 修正）。雲端無頭驗證：手套 +50 生命，裝上 30% 手套效果的臟器後生命 110 → 125（修正前維持 110）。
+
+18. **技能頁：複製寶石名稱＋倉庫搜尋字串（11/22）**（只在中文介面，`Modules/ZhTWGemSearch.lua`；`Classes/SkillsTab.lua` 三處 `-- zhTW` 掛勾）：
+   - 每列寶石在「數量」左邊多一顆「複製名稱」，複製台服寶石名（`Data/zhTW/Gems.lua`；POB 的 874 顆中 824 顆有台服名，沒有的 50 顆都是「Vaal X of Y」這種遊戲裡沒有的組合，改用畫面翻譯）。數量欄往右移 78px。
+   - 技能頁右下角「倉庫搜尋字串（已啟用的寶石）」：目前技能組中啟用的插槽群組裡啟用的寶石（不含物品內建技能），名稱用共同前綴／後綴合併成正規表示式（例：`(快速施放|秘能波動)輔助`），可巢狀。
+   - 遊戲搜尋欄上限 250 字（含引號、空白），超過時分段，每段一顆「複製」按鈕，畫面最多列 4 段。
+   - 「品質至少」N：每段後面加 `"品質: \+(…)%"`。兩組引號用空白分開＝兩個條件都要符合。
+   - 測試：`src/zhTWGemSearchTest.lua` → `src/zhTWGemSearchTest.log`。
