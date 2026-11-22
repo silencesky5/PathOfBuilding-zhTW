@@ -57,6 +57,30 @@ local ok, err = pcall(function()
 	local strings = S.buildStrings(names, 0)
 	log("plain", plainLen, "compressed", S.length(strings[1]), strings[1])
 	check(#strings == 1 and S.length(strings[1]) < plainLen, "compressed is shorter")
+	-- 2b. names shorter than a shared prefix/suffix (KAI 11/22: 永恆祝福輔助、雷霆、刺客印記 crashed)
+	local short = S.buildStrings({ "永恆祝福輔助", "雷霆", "刺客印記", "快速施放輔助", "秘能波動輔助", "印記", "雷", "法術圖騰輔助", "元素要害" }, 0)
+	log("short names", short[1])
+	check(#short == 1, "short names do not crash")
+	-- every group of real gem names must work
+	local all = { }
+	for _, gemData in pairs(data.gems) do
+		local name = S.gemDataName(gemData)
+		if name then
+			table.insert(all, name)
+		end
+	end
+	table.sort(all)
+	local okAll, errAll = pcall(function()
+		for i = 1, #all, 7 do
+			local list = { }
+			for j = i, math.min(#all, i + 40) do
+				table.insert(list, all[j])
+			end
+			S.buildStrings(list, 15)
+		end
+		S.buildStrings(all, 0)
+	end)
+	check(okAll, "all gem names build (" .. tostring(errAll) .. ")")
 	-- 3. quality terms
 	for _, q in ipairs({ 0, 1, 5, 10, 15, 20, 23 }) do
 		log("quality", q, S.qualityTerm(q))

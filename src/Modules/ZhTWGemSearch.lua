@@ -172,9 +172,13 @@ local function compress(names, depth)
 		local rests, keep = { }, { }
 		for _, item in ipairs(remaining) do
 			local cs = item.chars
-			local head = t_concat(cs, "", 1, k)
-			local tail = t_concat(cs, "", #cs - k + 1, #cs)
-			if #cs > k and ((isPrefix and head == affix) or (not isPrefix and tail == affix)) then
+			-- 比前後綴短的名稱不能取子字串（t_concat 超出範圍會報錯）
+			local matches = false
+			if #cs > k then
+				local part = isPrefix and t_concat(cs, "", 1, k) or t_concat(cs, "", #cs - k + 1, #cs)
+				matches = part == affix
+			end
+			if matches then
 				t_insert(rests, isPrefix and t_concat(cs, "", k + 1, #cs) or t_concat(cs, "", 1, #cs - k))
 			else
 				t_insert(keep, item)
