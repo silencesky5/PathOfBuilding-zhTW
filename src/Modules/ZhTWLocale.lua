@@ -432,9 +432,10 @@ local function translateCore(core)
 	if not statCore then
 		statCore, bracket = core, ""
 	end
-	local num, label2, pct = s_match(statCore, "^([%+%-]?[%d,]+%.?%d*%%?) (.-)( %([%+%-]?[%d,]+%.?%d*%%%))$")
+	-- zhTW: the number may end in "s" for time stats ("+0s Totem Placement Time (+1.6%)")
+	local num, label2, pct = s_match(statCore, "^([%+%-]?[%d,]+%.?%d*[%%s]?) (.-)( %([%+%-]?[%d,]+%.?%d*%%%))$")
 	if not num then
-		num, label2 = s_match(statCore, "^([%+%-]?[%d,]+%.?%d*%%?) ([%a][%a%s%.']+)$")
+		num, label2 = s_match(statCore, "^([%+%-]?[%d,]+%.?%d*[%%s]?) ([%a][%a%s%.']+)$")
 		pct = ""
 	end
 	if num then
