@@ -1664,6 +1664,17 @@ function PassiveTreeViewClass:AddNodeTooltip(tooltip, node, build, returnEarly)
 		for i, line in ipairs(mNode.sd) do
 			addModInfoToTooltip(mNode, i, masteryColor..line)
 		end
+		-- zhTW: Putrid Seed (Blightcore) nodes only say "Allocates X"; also list X's own stat lines
+		if mNode.isBlightcore and ZhTWLocale and ZhTWLocale.enabled then
+			local notableName = mNode.sd[1]:match("^Allocates (.+)$")
+			local notable = notableName and build.spec.tree.notableMap[notableName:lower()]
+			if notable and notable.sd and notable.sd[1] then
+				tooltip:AddLine(6, "")
+				for _, line in ipairs(notable.sd) do
+					tooltip:AddLine(fontSizeBig, colorCodes.MAGIC..line, "FONTIN")
+				end
+			end
+		end
 		-- add child tooltip for skills
 		for _, mod in ipairs(mNode.finalModList or mNode.modList or {}) do
 			if mod.name == "ExtraSkill" or mod.name == "ExtraSupport" then

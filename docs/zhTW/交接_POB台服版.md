@@ -192,3 +192,8 @@ Path{space}of{space}Building.exe <src\zhTWCoverage.lua 的完整路徑>   → sr
    - 比較頁「設定」子頁原本的「Copy Config from Compare Build」在中文介面改成「套用對方設定」：先跳確認，再把對方目前設定組的全部設定（input＋自訂詞綴）整組覆蓋到我方目前的設定組（我方多出的設定會清掉；官方版只把對方有的欄位蓋過來、不含自訂詞綴、不能復原），然後重算。裝備、天賦、技能不動。
    - 旁邊「復原設定」：還原成套用前（只在同一個設定組時可按）。也會加入設定頁的復原紀錄，設定頁 Ctrl+Z 也可以。
    - 測試：`src/zhTWCompareConfigTest.lua` → `src/zhTWCompareConfigTest.log`（用法同 zhTWCompareItemsTest）。
+
+20. **腐敗之種（Putrid Seed，菌潮核心）附加天賦顯示效果（11/24）**（只在中文介面，`Classes/PassiveTreeView.lua` 的 AddNodeTooltip 一處 `-- zhTW`）：
+   - 塗抹後長出的天賦點（`node.isBlightcore`）原本只有一行「Allocates X」（配置 X）；中文介面在下面多列出 X 本身的效果行（從 `tree.notableMap` 取 sd，畫字時翻成中文）。計算不動。
+   - 注意：腐敗之種的天賦名是英文天賦樹名（例如風暴織者 = Storm Weaver，不是 Stormweaver）。
+   - 測試：`src/zhTWBlightcoreTooltipTest.lua` → `src/zhTWBlightcoreTooltipTest.log`（用法同其他測試）。
