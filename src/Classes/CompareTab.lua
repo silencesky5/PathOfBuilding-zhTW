@@ -919,10 +919,30 @@ function CompareTabClass:InitControls()
 
 	-- Config view: "Copy Config from Compare Build" button
 	self.controls.copyConfigBtn = new("ButtonControl"):ButtonControl(nil, {0, 0, 240, 20},
-		"Copy Config from Compare Build",
-		function() self:CopyCompareConfig() end)
+		function() -- zhTW: 中文介面改成「套用對方設定」（整組覆蓋、先確認、可復原；Modules/ZhTWCompareConfig.lua）
+			return (ZhTWLocale and ZhTWLocale.enabled) and "套用對方設定" or "Copy Config from Compare Build"
+		end,
+		function()
+			if ZhTWLocale and ZhTWLocale.enabled then -- zhTW
+				ZhTWCompareConfig = ZhTWCompareConfig or LoadModule("Modules/ZhTWCompareConfig")
+				ZhTWCompareConfig.apply(self)
+			else
+				self:CopyCompareConfig()
+			end
+		end)
 	self.controls.copyConfigBtn.shown = function()
 		return self.compareViewMode == "CONFIG" and self:GetActiveCompare() ~= nil
+	end
+	-- zhTW: 「復原設定」：還原到按「套用對方設定」之前
+	self.controls.zhTWUndoConfigBtn = new("ButtonControl"):ButtonControl(nil, {0, 0, 120, 20}, "復原設定", function()
+		ZhTWCompareConfig = ZhTWCompareConfig or LoadModule("Modules/ZhTWCompareConfig")
+		ZhTWCompareConfig.undo(self)
+	end)
+	self.controls.zhTWUndoConfigBtn.shown = function()
+		return ZhTWLocale and ZhTWLocale.enabled and self.compareViewMode == "CONFIG" and self:GetActiveCompare() ~= nil
+	end
+	self.controls.zhTWUndoConfigBtn.enabled = function()
+		return ZhTWCompareConfig ~= nil and ZhTWCompareConfig.canUndo(self)
 	end
 
 	-- Config view: "Show All / Hide Ineligible" toggle button
@@ -1892,6 +1912,7 @@ function CompareTabClass:Draw(viewPort, inputEvents)
 		self:DrawConfig(contentVP, compareEntry, true)
 		self:DrawControlList(viewPort, {
 			self.controls.copyConfigBtn,
+			self.controls.zhTWUndoConfigBtn, -- zhTW
 			self.controls.configToggleBtn,
 			self.controls.configSearchEdit,
 			self.controls.configPrimarySetLabel,
@@ -2115,6 +2136,8 @@ function CompareTabClass:LayoutConfigView(contentVP, compareEntry)
 
 	self.controls.copyConfigBtn.x = actionX
 	self.controls.copyConfigBtn.y = row1Y
+	self.controls.zhTWUndoConfigBtn.x = actionX + 250 -- zhTW
+	self.controls.zhTWUndoConfigBtn.y = row1Y
 	self.controls.configToggleBtn.x = actionX
 	self.controls.configToggleBtn.y = row2Y
 

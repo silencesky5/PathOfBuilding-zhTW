@@ -187,3 +187,8 @@ Path{space}of{space}Building.exe <src\zhTWCoverage.lua 的完整路徑>   → sr
    - 遊戲搜尋欄上限 250 字（含引號、空白），超過時分段，每段一顆「複製」按鈕，畫面最多列 4 段。
    - 「品質至少」N：每段後面加 `"品質: \+(…)%"`。兩組引號用空白分開＝兩個條件都要符合。
    - 測試：`src/zhTWGemSearchTest.lua` → `src/zhTWGemSearchTest.log`。
+
+19. **比較頁「套用對方設定」（11/23）**（只在中文介面，`Modules/ZhTWCompareConfig.lua`；`Classes/CompareTab.lua` 三處 `-- zhTW`）：
+   - 比較頁「設定」子頁原本的「Copy Config from Compare Build」在中文介面改成「套用對方設定」：先跳確認，再把對方目前設定組的全部設定（input＋自訂詞綴）整組覆蓋到我方目前的設定組（我方多出的設定會清掉；官方版只把對方有的欄位蓋過來、不含自訂詞綴、不能復原），然後重算。裝備、天賦、技能不動。
+   - 旁邊「復原設定」：還原成套用前（只在同一個設定組時可按）。也會加入設定頁的復原紀錄，設定頁 Ctrl+Z 也可以。
+   - 測試：`src/zhTWCompareConfigTest.lua` → `src/zhTWCompareConfigTest.log`（用法同 zhTWCompareItemsTest）。
