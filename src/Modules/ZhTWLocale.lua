@@ -291,6 +291,124 @@ end
 
 local translateLine
 
+-- zhTW: crafting affix lists (ItemsTab:UpdateAffixControl) show a tier group with "#" in place of
+-- the numbers ("+# to Intelligence") and hybrid modifiers joined by "/"
+-- ("+# to Armour/+# to maximum Life"). Translate two lines with different numbers (sample
+-- values, or two tiers of the real modifier from data.itemMods); the numbers that change become
+-- "#" again.
+local function hasHash(s)
+	return s_find(s, "#[^%d]") or s_find(s, "#$")
+end
+local function fillHash(s, value)
+	return (s:gsub("#(%d?)", function(d)
+		return d == "" and value or "#" .. d
+	end))
+end
+
+-- Two Chinese lines that differ only in numbers -> one line with "#" where they differ
+local function mergeNumbers(zhA, zhB)
+	if not zhA or not zhB then
+		return nil
+	end
+	local numPat = "%-?%d+%.?%d*"
+	local numsA, numsB = { }, { }
+	local textA = zhA:gsub(numPat, function(n) t_insert(numsA, n) return "\0" end)
+	local textB = zhB:gsub(numPat, function(n) t_insert(numsB, n) return "\0" end)
+	if textA ~= textB or #numsA ~= #numsB then
+		return nil
+	end
+	local i = 0
+	return (textA:gsub("%z", function()
+		i = i + 1
+		if numsA[i] == numsB[i] then
+			return numsA[i]
+		end
+		return numsA[i]:sub(1, 1) == "-" and "-#" or "#"
+	end))
+end
+
+-- A modifier, or "/"-joined modifiers translated one by one
+local function translateSlashed(text)
+	local zh = modTranslator(text)
+	if zh or not s_find(text, "/", 1, true) then
+		return zh
+	end
+	-- one description broken over two lines ("... dealing #% of/their Maximum Life ...")
+	zh = modTranslator((text:gsub("/", " "))) or modTranslator((text:gsub("/", "\n")))
+	if zh then
+		return (zh:gsub("\n", " "))
+	end
+	local parts = { }
+	for part in (text .. "/"):gmatch("(.-)/") do
+		zh = part ~= "" and modTranslator(part)
+		if not zh then
+			return nil
+		end
+		t_insert(parts, zh)
+	end
+	return t_concat(parts, "/")
+end
+
+local hashSamples = { { "2", "3" }, { "20", "30" }, { "200", "300" } }
+local function translateHashSamples(core)
+	for _, sample in ipairs(hashSamples) do
+		local zh = mergeNumbers(translateSlashed(fillHash(core, sample[1])), translateSlashed(fillHash(core, sample[2])))
+		if zh then
+			return zh
+		end
+	end
+end
+
+-- "#" label -> two modifier texts of that group, from the item modifier data
+local affixGroupIndex
+local function getAffixGroupIndex()
+	if affixGroupIndex then
+		return affixGroupIndex
+	end
+	affixGroupIndex = { }
+	for _, mods in pairs(data and data.itemMods or { }) do
+		if type(mods) == "table" then
+			for _, mod in pairs(mods) do
+				if type(mod) == "table" and type(mod[1]) == "string" then
+					local text = t_concat(mod, "/")
+					local label = text:gsub("%(%-?[%d%.]+%-%-?[%d%.]+%)", "#"):gsub("%-?%d+%.?%d*", "#")
+					local entry = affixGroupIndex[label]
+					if not entry then
+						affixGroupIndex[label] = { text }
+					elseif #entry == 1 and entry[1] ~= text then
+						entry[2] = text
+					end
+				end
+			end
+		end
+	end
+	return affixGroupIndex
+end
+
+local RANGE = "%((%-?[%d%.]+)%-%-?[%d%.]+%)"
+local RANGE_HI = "%(%-?[%d%.]+%-(%-?[%d%.]+)%)"
+local function translateHashFromData(core)
+	local entry = getAffixGroupIndex()[core]
+	if not entry then
+		return nil
+	end
+	local a = entry[1]:gsub(RANGE, "%1")
+	local b = (entry[2] or entry[1]):gsub(RANGE_HI, "%1")
+	return mergeNumbers(translateSlashed(a), translateSlashed(b))
+end
+
+local function translateAffixGroup(core)
+	if not modTranslator then
+		return nil
+	end
+	if hasHash(core) then
+		return translateHashSamples(core) or translateHashFromData(core)
+	elseif s_find(core, "/", 1, true) then
+		return translateSlashed(core)
+	end
+	return nil
+end
+
 -- Item names: magic names (prefix + base + suffix) and rare names (two words)
 local function translateMagicName(core)
 	for _, base in ipairs(baseNames) do
@@ -450,14 +568,16 @@ local function translateCore(core)
 	end
 	-- Game modifier text
 	if modTranslator and not quick then
-		v = modTranslator(core)
+		v = modTranslator(core) or translateAffixGroup(core) -- zhTW: crafting affix groups
 		if v then
 			return v
 		end
 	end
 	-- Game client templates (after modifiers: these are loose), e.g. "+{0} Levels from Item"
+	-- zhTW: not for affix groups with "#" ("+# to Intelligence" is not "+{0} {1} Intelligence")
+	local hashLine = hasHash(core)
 	for _, f in ipairs(braceFormats) do
-		if f.fixedLen * 10 >= #core * 6 and s_find(core, f.anchor, 1, true) then
+		if not hashLine and f.fixedLen * 10 >= #core * 6 and s_find(core, f.anchor, 1, true) then
 			local caps = { s_match(core, f.pattern) }
 			if caps[1] ~= nil then
 				local byIndex = { }

@@ -203,3 +203,7 @@ Path{space}of{space}Building.exe <src\zhTWCoverage.lua 的完整路徑>   → sr
    - 「威宏史觀 — 無法使用的值」：行尾「 — 無法使用的值」去掉，英文行尾補「 - Unscalable Value」（Classes/Item.lua 認得）。
    - Ctrl+C（沒有詞綴標頭）時，種子行＋派系行原本會被通用描述配到，將軍變成數字（例：「Commissioned 9740 coins to commemorate 3」，切特斯、卡迪羅、神主、深淵族等 12 位領導人錯誤）。現在逐段配對時先試永恆珠寶範本。
    - 測試：`src/zhTWTimelessPasteTest.lua` → `src/zhTWTimelessPasteTest.log`（用法同其他測試）。全部領導人（含別名）× Ctrl+C／Ctrl+Alt+C 兩種格式，檢查征服者、種子 9744 與威宏史觀。
+22. **製作物品的前綴／後綴下拉選單（11/26）**（`Modules/ZhTWLocale.lua` 的 `translateAffixGroup`，只在中文介面、只改顯示）：
+   - 原因：`ItemsTab:UpdateAffixControl` 把同一系列的階層合成一行，數字換成 `#`（「+# to Intelligence」），複合詞綴用「/」連接。`#` 不是數字，詞綴翻譯對不到；「+# to Intelligence」還被遊戲客戶端範本「+{0} {1} Intelligence」（不朽密教「的情報」）錯配。
+   - 做法：把 `#` 換成兩組樣本數字（2/3、20/30、200/300）各翻一次，數字不同的位置換回 `#`；樣本對不到時（固定數字、範圍限制），改從 `data.itemMods` 找同一組的兩個實際詞綴來翻。「/」先試整句（一段描述被拆兩行），再逐段翻。含 `#` 的行不再套客戶端範本。
+   - 測試：`src/zhTWAffixListTest.lua` → `src/zhTWAffixListTest.log`（用法同其他測試）。所有物品類型的選單文字 2372 行，英文從 696 行降到 10 行（釣竿詞綴、「If you've ... Recently」光環兩種、兩行描述含範圍的少數行）。
