@@ -233,9 +233,16 @@ local function restoreRanges(en, ranges)
 	return en
 end
 
+local UNSCALABLE = EM_DASH .. "%s*無法使用的值$" -- zhTW: Ctrl+Alt+C " — Unscalable Value"
+
 -- Splits a mod line into text, ranges and end-of-line marker
 local function prepareModLine(line)
 	local marker
+	local unscalable
+	local a = line:find("%s*" .. UNSCALABLE)
+	if a then
+		line, unscalable = line:sub(1, a - 1), true
+	end
 	local text, m = line:match("^(.-)%s*%(([^%(%)]+)%)$")
 	if not text then
 		text, m = line:match("^(.-)%s*（(.-)）$")
@@ -244,7 +251,7 @@ local function prepareModLine(line)
 		line, marker = text, lineMarkers[m]
 	end
 	local stripped, ranges = stripRanges(line)
-	return { raw = line, text = stripped, ranges = ranges, marker = marker }
+	return { raw = line, text = stripped, ranges = ranges, marker = marker, unscalable = unscalable }
 end
 
 local function isAscii(s)
@@ -264,9 +271,11 @@ local function convertModGroup(group, joinFirst)
 		end
 		en = restoreRanges(en, ranges)
 		local marker = items[#items].marker
+		local unscalable = items[#items].unscalable -- zhTW: Classes/Item.lua reads " - Unscalable Value"
 		for enLine in (en .. "\n"):gmatch("([^\n]*)\n") do
 			if enLine ~= "" then
-				t_insert(out, enLine .. (marker and (" (" .. marker .. ")") or "") .. (postfix or ""))
+				t_insert(out, enLine .. (marker and (" (" .. marker .. ")") or "") .. (postfix or "")
+					.. (unscalable and " - Unscalable Value" or ""))
 			end
 		end
 	end

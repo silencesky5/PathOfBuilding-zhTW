@@ -197,3 +197,9 @@ Path{space}of{space}Building.exe <src\zhTWCoverage.lua 的完整路徑>   → sr
    - 塗抹後長出的天賦點（`node.isBlightcore`）原本只有一行「Allocates X」（配置 X）；中文介面在下面多列出 X 本身的效果行（從 `tree.notableMap` 取 sd，畫字時翻成中文）。計算不動。
    - 注意：腐敗之種的天賦名是英文天賦樹名（例如風暴織者 = Storm Weaver，不是 Stormweaver）。
    - 測試：`src/zhTWBlightcoreTooltipTest.lua` → `src/zhTWBlightcoreTooltipTest.log`（用法同其他測試）。
+
+21. **貼上永恆珠寶文字（11/26）**（`Modules/ZhTWConverter.lua`、`Modules/ZhTWItemText.lua`，改動處標 `-- zhTW`）：
+   - Ctrl+Alt+C 的永恆珠寶：將軍名稱後面會多「(...)」（例：「聖宗領導人神主(...)」），查不到就去掉括號再查一次。
+   - 「威宏史觀 — 無法使用的值」：行尾「 — 無法使用的值」去掉，英文行尾補「 - Unscalable Value」（Classes/Item.lua 認得）。
+   - Ctrl+C（沒有詞綴標頭）時，種子行＋派系行原本會被通用描述配到，將軍變成數字（例：「Commissioned 9740 coins to commemorate 3」，切特斯、卡迪羅、神主、深淵族等 12 位領導人錯誤）。現在逐段配對時先試永恆珠寶範本。
+   - 測試：`src/zhTWTimelessPasteTest.lua` → `src/zhTWTimelessPasteTest.log`（用法同其他測試）。全部領導人（含別名）× Ctrl+C／Ctrl+Alt+C 兩種格式，檢查征服者、種子 9744 與威宏史觀。

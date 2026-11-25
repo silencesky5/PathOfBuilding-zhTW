@@ -965,6 +965,11 @@ local function convertTimelessLine(line)
 					values[n] = v:gsub(",", "")
 				elseif n == "2" then
 					local g = rules.generals[v]
+					if not g then
+						-- zhTW: Ctrl+Alt+C adds the other names after the general: "聖宗領導人神主(...)"
+						local bare = trim((v:gsub("%(.-%)$", ""):gsub("（.-）$", "")))
+						g = rules.generals[bare]
+					end
 					values[n] = g and (generalAlias[g.en] or g.en)
 				else
 					values[n] = rules.factions[v]
@@ -1049,7 +1054,8 @@ local function convertModText(text, field)
 			local done = false
 			for span = math.min(3, #lines - i + 1), 1, -1 do
 				local chunk = t_concat(lines, "\n", i, i + span - 1)
-				local en = (span < #lines or i > 1) and matchText(chunk, span, field)
+				-- zhTW: timeless jewel lines first; the generic description reads the general as a number
+				local en = (span < #lines or i > 1) and (convertTimeless(chunk) or matchText(chunk, span, field))
 				if en then
 					t_insert(out, en)
 					i = i + span
