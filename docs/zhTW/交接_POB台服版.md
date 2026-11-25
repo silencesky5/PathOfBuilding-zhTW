@@ -207,3 +207,7 @@ Path{space}of{space}Building.exe <src\zhTWCoverage.lua 的完整路徑>   → sr
    - 原因：`ItemsTab:UpdateAffixControl` 把同一系列的階層合成一行，數字換成 `#`（「+# to Intelligence」），複合詞綴用「/」連接。`#` 不是數字，詞綴翻譯對不到；「+# to Intelligence」還被遊戲客戶端範本「+{0} {1} Intelligence」（不朽密教「的情報」）錯配。
    - 做法：把 `#` 換成兩組樣本數字（2/3、20/30、200/300）各翻一次，數字不同的位置換回 `#`；樣本對不到時（固定數字、範圍限制），改從 `data.itemMods` 找同一組的兩個實際詞綴來翻。「/」先試整句（一段描述被拆兩行），再逐段翻。含 `#` 的行不再套客戶端範本。
    - 測試：`src/zhTWAffixListTest.lua` → `src/zhTWAffixListTest.log`（用法同其他測試）。所有物品類型的選單文字 2372 行，英文從 696 行降到 10 行（釣竿詞綴、「If you've ... Recently」光環兩種、兩行描述含範圍的少數行）。
+23. **製作物品的「類型」三欄選單（11/26）**（`Modules/ZhTWCraftTypeMenu.lua`，`ItemsTab:CraftItem` 一行 `-- zhTW` 掛勾，只在中文介面）：
+   - 原本是 72 項的單欄清單。中文介面點「類型」改開三欄選單：武器（單手武器／雙手武器／副手：箭袋、魚竿放雙手）｜防具（頭部、胸甲、手套、鞋子、護盾；左邊單一防禦、右邊混合，`保護`、沒有子類型的特殊底材顯示「其他」）｜飾品／珠寶（飾品、珠寶、藥劑＋萃取物、其他：接肢、臟器；之後新增、沒排進表的類型自動放到「其他」）。
+   - 只覆寫該下拉的 Draw／IsMouseOver／OnKeyDown／OnKeyUp／OnChar，list、selIndex、selFunc 不變，選了之後行為和原本清單相同；選單超出視窗會往上或往內移。打字搜尋在三欄選單裡停用。英文介面不掛勾。
+   - 測試：`src/zhTWCraftTypeMenuTest.lua` → `src/zhTWCraftTypeMenuTest.log`（用法同其他測試）。檢查 72 種類型各出現一次、欄位歸屬與順序、點選後底材清單與「建立」結果、800x600 視窗內、英文介面不變。

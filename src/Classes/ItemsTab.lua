@@ -2787,6 +2787,9 @@ function ItemsTabClass:CraftItem()
 		controls.base.selIndex = 1
 	end)
 	controls.type.selIndex = self.lastCraftTypeSel or 1
+	if ZhTWLocale and ZhTWLocale.enabled then -- zhTW: 類型 opens a three-column menu (Modules/ZhTWCraftTypeMenu.lua)
+		LoadModule("Modules/ZhTWCraftTypeMenu").attach(controls.type)
+	end
 	controls.baseLabel = new("LabelControl"):LabelControl({"TOPRIGHT",nil,"TOPLEFT"}, {50, 70, 0, 16}, "Base:")
 	controls.base = new("DropDownControl"):DropDownControl({"TOPLEFT",nil,"TOPLEFT"}, {55, 70, 200, 18}, self.build.data.itemBaseLists[self.build.data.itemBaseTypeList[controls.type.selIndex]])
 	controls.base.selIndex = self.lastCraftBaseSel or 1
