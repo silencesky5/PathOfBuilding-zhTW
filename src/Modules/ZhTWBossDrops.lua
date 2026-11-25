@@ -114,12 +114,20 @@ end
 local function cacheFile(art)
 	return cacheDir() .. art:gsub("[^%w]", "_") .. ".png"
 end
+-- A cached picture counts only when it is a whole PNG; a cut-off file (an older download
+-- could leave just the 8-byte header) is deleted so it downloads again
 local function fileExists(path)
 	local f = io.open(path, "rb")
-	if f then
-		f:close()
+	if not f then
+		return false
+	end
+	local head = f:read(8)
+	local size = f:seek("end")
+	f:close()
+	if head == "\137PNG\r\n\26\n" and size and size > 100 then
 		return true
 	end
+	os.remove(path)
 	return false
 end
 
@@ -129,30 +137,92 @@ local function loadHandle(entry, path)
 	entry.state = "ready"
 end
 
+-- Downloads one picture straight to a file inside the sub script: a PNG holds zero bytes, and
+-- launch:DownloadPage hands the body back as a string, which can arrive cut short.
+local DOWNLOAD_SCRIPT = [[
+	local url, path, connectionProtocol, proxyURL, noSSL = ...
+	local ok, result = pcall(function()
+		local curl = require("lcurl.safe")
+		local easy = curl.easy()
+		local chunks = { }
+		easy:setopt_url(url)
+		easy:setopt(curl.OPT_FOLLOWLOCATION, 1)
+		if connectionProtocol then
+			easy:setopt(curl.OPT_IPRESOLVE, connectionProtocol)
+		end
+		if proxyURL then
+			easy:setopt(curl.OPT_PROXY, proxyURL)
+		end
+		if noSSL then
+			easy:setopt(curl.OPT_SSL_VERIFYPEER, 0)
+			easy:setopt(curl.OPT_SSL_VERIFYHOST, 0)
+		end
+		easy:setopt_writefunction(function(data)
+			chunks[#chunks + 1] = data
+			return true
+		end)
+		local _, err = easy:perform()
+		local code = easy:getinfo(curl.INFO_RESPONSE_CODE)
+		easy:close()
+		if err then
+			return "error: " .. tostring(err:msg())
+		end
+		local body = table.concat(chunks)
+		if code ~= 200 or body:sub(2, 4) ~= "PNG" then
+			return "bad response " .. tostring(code)
+		end
+		local f = io.open(path, "wb")
+		if not f then
+			return "cannot write " .. path
+		end
+		f:write(body)
+		f:close()
+		return "ok"
+	end)
+	return ok and result or ("error: " .. tostring(result))
+]]
+
+local function startDownload(art, done)
+	if not LaunchSubScript then
+		return false
+	end
+	MakeDir(cacheDir())
+	-- a few art paths contain spaces or apostrophes ("Ahn Artifact", "Veteran'sAwarenessJewel")
+	local url = M.CDN .. art:gsub("[^%w/_%-%.]", function(c) return string.format("%%%02X", c:byte()) end) .. ".png"
+	local id = LaunchSubScript(DOWNLOAD_SCRIPT, "", "", url, cacheFile(art),
+		launch.connectionProtocol, launch.proxyURL, launch.noSSL or false)
+	if not id then
+		return false
+	end
+	launch.subScripts[id] = {
+		type = "DOWNLOAD", -- also called (with nil) when the sub script fails
+		callback = function(result)
+			done(result == "ok")
+		end,
+	}
+	return true
+end
+
 local function pump()
 	while active < M.MAX_DOWNLOADS and #queue > 0 do
 		local art = table.remove(queue, 1)
 		local entry = icons[art]
 		active = active + 1
-		launch:DownloadPage(M.CDN .. art .. ".png", function(response, errMsg)
+		local started = startDownload(art, function(ok)
 			active = active - 1
-			local body = response and response.body
-			-- a PNG starts with \137PNG; anything else (an error page) is not cached
-			if not errMsg and body and body:sub(2, 4) == "PNG" then
-				MakeDir(cacheDir())
-				local f = io.open(cacheFile(art), "wb")
-				if f then
-					f:write(body)
-					f:close()
-					loadHandle(entry, cacheFile(art))
-				else
-					entry.state = "failed"
-				end
+			if ok then
+				loadHandle(entry, cacheFile(art))
 			else
 				entry.state = "failed"
+				entry.tries = (entry.tries or 0) + 1
+				entry.failedAt = GetTime()
 			end
 			pump()
 		end)
+		if not started then
+			active = active - 1
+			entry.state = "failed"
+		end
 	end
 end
 
@@ -165,12 +235,19 @@ function M.getIcon(art)
 		local path = cacheFile(art)
 		if fileExists(path) then
 			loadHandle(entry, path)
-		elseif launch and launch.DownloadPage then
+		elseif launch and launch.subScripts then
 			t_insert(queue, art)
 			pump()
 		else
 			entry.state = "failed"
 		end
+	end
+	-- try a failed picture again after 15 s, three times at most (busy server, dropped connection)
+	if entry.state == "failed" and entry.failedAt and (entry.tries or 0) < 3 and GetTime() - entry.failedAt > 15000 then
+		entry.state = "loading"
+		entry.failedAt = nil
+		t_insert(queue, art)
+		pump()
 	end
 	if entry.state == "ready" and not entry.handle:IsLoading() then
 		return entry.handle
@@ -223,7 +300,7 @@ end
 -- Left: bosses (依頭目) or items (依物品反查)
 local LeftList = newClass("ZhTWBossDropsLeftList", "ListControl")
 function LeftList:ZhTWBossDropsLeftList(anchor, rect, view)
-	self:ListControl(anchor, rect, 22, "VERTICAL", false, { })
+	self:ListControl(anchor, rect, 18, "VERTICAL", false, { })
 	self.view = view
 	self.defaultText = "^8沒有符合的結果"
 	return self
@@ -290,18 +367,16 @@ function DropTable:Draw(viewPort, noTooltip)
 		SetDrawColor(1, 1, 1)
 		if self.view.mode == "BOSS" then
 			DrawString(42, lineY + 3, "LEFT", 16, "VAR", typeColor(item.type) .. item.name)
-			local sub = item.en or ""
 			if drop.variants then
-				sub = sub .. (sub ~= "" and "　" or "") .. "變體：" .. table.concat(drop.variants, "、")
+				DrawString(42, lineY + 22, "LEFT", 12, "VAR", "^8" .. #drop.variants .. " 種變體（滑鼠移上去看）")
 			end
-			DrawString(42, lineY + 22, "LEFT", 12, "VAR", "^8" .. sub)
 			cell(2, lineY, typeColor(item.type) .. (item.type or ""))
 			cell(3, lineY, "^7" .. onlyText(drop.only))
 			cell(4, lineY, "^7" .. (drop.rate or "^8—"))
 			cell(5, lineY, "^8" .. (drop.note or ""))
 		else
 			DrawString(42, lineY + 3, "LEFT", 16, "VAR", "^7" .. boss.name)
-			DrawString(42, lineY + 22, "LEFT", 12, "VAR", "^8" .. (boss.en or "") .. "　雙擊切到這隻頭目")
+			DrawString(42, lineY + 22, "LEFT", 12, "VAR", "^8雙擊切到這隻頭目")
 			cell(2, lineY, "^7" .. onlyText(drop.only))
 			cell(3, lineY, "^7" .. (drop.rate or "^8—"))
 			cell(4, lineY, "^8" .. (drop.note or ""))
@@ -309,24 +384,101 @@ function DropTable:Draw(viewPort, noTooltip)
 	end
 	SetViewport()
 end
+-- Full item text for a unique from PoB's unique list (main.uniqueDB.byTitle, by English name):
+-- base, defences or weapon damage, requirements, implicit and explicit modifiers.
+-- PoB's own item tooltip needs a loaded build, so this draws a short version of it.
+-- Returns false when the item is not in the list (not a unique, or a name PoB does not know).
+local function addUniqueLines(tooltip, en)
+	local db = main and main.uniqueDB
+	local item = en and db and db.byTitle and db.byTitle[en:lower()]
+	if not item or not item.base then
+		return false
+	end
+	tooltip:AddLine(16, "^x7F7F7F" .. (item.baseName or ""):gsub(" %(.+%)", ""))
+	-- base values only: the item's own ranges show in the modifier lines below
+	local stats = { }
+	local w, ar = item.base.weapon, item.base.armour
+	if w then
+		if (w.PhysicalMax or 0) > 0 then
+			t_insert(stats, string.format("基礎物理傷害：^7%d-%d", w.PhysicalMin, w.PhysicalMax))
+		end
+		if w.CritChanceBase then
+			t_insert(stats, string.format("基礎暴擊率：^7%.2f%%", w.CritChanceBase))
+		end
+		if w.AttackRateBase then
+			t_insert(stats, string.format("基礎每秒攻擊次數：^7%.2f", w.AttackRateBase))
+		end
+	end
+	if ar then
+		for _, at in ipairs({ { "Armour", "護甲" }, { "Evasion", "閃避值" }, { "EnergyShield", "能量護盾" }, { "Ward", "保護" } }) do
+			local v = ar[at[1] .. "BaseMax"]
+			if (v or 0) > 0 then
+				t_insert(stats, string.format("基礎%s：^7%d", at[2], v))
+			end
+		end
+		if (ar.BlockChance or 0) > 0 then
+			t_insert(stats, string.format("格擋率：^7%d%%", ar.BlockChance))
+		end
+	end
+	for _, line in ipairs(stats) do
+		tooltip:AddLine(16, "^x7F7F7F" .. line)
+	end
+	local r = item.requirements or { }
+	local req = { }
+	if (r.level or 0) > 0 then
+		t_insert(req, "等級 ^7" .. r.level)
+	end
+	for _, st in ipairs({ { "str", "力量" }, { "dex", "敏捷" }, { "int", "智慧" } }) do
+		local v = r[st[1] .. "Mod"] or r[st[1]] or 0
+		if v > 0 then
+			t_insert(req, st[2] .. " ^7" .. v)
+		end
+	end
+	if #req > 0 then
+		tooltip:AddLine(16, "^x7F7F7F需求 " .. table.concat(req, "^x7F7F7F，"))
+	end
+	for _, modList in ipairs({ item.enchantModLines, item.implicitModLines, item.explicitModLines }) do
+		if modList and modList[1] then
+			tooltip:AddSeparator(10)
+			for _, modLine in ipairs(modList) do
+				if item:GetModLineVariantCount(modLine) > 0 then
+					local line = itemLib.formatModLine(modLine, true)
+					if line then
+						tooltip:AddLine(16, line, "VAR", modLine)
+					end
+				end
+			end
+		end
+	end
+	if item.variantList and #item.variantList > 1 then
+		tooltip:AddLine(14, "^8（顯示最新版本，共 " .. #item.variantList .. " 種變體）")
+	end
+	return true
+end
+
 function DropTable:AddValueTooltip(tooltip, index, row)
 	tooltip:Clear()
 	local item, drop = row.item, row.drop
-	tooltip:AddLine(18, typeColor(item.type) .. item.name)
-	if item.en then
-		tooltip:AddLine(14, "^8" .. item.en)
+	tooltip:AddLine(20, typeColor(item.type) .. item.name)
+	local full = item.type == "傳奇" and addUniqueLines(tooltip, item.en)
+	tooltip:AddSeparator(10)
+	local info = { }
+	if not full then
+		t_insert(info, "類型：^7" .. (item.type or ""))
 	end
-	tooltip:AddLine(14, "^7類型：" .. (item.type or ""))
 	if self.view.mode ~= "BOSS" then
-		tooltip:AddLine(14, "^7頭目：" .. row.boss.name)
+		t_insert(info, "頭目：^7" .. row.boss.name)
 	end
-	tooltip:AddLine(14, "^7階段：" .. onlyText(drop.only))
-	tooltip:AddLine(14, "^7機率：" .. (drop.rate or "未查"))
+	t_insert(info, "階段：^7" .. onlyText(drop.only))
+	t_insert(info, "機率：^7" .. (drop.rate or "未查"))
 	if drop.variants then
-		tooltip:AddLine(14, "^7變體：" .. table.concat(drop.variants, "、"))
+		t_insert(info, "可掉變體：^7" .. table.concat(drop.variants, "、"))
 	end
 	if drop.note then
-		tooltip:AddLine(14, "^7備註：" .. drop.note)
+		t_insert(info, "備註：^7" .. drop.note)
+	end
+	for _, line in ipairs(info) do
+		tooltip:AddLine(14, SUBTLE .. line)
 	end
 end
 function DropTable:OnSelClick(index, row, doubleClick)
@@ -424,31 +576,68 @@ function View:ShowBoss(boss)
 	end
 end
 
--- Header above the table: boss name, note, entry fragments (or item name and drop count)
+-- Small grey box with text, for the tier tags beside the boss name; returns its width
+local function drawTag(x, y, text)
+	local w = DrawStringWidth(14, "VAR", text) + 12
+	SetDrawColor(0.22, 0.2, 0.17)
+	DrawImage(nil, x, y, w, 18)
+	SetDrawColor(1, 1, 1)
+	DrawString(x + 6, y + 2, "LEFT", 14, "VAR", "^xD8CCB0" .. text)
+	return w
+end
+
+-- Header above the table, for a boss:
+--   恐慌化身  [一般] [終極恐慌化身]
+--   入場  一般：敬畏之迴響　　終極：敬畏碎片 ×4      (one line per tier when it does not fit)
+--   note
+-- for an item: picture, name, type and number of bosses
+local HEADER_HEIGHT = 84
 local function drawHeader(view, x, y, width)
 	local sel = view.left.selValue
 	if not sel then
 		return
 	end
 	if view.mode == "BOSS" then
-		local title = sel.name .. (sel.en and ("  ^8" .. sel.en) or "")
-		DrawString(x, y, "LEFT", 20, "VAR", "^7" .. title)
-		local tiers = { }
+		DrawString(x, y, "LEFT", 20, "VAR", "^7" .. sel.name)
+		local tx = x + DrawStringWidth(20, "VAR", sel.name) + 12
 		for _, t in ipairs(sel.tiers or { }) do
-			t_insert(tiers, type(t) == "table" and (t.title or t.name) or t)
+			tx = tx + drawTag(tx, y + 2, type(t) == "table" and (t.title or t.name) or t) + 6
 		end
-		local entry = { }
+		-- entry items grouped by tier, in the order they first appear
+		local groups, order = { }, { }
 		for _, e in ipairs(sel.entry or { }) do
-			t_insert(entry, e.name .. (e.count and e.count > 1 and (" ×" .. e.count) or "") .. (e.only and ("（" .. onlyText(e.only) .. "）") or ""))
+			local key = e.only and onlyText(e.only) or ""
+			if not groups[key] then
+				groups[key] = { }
+				t_insert(order, key)
+			end
+			t_insert(groups[key], e.name .. (e.count and e.count > 1 and (" ×" .. e.count) or ""))
 		end
-		local line = (#tiers > 0 and ("階段：" .. table.concat(tiers, "、") .. "　") or "") .. (#entry > 0 and ("入場：" .. table.concat(entry, "、")) or "")
-		DrawString(x, y + 24, "LEFT", 14, "VAR", SUBTLE .. line)
+		local parts = { }
+		for _, key in ipairs(order) do
+			t_insert(parts, (key ~= "" and (SUBTLE .. key .. "：") or "") .. "^7" .. table.concat(groups[key], "、"))
+		end
+		local lineY = y + 30
+		if #parts > 0 then
+			local labelW = DrawStringWidth(14, "VAR", "入場　")
+			DrawString(x, lineY, "LEFT", 14, "VAR", GOLD .. "入場")
+			local oneLine = table.concat(parts, "　　")
+			if DrawStringWidth(14, "VAR", oneLine) <= width - labelW then
+				DrawString(x + labelW, lineY, "LEFT", 14, "VAR", oneLine)
+				lineY = lineY + 18
+			else
+				for _, part in ipairs(parts) do
+					DrawString(x + labelW, lineY, "LEFT", 14, "VAR", part)
+					lineY = lineY + 18
+				end
+			end
+		end
 		if sel.note then
-			DrawString(x, y + 42, "LEFT", 14, "VAR", "^8" .. sel.note)
+			DrawString(x, lineY + 2, "LEFT", 14, "VAR", "^8" .. sel.note)
 		end
 	else
 		M.drawItemIcon(sel, x, y, 56)
-		DrawString(x + 64, y + 2, "LEFT", 20, "VAR", typeColor(sel.type) .. sel.name .. (sel.en and ("  ^8" .. sel.en) or ""))
+		DrawString(x + 64, y + 2, "LEFT", 20, "VAR", typeColor(sel.type) .. sel.name)
 		DrawString(x + 64, y + 28, "LEFT", 14, "VAR", SUBTLE .. (sel.type or "") .. "　共 " .. #sel.sources .. " 隻頭目會掉")
 	end
 end
@@ -481,13 +670,13 @@ function M.open()
 	controls.search:SetPlaceholder("搜尋頭目或物品名稱（中文或英文）")
 	local listTop, listBottom = 56, 40
 	controls.left = new("ZhTWBossDropsLeftList"):ZhTWBossDropsLeftList({ "TOPLEFT", nil, "TOPLEFT" }, { 12, listTop, 220, height - listTop - listBottom }, view)
-	local header = new("Control"):Control({ "TOPLEFT", nil, "TOPLEFT" }, { 244, listTop, width - 244 - 12, 62 })
+	local header = new("Control"):Control({ "TOPLEFT", nil, "TOPLEFT" }, { 244, listTop, width - 244 - 12, HEADER_HEIGHT })
 	header.Draw = function(control)
 		local hx, hy = control:GetPos()
 		drawHeader(view, hx, hy, width - 256)
 	end
 	controls.header = header
-	controls.table = new("ZhTWBossDropsTable"):ZhTWBossDropsTable({ "TOPLEFT", nil, "TOPLEFT" }, { 244, listTop + 66, width - 244 - 12, height - listTop - 66 - listBottom }, view)
+	controls.table = new("ZhTWBossDropsTable"):ZhTWBossDropsTable({ "TOPLEFT", nil, "TOPLEFT" }, { 244, listTop + HEADER_HEIGHT + 4, width - 244 - 12, height - listTop - HEADER_HEIGHT - 4 - listBottom }, view)
 	controls.source = new("LabelControl"):LabelControl({ "BOTTOMLEFT", nil, "BOTTOMLEFT" }, { 12, -12, 0, 14 }, "^8資料來源：Poe-tool 王掉落資料　物品圖片第一次顯示時從官方圖片伺服器下載，之後存在本機")
 	controls.close = new("ButtonControl"):ButtonControl({ "BOTTOMRIGHT", nil, "BOTTOMRIGHT" }, { -12, -10, 80, 22 }, "關閉", function()
 		main:ClosePopup()
